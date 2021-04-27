@@ -1,62 +1,71 @@
 import random
+from discord.ext import commands
 
 
-def echo(string):
+bot = commands.Bot(command_prefix='!')
+
+
+@bot.command()
+async def echo(context, arg):
 	"""echo the input."""
-	return string
+	print('echo')
+	await context.send(arg)
 
 
-# def remind(string):
+# @bot.command()
+# async def remind(context, arg):
 # 	"""get a text-to-speech reminder message after x minutes (default: 15)."""
 # 	args = string.split()
 # 	if not len(args):
-# 		return
-# 	if args[0].isnumeric() and len(args) > 1:
+# 		await context.send(# 	if args[0].isnumeric() )and len(args) > 1:
 # 		# TODO: wait args[0] minutes
 # 	else:
 # 		# TODO: wait 15 minutes
 
-# 		return '/tts ' + string.split(' ', 1)[1]
+# 		await context.send('/tts ' + string.split(' ', 1))[1]
 # 		# TODO: also mention the person who used this command.
 
 
-def roll(string):
+@bot.command()
+async def roll(context, arg1, arg2):
 	"""roll a die. Optionally specify lowest and highest possible numbers (defaults are 1 and 6)."""
-	bounds = string.split()
 	
 	low = 1
 	high = 6
-	if len(bounds) > 0:
-		low = int(bounds[0])
-	if len(bounds) > 1:
-		high = int(bounds[1])
+	if arg1:
+		low = int(arg1)
+	if arg2:
+		high = int(arg2)
 
 	if  low <= high:
-		return str(random.randint(low, high))
+		await context.send(str(random.randint(low, high)))
 	else:
-		return f'{low} > {high}'
+		await context.send(f'{low} > {high}')
 
 
-def flip_coin(_):
+@bot.command()
+async def flip_coin(context):
 	"""flip a coin."""
 	n = random.randint(1, 2)
 	if n == 1:
-		return 'heads'
+		await context.send('heads')
 	else:
-		return 'tails'
+		await context.send('tails')
 
 
-def reverse(string):
+@bot.command()
+async def reverse(context, arg):
 	"""reverse the input."""
-	return string[::-1]
+	await context.send(arg[::-1])
 
 
-def rot13(string):
+@bot.command()
+async def rot13(context, arg):
 	"""rotate each letter 13 letters through the alphabet."""
-	string = string.lower()
+	arg = arg.lower()
 	new_string = ''
 	alphabet = 'abcdefghijklmnopqrstuvwxyz'
-	for char in string:
+	for char in arg:
 		index = alphabet.find(char)
 		if index != -1:
 			new_index = (index + 13) % 26
@@ -64,4 +73,4 @@ def rot13(string):
 		else:
 			new_string += char
 
-	return new_string
+	await context.send(new_string)
