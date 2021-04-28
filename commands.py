@@ -7,7 +7,7 @@ bot = commands.Bot(command_prefix='!')
 
 @bot.command()
 async def echo(context, arg):
-	"""echo the input."""
+	"""Echo the input."""
 	await context.send(arg)
 
 
@@ -27,7 +27,7 @@ async def echo(context, arg):
 
 @bot.command()
 async def roll(context, arg1=1, arg2=6):
-	"""roll a die. Optionally specify lowest and highest possible numbers (defaults are 1 and 6)."""
+	"""Roll a die. Default bounds are 1 and 6."""
 	
 	arg1 = int(arg1)
 	arg2 = int(arg2)
@@ -40,7 +40,7 @@ async def roll(context, arg1=1, arg2=6):
 
 @bot.command(name='flip-coin')
 async def flip_coin(context):
-	"""flip a coin."""
+	"""Flip a coin."""
 	n = random.randint(1, 2)
 	if n == 1:
 		await context.send('heads')
@@ -50,13 +50,13 @@ async def flip_coin(context):
 
 @bot.command()
 async def reverse(context, arg):
-	"""reverse the input."""
+	"""Reverse the input."""
 	await context.send(arg[::-1])
 
 
 @bot.command()
 async def rot13(context, arg):
-	"""rotate each letter 13 letters through the alphabet."""
+	"""Rotate each letter 13 letters through the alphabet."""
 	arg = arg.lower()
 	new_string = ''
 	alphabet = 'abcdefghijklmnopqrstuvwxyz'
