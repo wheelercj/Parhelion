@@ -8,7 +8,6 @@ bot = commands.Bot(command_prefix='!')
 @bot.command()
 async def echo(context, arg):
 	"""echo the input."""
-	print('echo')
 	await context.send(arg)
 
 
@@ -27,23 +26,19 @@ async def echo(context, arg):
 
 
 @bot.command()
-async def roll(context, arg1, arg2):
+async def roll(context, arg1=1, arg2=6):
 	"""roll a die. Optionally specify lowest and highest possible numbers (defaults are 1 and 6)."""
 	
-	low = 1
-	high = 6
-	if arg1:
-		low = int(arg1)
-	if arg2:
-		high = int(arg2)
+	arg1 = int(arg1)
+	arg2 = int(arg2)
 
-	if  low <= high:
-		await context.send(str(random.randint(low, high)))
+	if  arg1 <= arg2:
+		await context.send(str(random.randint(arg1, arg2)))
 	else:
-		await context.send(f'{low} > {high}')
+		await context.send(f'{arg1} > {arg2}')
 
 
-@bot.command()
+@bot.command(name='flip-coin')
 async def flip_coin(context):
 	"""flip a coin."""
 	n = random.randint(1, 2)
