@@ -11,7 +11,6 @@ from music import *
 from rand import *
 from keep_alive import keep_alive
 
-# TODO: send a random quote each day.
 
 @bot.event
 async def on_connect():
