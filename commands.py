@@ -2,45 +2,46 @@ import random
 from discord.ext import commands
 
 
-bot = commands.Bot(command_prefix='!')
+bot = commands.Bot(command_prefix=';')
 
 
 @bot.command()
-async def echo(context, arg):
-	"""Echo the input."""
-	await context.send(arg)
-
-
-# @bot.command()
-# async def remind(context, arg):
-# 	"""get a text-to-speech reminder message after x minutes (default: 15)."""
-# 	args = string.split()
-# 	if not len(args):
-# 		await context.send(# 	if args[0].isnumeric() )and len(args) > 1:
-# 		# TODO: wait args[0] minutes
-# 	else:
-# 		# TODO: wait 15 minutes
-
-# 		await context.send('/tts ' + string.split(' ', 1))[1]
-# 		# TODO: also mention the person who used this command.
+async def echo(context, *, message):
+	'''Display a message.'''
+	await context.send(message)
 
 
 @bot.command()
-async def roll(context, arg1=1, arg2=6):
-	"""Roll a die. Default bounds are 1 and 6."""
+async def ping(context):
+	'''Ping the server.'''
+	await context.send(f'Pong! It took {round(bot.latency, 2)} ms.')
+
+
+@bot.command(name='eval')
+async def calc(context, *, string):
+	'''Evaluate a Python expression.'''
+	try:
+		await context.send(eval(string))
+	except Exception as e:
+		await context.send(f'eval error: {e}')
+
+
+@bot.command()
+async def roll(context, low=1, high=6):
+	'''Roll a die. Default bounds are 1 and 6.'''
 	
-	arg1 = int(arg1)
-	arg2 = int(arg2)
+	low = int(low)
+	high = int(high)
 
-	if  arg1 <= arg2:
-		await context.send(str(random.randint(arg1, arg2)))
+	if  low <= high:
+		await context.send(str(random.randint(low, high)))
 	else:
-		await context.send(f'{arg1} > {arg2}')
+		await context.send(f'{low} > {high}')
 
 
 @bot.command(name='flip-coin')
 async def flip_coin(context):
-	"""Flip a coin."""
+	'''Flip a coin.'''
 	n = random.randint(1, 2)
 	if n == 1:
 		await context.send('heads')
@@ -49,18 +50,18 @@ async def flip_coin(context):
 
 
 @bot.command()
-async def reverse(context, arg):
-	"""Reverse the input."""
-	await context.send(arg[::-1])
+async def reverse(context, *, message):
+	'''Reverse a message.'''
+	await context.send(message[::-1])
 
 
 @bot.command()
-async def rot13(context, arg):
-	"""Rotate each letter 13 letters through the alphabet."""
-	arg = arg.lower()
+async def rot13(context, *, message):
+	'''Rotate each letter of a message 13 letters through the alphabet.'''
+	message = message.lower()
 	new_string = ''
 	alphabet = 'abcdefghijklmnopqrstuvwxyz'
-	for char in arg:
+	for char in message:
 		index = alphabet.find(char)
 		if index != -1:
 			new_index = (index + 13) % 26
