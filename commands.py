@@ -17,13 +17,16 @@ async def ping(context):
 	await context.send(f'Pong! It took {round(bot.latency, 2)} ms.')
 
 
-@bot.command(name='eval')
+@bot.command(name='py')
 async def calc(context, *, string):
-	'''Evaluate a Python expression and return the output.'''
+	'''Evaluate a Python expression and return the output.
+	
+	Print statements don't work with this because they don't return anything.
+	'''
 	try:
 		await context.send(eval(string))
 	except Exception as e:
-		await context.send(f'eval error: {e}')
+		await context.send(f'Python error: {e}')
 
 
 @bot.command()
