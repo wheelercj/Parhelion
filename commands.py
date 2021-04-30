@@ -19,7 +19,7 @@ async def ping(context):
 
 @bot.command(name='eval')
 async def calc(context, *, string):
-	'''Evaluate a Python expression.'''
+	'''Evaluate a Python expression and return the output.'''
 	try:
 		await context.send(eval(string))
 	except Exception as e:
