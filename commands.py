@@ -27,8 +27,8 @@ async def calc(context, *, string):
 
 
 @bot.command()
-async def roll(context, low=1, high=6):
-	'''Roll a die. Default bounds are 1 and 6.'''
+async def rand(context, low=1, high=6):
+	'''Get a random number. Default bounds are 1 and 6.'''
 	
 	low = int(low)
 	high = int(high)
@@ -36,7 +36,7 @@ async def roll(context, low=1, high=6):
 	if  low <= high:
 		await context.send(str(random.randint(low, high)))
 	else:
-		await context.send(f'{low} > {high}')
+		await context.send(str(random.randint(high, low)))
 
 
 @bot.command(name='flip-coin')
