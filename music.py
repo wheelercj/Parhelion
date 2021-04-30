@@ -6,6 +6,7 @@ from discord.ext import commands
 import discord.voice_client
 from commands import *
 
+
 # Suppress noise about console usage from errors
 youtube_dl.utils.bug_reports_message = lambda: ''
 

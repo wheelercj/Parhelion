@@ -8,6 +8,7 @@ import os
 import discord
 from reminders import *
 from music import *
+from rand import *
 from keep_alive import keep_alive
 
 # TODO: send a random quote each day.
