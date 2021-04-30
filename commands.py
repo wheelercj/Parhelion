@@ -6,7 +6,7 @@ bot = commands.Bot(command_prefix=';')
 
 
 @bot.command()
-async def echo(context, *, message):
+async def echo(context, *, message: str):
 	'''Display a message.'''
 	await context.send(message)
 
@@ -17,8 +17,8 @@ async def ping(context):
 	await context.send(f'Pong! It took {round(bot.latency, 2)} ms.')
 
 
-@bot.command()
-async def py(context, *, string):
+@bot.command(aliases=['python', 'eval'])
+async def py(context, *, string: str):
 	'''Evaluate a Python expression and return the output.
 	
 	Print statements don't work with this because they don't return anything.
@@ -29,8 +29,8 @@ async def py(context, *, string):
 		await context.send(f'Python error: {e}')
 
 
-@bot.command()
-async def rand(context, low=1, high=6):
+@bot.command(aliases=['random'])
+async def rand(context, low: int = 1, high: int = 6):
 	'''Get a random number. Default bounds are 1 and 6.'''
 	low = int(low)
 	high = int(high)
@@ -53,7 +53,7 @@ async def roll(context, dice: str):
     await context.send(result)
 
 
-@bot.command(name='flip-coin')
+@bot.command(name='flip-coin', aliases=['flip'])
 async def flip_coin(context):
 	'''Flip a coin.'''
 	n = random.randint(1, 2)
@@ -64,13 +64,13 @@ async def flip_coin(context):
 
 
 @bot.command()
-async def reverse(context, *, message):
+async def reverse(context, *, message: str):
 	'''Reverse a message.'''
 	await context.send(message[::-1])
 
 
 @bot.command()
-async def rot13(context, *, message):
+async def rot13(context, *, message: str):
 	'''Rotate each letter of a message 13 letters through the alphabet.'''
 	message = message.lower()
 	new_string = ''

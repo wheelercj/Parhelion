@@ -31,7 +31,7 @@ async def on_ready():
 
 
 @bot.event
-async def on_message(message):
+async def on_message(message: str):
 	if message.author != bot.user:
 		content = message.content
 		content = content[:2] + content[3:]

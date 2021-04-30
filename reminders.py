@@ -9,7 +9,7 @@ reminders_file = 'reminders.obj'
 
 
 class Reminder:
-	def __init__(self, chosen_time, start_time, end_time, message, author):
+	def __init__(self, chosen_time: str, start_time: datetime.datetime, end_time: datetime.datetime, message: str, author):
 		self.chosen_time = chosen_time
 		self.start_time = start_time
 		self.end_time = end_time
@@ -17,10 +17,17 @@ class Reminder:
 		self.author = author
 
 
-def parse_time(Time):
-	seconds = 0
+def parse_time(Time: str) -> float:
+	'''Convert a str of one or multiple units of time to a float of seconds.
+	
+	The str must be in a certain format. Valid examples:
+		2h45m
+		30s
+		2d5h30m
+	'''
+	seconds = 0.0
 	while True:
-		unit_match = re.search(r'[a-zA-Z]', Time)
+		unit_match = re.search(r'[dhms]', Time)
 		if not unit_match:
 			return seconds
 		else:
@@ -41,9 +48,11 @@ def parse_time(Time):
 				raise SyntaxError
 
 
+# TODO: learn about discord.ext.tasks, which maybe should replace this.
 # TODO: figure out why reminders aren't getting saved to the file.
 @bot.command(hidden=True)
-async def save_reminder(context, chosen_time, seconds, message):
+async def save_reminder(context, chosen_time: str, seconds: int, message: str):
+	'''Save one reminder to the saved reminders file.'''
 	start_time = datetime.datetime.now()
 	end_time = start_time + datetime.timedelta(0, seconds)
 	reminder = Reminder(chosen_time, start_time, end_time, message, context.author)
@@ -54,6 +63,7 @@ async def save_reminder(context, chosen_time, seconds, message):
 
 
 def load_reminders():
+	'''Load and return all reminders from the saved reminders file.'''
 	reminders = []
 	with open(reminders_file, 'rb') as file:
 		while True:
@@ -67,7 +77,7 @@ def load_reminders():
 
 @bot.command(hidden=True)
 async def cotinue_reminder(context, reminder):
-	'''Continue a reminder that had been paused by a server restart.'''
+	'''Continue a reminder that had been stopped by a server restart.'''
 	try:
 		current_time = datetime.datetime.now()
 		end_time = reminder.end_time
@@ -85,6 +95,7 @@ async def cotinue_reminder(context, reminder):
 
 
 def delete_reminder(reminder):
+	'''Remove one reminder from the file of saved reminders.'''
 	reminders = load_reminders()
 	for r in reminders:  # TODO: I'm assuming reminders is a list.
 		if r == reminder:
@@ -92,8 +103,8 @@ def delete_reminder(reminder):
 	# TODO: overwrite the entire file with `reminders`, or rewrite this to only delete the one reminder from the file.
 
 
-@bot.command()
-async def remind(context, chosen_time='15m', message=''):
+@bot.command(aliases=['reminder'])
+async def remind(context, chosen_time: str = '15m', message: str = ''):
 	'''Get a reminder. E.g. ;remind 1h30m "iron socks"'''
 	await context.send(f'Reminder set!')
 	try:
