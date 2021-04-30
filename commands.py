@@ -42,7 +42,7 @@ async def rand(context, low: int = 1, high: int = 6):
 
 @bot.command()
 async def roll(context, dice: str):
-    """Roll dice in NdN format."""
+    '''Roll dice in NdN format.'''
     try:
         rolls, limit = map(int, dice.split('d'))
     except Exception:
@@ -61,6 +61,12 @@ async def flip_coin(context):
 		await context.send('heads')
 	else:
 		await context.send('tails')
+
+
+@bot.command()
+async def choose(context, *choices: str):
+    '''Choose randomly between multiple choices.'''
+    await context.send(random.choice(choices))
 
 
 @bot.command()
