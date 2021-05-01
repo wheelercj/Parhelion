@@ -16,6 +16,9 @@ class Reminder:
 		self.message = message
 		self.author = author
 
+	def __repr__(self):
+		return f'Reminder("{self.chosen_time}", {self.start_time}, {self.end_time}, "{self.message}", {self.author})'
+
 
 def parse_time(Time: str) -> float:
 	'''Convert a str of one or multiple units of time to a float of seconds.
@@ -48,7 +51,6 @@ def parse_time(Time: str) -> float:
 				raise SyntaxError
 
 
-# TODO: learn about discord.ext.tasks, which maybe should replace this.
 # TODO: figure out why reminders aren't getting saved to the file.
 @bot.command(hidden=True)
 async def save_reminder(context, chosen_time: str, seconds: int, message: str):
@@ -56,6 +58,7 @@ async def save_reminder(context, chosen_time: str, seconds: int, message: str):
 	start_time = datetime.datetime.now()
 	end_time = start_time + datetime.timedelta(0, seconds)
 	reminder = Reminder(chosen_time, start_time, end_time, message, context.author)
+	print(f'{reminder}')
 	with open(reminders_file, 'wb') as file:
 		pickle.dump(reminder, file)  # TODO: this might not append, it might overwrite everything.
 	
@@ -109,7 +112,7 @@ async def remind(context, chosen_time: str = '15m', message: str = ''):
 	await context.send(f'Reminder set!')
 	try:
 		seconds = parse_time(chosen_time)
-		reminder = save_reminder(context, chosen_time, seconds, message)
+		reminder = await save_reminder(context, chosen_time, seconds, message)
 
 		await asyncio.sleep(seconds)
 		await context.send(f'{context.author.mention}, here is your {chosen_time} reminder: {message}', tts=True)
