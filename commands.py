@@ -28,13 +28,13 @@ async def py(context, *, string: str):
 		await context.send(f'Python error: {e}')
 
 
-@bot.command()
+@bot.command(hidden=True)
 async def reverse(context, *, message: str):
 	'''Reverse a message.'''
 	await context.send(message[::-1])
 
 
-@bot.command()
+@bot.command(hidden=True)
 async def rot13(context, *, message: str):
 	'''Rotate each letter of a message 13 letters through the alphabet.'''
 	message = message.lower()
