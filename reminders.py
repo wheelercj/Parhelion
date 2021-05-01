@@ -2,22 +2,24 @@ import re
 import asyncio
 import datetime
 import pickle
+import discord
 from commands import *
 
 
-reminders_file = 'reminders.obj'
+reminders_file = 'reminders.txt'
 
 
 class Reminder:
-	def __init__(self, chosen_time: str, start_time: datetime.datetime, end_time: datetime.datetime, message: str, author):
+	def __init__(self, chosen_time: str, start_time: datetime.datetime, end_time: datetime.datetime, message: str, author: str, channel: int):
 		self.chosen_time = chosen_time
 		self.start_time = start_time
 		self.end_time = end_time
 		self.message = message
 		self.author = author
+		self.channel = channel
 
 	def __repr__(self):
-		return f'Reminder("{self.chosen_time}", {self.start_time}, {self.end_time}, "{self.message}", {self.author})'
+		return f'Reminder("{self.chosen_time}", {self.start_time}, {self.end_time}, "{self.message}", "{self.author}", {self.channel})'
 
 
 def parse_time(Time: str) -> float:
@@ -51,14 +53,15 @@ def parse_time(Time: str) -> float:
 				raise SyntaxError
 
 
-# TODO: figure out why reminders aren't getting saved to the file.
 @bot.command(hidden=True)
 async def save_reminder(context, chosen_time: str, seconds: int, message: str):
 	'''Save one reminder to the saved reminders file.'''
 	start_time = datetime.datetime.now()
 	end_time = start_time + datetime.timedelta(0, seconds)
-	reminder = Reminder(chosen_time, start_time, end_time, message, context.author)
-	print(f'{reminder}')
+	author = str(context.author.mention)
+	channel = context.channel.id
+
+	reminder = Reminder(chosen_time, start_time, end_time, message, author, channel)
 	with open(reminders_file, 'wb') as file:
 		pickle.dump(reminder, file)  # TODO: this might not append, it might overwrite everything.
 	
@@ -78,23 +81,25 @@ def load_reminders():
 	return reminders
 
 
-@bot.command(hidden=True)
-async def cotinue_reminder(context, reminder):
+async def cotinue_reminder(reminder, bot):
 	'''Continue a reminder that had been stopped by a server restart.'''
+	
+	channel = bot.get_channel(reminder.channel)
 	try:
 		current_time = datetime.datetime.now()
 		end_time = reminder.end_time
 		remaining_time = end_time - current_time
-		if remaining_time > 0:
-			remaining_seconds = remaining_time.total_seconds()
+		remaining_seconds = remaining_time.total_seconds()
+		if remaining_seconds > 0:
+			await asyncio.sleep(remaining_seconds)
+			await channel.send(f'{reminder.author}, here is your {reminder.chosen_time} reminder: {reminder.message}', tts=True)
 		else:
-			remaining_seconds = 0
+			await channel.send(f'{reminder.author}, a connection problem delayed your reminder: {reminder.message}', tts=True)
+			await channel.send(f'The reminder had been set for {end_time.year}-{end_time.month}-{end_time.day} at {end_time.hour}:{end_time.minute} UTC')
 
-		await asyncio.sleep(remaining_seconds)
-		await context.send(f'{reminder.author.mention}, here is your {reminder.chosen_time} reminder: {reminder.message}', tts=True)
 		delete_reminder(reminder)
 	except Exception as e:
-		await context.send(f'{reminder.author.mention}, your reminder encountered an error: {e}')
+		await channel.send(f'{reminder.author}, your reminder encountered an error: {e}')
 
 
 def delete_reminder(reminder):

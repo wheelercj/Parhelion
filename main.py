@@ -18,9 +18,10 @@ async def on_connect():
 		print('Connecting . . . ')
 		reminders = load_reminders()
 		for r in reminders:  # TODO: I'm assuming reminders is a list.
-			await cotinue_reminders(r)
+			await cotinue_reminder(r, bot)
 	except Exception as e:
 		print(f'on_connect error: {e}')
+		raise e
 
 
 @bot.event
