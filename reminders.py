@@ -127,4 +127,4 @@ async def remind(context, chosen_time: str = '15m', message: str = ''):
 		await context.send(f'{context.author.mention}, here is your {chosen_time} reminder: {message}', tts=True)
 		delete_reminder(reminder)
 	except Exception as e:
-		await context.send(f'{context.author.mention}, your reminder encountered an error: {e}')
+		await context.send(f'{context.author.mention}, your reminder was cancelled because of an error: {e}')
