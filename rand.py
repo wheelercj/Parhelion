@@ -10,7 +10,7 @@ class Random(commands.Cog):
 
 	@commands.command(aliases=['random'])
 	async def rand(self, context, low: int = 1, high: int = 6):
-		'''Get a random number. Default bounds are 1 and 6.'''
+		'''Gets a random number (default bounds are 1 and 6)'''
 		low = int(low)
 		high = int(high)
 		if  low <= high:
@@ -21,7 +21,7 @@ class Random(commands.Cog):
 
 	@commands.command()
 	async def roll(self, context, dice: str):
-		'''Roll dice in NdN format.'''
+		'''Rolls dice in NdN format'''
 		try:
 			rolls, limit = map(int, dice.split('d'))
 		except Exception:
@@ -34,7 +34,7 @@ class Random(commands.Cog):
 
 	@commands.command(name='flip-coin', aliases=['flip'])
 	async def flip_coin(self, context):
-		'''Flip a coin.'''
+		'''Flips a coin'''
 		n = random.randint(1, 2)
 		if n == 1:
 			await context.send('heads')
@@ -44,13 +44,13 @@ class Random(commands.Cog):
 
 	@commands.command()
 	async def choose(self, context, *choices: str):
-		'''Choose randomly between multiple choices.'''
+		'''Chooses randomly between multiple choices'''
 		await context.send(random.choice(choices))
 
 
 	@commands.command()
 	async def quote(self, context):
-		'''Display a random famous quote.'''
+		'''Displays a random famous quote'''
 		first_quote_line = 2
 		last_quote_line = 16262
 		delta = 3

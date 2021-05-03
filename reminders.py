@@ -133,12 +133,11 @@ def delete_reminder(reminder):
 				pickle.dump(r, file)
 	except ValueError:
 		print(f'Error: failed to delete reminder: {reminder}')
-		
 
 
 @bot.command(aliases=['reminder'])
 async def remind(context, chosen_time: str = '15m', message: str = ''):
-	'''Get a reminder. E.g. ;remind 1h30m "iron socks"'''
+	'''Sends a reminder, e.g. ;remind 1h30m "iron socks"'''
 	await context.send(f'Reminder set!')
 	try:
 		seconds = parse_time(chosen_time)

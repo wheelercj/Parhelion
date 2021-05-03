@@ -6,20 +6,20 @@ bot = commands.Bot(command_prefix=';')
 
 @bot.command()
 async def echo(context, *, message: str):
-	'''Display a message.'''
+	'''Displays a message'''
 	await context.send(message)
 
 
 @bot.command()
 async def ping(context):
-	'''Ping the server.'''
+	'''Pings the server'''
 	await context.send(f'Pong! It took {round(bot.latency, 2)} ms.')
 
 
 @bot.command(aliases=['python', 'eval'])
 async def py(context, *, string: str):
-	'''Evaluate a Python expression and return the output.
-	
+	'''Evaluates a Python expression and returns the result
+
 	Print statements don't work with this because they don't return anything.
 	'''
 	try:
@@ -30,22 +30,25 @@ async def py(context, *, string: str):
 
 @bot.command()
 async def calc(context, *, string: str):
-	'''Evaluate a math expression.
+	'''Evaluates a math expression
 	
 	This is an alias of ;py
 	'''
-	await py(context, string)
+	try:
+		await context.send(eval(string))
+	except Exception as e:
+		await context.send(f'Python error: {e}')
 
 
 @bot.command(hidden=True)
 async def reverse(context, *, message: str):
-	'''Reverse a message.'''
+	'''Reverses a message'''
 	await context.send(message[::-1])
 
 
 @bot.command(hidden=True)
 async def rot13(context, *, message: str):
-	'''Rotate each letter of a message 13 letters through the alphabet.'''
+	'''Rotates each letter of a message 13 letters through the alphabet'''
 	message = message.lower()
 	new_string = ''
 	alphabet = 'abcdefghijklmnopqrstuvwxyz'
