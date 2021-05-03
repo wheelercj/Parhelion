@@ -62,8 +62,8 @@ async def save_reminder(context, chosen_time: str, seconds: int, message: str):
 	channel = context.channel.id
 
 	reminder = Reminder(chosen_time, start_time, end_time, message, author, channel)
-	with open(reminders_file, 'wb') as file:
-		pickle.dump(reminder, file)  # TODO: this might not append, it might overwrite everything.
+	with open(reminders_file, 'ab') as file:
+		pickle.dump(reminder, file)
 	
 	return reminder
 
@@ -102,13 +102,17 @@ async def cotinue_reminder(reminder, bot):
 		await channel.send(f'{reminder.author}, your reminder encountered an error: {e}')
 
 
+# TODO: fix this function.
 def delete_reminder(reminder):
 	'''Remove one reminder from the file of saved reminders.'''
 	reminders = load_reminders()
-	for r in reminders:  # TODO: I'm assuming reminders is a list.
-		if r == reminder:
-			reminders.remove(r)
-	# TODO: overwrite the entire file with `reminders`, or rewrite this to only delete the one reminder from the file.
+	try:
+		reminders.remove(reminder)
+	except ValueError:
+		pass
+		
+	with open(reminders_file, 'wb') as file:
+		pickle.dump(reminders, file)
 
 
 @bot.command(aliases=['reminder'])

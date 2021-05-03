@@ -28,6 +28,15 @@ async def py(context, *, string: str):
 		await context.send(f'Python error: {e}')
 
 
+@bot.command()
+async def calc(context, *, string: str):
+	'''Evaluate a math expression.
+	
+	This is an alias of ;py
+	'''
+	await py(context, string)
+
+
 @bot.command(hidden=True)
 async def reverse(context, *, message: str):
 	'''Reverse a message.'''
