@@ -78,7 +78,11 @@ def load_reminders():
 			except EOFError:
 				break
 
-	return reminders
+	if len(reminders):
+		if type(reminders[0]) is Reminder:
+			return reminders
+		else:
+			return reminders[0]
 
 
 async def cotinue_reminder(reminder, bot):
@@ -94,7 +98,7 @@ async def cotinue_reminder(reminder, bot):
 			await asyncio.sleep(remaining_seconds)
 			await channel.send(f'{reminder.author}, here is your {reminder.chosen_time} reminder: {reminder.message}', tts=True)
 		else:
-			await channel.send(f'{reminder.author}, a connection problem delayed your reminder: {reminder.message}', tts=True)
+			await channel.send(f'{reminder.author}, an error delayed your reminder: {reminder.message}', tts=True)
 			await channel.send(f'The reminder had been set for {end_time.year}-{end_time.month}-{end_time.day} at {end_time.hour}:{end_time.minute} UTC')
 
 		delete_reminder(reminder)
