@@ -7,6 +7,7 @@ from commands import *
 
 
 reminders_file = 'reminders.txt'
+use_tts = False  # Text-to-speech for the reminder messages.
 
 
 class Reminder:
@@ -20,6 +21,22 @@ class Reminder:
 
 	def __repr__(self):
 		return f'Reminder("{self.chosen_time}", {self.start_time}, {self.end_time}, "{self.message}", "{self.author}", {self.channel})'
+
+	def __eq__(self, other):
+		return self.chosen_time == other.chosen_time \
+			and self.start_time == other.start_time \
+			and self.end_time == other.end_time \
+			and self.message == other.message \
+			and self.author == other.author \
+			and self.channel == other.channel
+
+	def __ne__(self, other):
+		return self.chosen_time != other.chosen_time \
+			or self.start_time != other.start_time \
+			or self.end_time != other.end_time \
+			or self.message != other.message \
+			or self.author != other.author \
+			or self.channel != other.channel
 
 
 def parse_time(Time: str) -> float:
@@ -96,9 +113,9 @@ async def cotinue_reminder(reminder, bot):
 		remaining_seconds = remaining_time.total_seconds()
 		if remaining_seconds > 0:
 			await asyncio.sleep(remaining_seconds)
-			await channel.send(f'{reminder.author}, here is your {reminder.chosen_time} reminder: {reminder.message}', tts=True)
+			await channel.send(f'{reminder.author}, here is your {reminder.chosen_time} reminder: {reminder.message}', tts=use_tts)
 		else:
-			await channel.send(f'{reminder.author}, an error delayed your reminder: {reminder.message}', tts=True)
+			await channel.send(f'{reminder.author}, an error delayed your reminder: {reminder.message}', tts=use_tts)
 			await channel.send(f'The reminder had been set for {end_time.year}-{end_time.month}-{end_time.day} at {end_time.hour}:{end_time.minute} UTC')
 
 		delete_reminder(reminder)
@@ -106,17 +123,17 @@ async def cotinue_reminder(reminder, bot):
 		await channel.send(f'{reminder.author}, your reminder encountered an error: {e}')
 
 
-# TODO: fix this function.
 def delete_reminder(reminder):
 	'''Remove one reminder from the file of saved reminders.'''
 	reminders = load_reminders()
 	try:
 		reminders.remove(reminder)
+		with open(reminders_file, 'wb') as file:
+			for r in reminders:
+				pickle.dump(r, file)
 	except ValueError:
-		pass
+		print(f'Error: failed to delete reminder: {reminder}')
 		
-	with open(reminders_file, 'wb') as file:
-		pickle.dump(reminders, file)
 
 
 @bot.command(aliases=['reminder'])
@@ -128,7 +145,7 @@ async def remind(context, chosen_time: str = '15m', message: str = ''):
 		reminder = await save_reminder(context, chosen_time, seconds, message)
 
 		await asyncio.sleep(seconds)
-		await context.send(f'{context.author.mention}, here is your {chosen_time} reminder: {message}', tts=True)
+		await context.send(f'{context.author.mention}, here is your {chosen_time} reminder: {message}', tts=use_tts)
 		delete_reminder(reminder)
 	except Exception as e:
 		await context.send(f'{context.author.mention}, your reminder was cancelled because of an error: {e}')
