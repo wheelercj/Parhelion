@@ -137,7 +137,10 @@ def delete_reminder(reminder):
 
 @bot.command(aliases=['reminder'])
 async def remind(context, chosen_time: str = '15m', message: str = ''):
-	'''Sends a reminder, e.g. ;remind 1h30m "iron socks"'''
+	'''Sends a reminder, e.g. ;remind 1h30m "iron socks"
+	
+	Currently, these reminders are saved in a publicly accessible file.
+	'''
 	await context.send(f'Reminder set!')
 	try:
 		seconds = parse_time(chosen_time)
