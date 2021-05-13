@@ -39,6 +39,25 @@ class Reminder:
 			or self.channel != other.channel
 
 
+
+@bot.command(aliases=['reminder'])
+async def remind(context, chosen_time: str = '15m', message: str = ''):
+	'''Sends a reminder, e.g. ;remind 1h30m "iron socks"
+	
+	Currently, these reminders are saved in a publicly accessible file.
+	'''
+	await context.send(f'Reminder set!')
+	try:
+		seconds = parse_time(chosen_time)
+		reminder = await save_reminder(context, chosen_time, seconds, message)
+
+		await asyncio.sleep(seconds)
+		await context.send(f'{context.author.mention}, here is your {chosen_time} reminder: {message}', tts=use_tts)
+		delete_reminder(reminder)
+	except Exception as e:
+		await context.send(f'{context.author.mention}, your reminder was cancelled because of an error: {e}')
+
+
 def parse_time(Time: str) -> float:
 	'''Convert a str of one or multiple units of time to a float of seconds.
 	
@@ -70,7 +89,6 @@ def parse_time(Time: str) -> float:
 				raise SyntaxError
 
 
-@bot.command(hidden=True)
 async def save_reminder(context, chosen_time: str, seconds: int, message: str):
 	'''Save one reminder to the saved reminders file.'''
 	start_time = datetime.datetime.now()
@@ -120,7 +138,7 @@ async def cotinue_reminder(reminder, bot):
 
 		delete_reminder(reminder)
 	except Exception as e:
-		await channel.send(f'{reminder.author}, your reminder encountered an error: {e}')
+		await channel.send(f'{reminder.author.mention}, your reminder was cancelled because of an error: {e}')
 
 
 def delete_reminder(reminder):
@@ -133,21 +151,3 @@ def delete_reminder(reminder):
 				pickle.dump(r, file)
 	except ValueError:
 		print(f'Error: failed to delete reminder: {reminder}')
-
-
-@bot.command(aliases=['reminder'])
-async def remind(context, chosen_time: str = '15m', message: str = ''):
-	'''Sends a reminder, e.g. ;remind 1h30m "iron socks"
-	
-	Currently, these reminders are saved in a publicly accessible file.
-	'''
-	await context.send(f'Reminder set!')
-	try:
-		seconds = parse_time(chosen_time)
-		reminder = await save_reminder(context, chosen_time, seconds, message)
-
-		await asyncio.sleep(seconds)
-		await context.send(f'{context.author.mention}, here is your {chosen_time} reminder: {message}', tts=use_tts)
-		delete_reminder(reminder)
-	except Exception as e:
-		await context.send(f'{context.author.mention}, your reminder was cancelled because of an error: {e}')
