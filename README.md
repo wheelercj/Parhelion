@@ -1,6 +1,6 @@
 # Parhelion
 
-A simple Discord bot that can play music, solve math questions, and send reminders.
+A simple Discord bot that can play music, solve math questions, and send reminders. You can add the bot to your Discord server by clicking [this link](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352). After adding, you can see a full list of commands by entering `;help`.
 
 Here are some guides to making Discord bots that I found helpful:
 * https://ritza.co/showcase/repl.it/building-a-discord-bot-with-python-and-repl-it.html
