@@ -30,12 +30,17 @@ async def on_ready():
 @bot.event
 async def on_message(message: str):
 	if message.author != bot.user:
-		content = message.content
-		content = content[:2] + content[3:]
-		if bot.user.mention in content.split():
-			await message.channel.send(f'Hello {message.author.name.split()[0]}!')
-
+		await answer_mention(message, bot)
 		await bot.process_commands(message)
+
+
+async def answer_mention(message: str, bot):
+	'''Respond when mentioned'''
+	# For some reason, bot.user.mention is always missing the exclamation
+	# point that's in the unrendered version of mentions.
+	mention = bot.user.mention[:2] + '!' + bot.user.mention[2:]
+	if mention in message.content:
+		await message.channel.send(f'Hello {message.author.nick.split()[0]}!')
 
 
 keep_alive()
