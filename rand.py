@@ -48,21 +48,4 @@ class Random(commands.Cog):
 		await context.send(random.choice(choices))
 
 
-	@commands.command()
-	async def quote(self, context):
-		'''Displays a random famous quote'''
-		first_quote_line = 2
-		last_quote_line = 16262
-		delta = 3
-		max = (last_quote_line - first_quote_line) / delta
-		rand_line = random.randint(0, max) * delta + first_quote_line
-		
-		quote_str = linecache.getline('quotes.txt', rand_line)
-		author = linecache.getline('quotes.txt', rand_line+1)
-		
-		await context.send(quote_str)
-		await context.send(author)
-
-
-
 bot.add_cog(Random(bot))
