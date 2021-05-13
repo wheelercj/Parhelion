@@ -40,7 +40,11 @@ async def answer_mention(message: str, bot):
 	# point that's in the unrendered version of mentions.
 	mention = bot.user.mention[:2] + '!' + bot.user.mention[2:]
 	if mention in message.content:
-		await message.channel.send(f'Hello {message.author.nick.split()[0]}!')
+		nickname = message.author.nick
+		if nickname is not None:
+			await message.channel.send(f'Hello {nickname.split()[0]}!')
+		else:
+			await message.channel.send(f'Hello {message.author.name.split()[0]}!')
 
 
 keep_alive()
