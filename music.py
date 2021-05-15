@@ -94,15 +94,16 @@ class Music(commands.Cog):
 
 		await channel.connect()
 
-		
-	@commands.command()
-	async def play(self, context, *, query):
-		'''Plays a file from the local filesystem'''
 
-		source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(query))
-		context.voice_client.play(source, after=lambda e: print('Player error: %s' % e) if e else None)
+	# I don't want to allow downloading of audio files to repl.it, so this command can never be used anyways.	
+	# @commands.command()
+	# async def play(self, context, *, query):
+	# 	'''Plays a file from the local filesystem'''
 
-		await context.send('Now playing: {}'.format(query))
+	# 	source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(query))
+	# 	context.voice_client.play(source, after=lambda e: print('Player error: %s' % e) if e else None)
+
+	# 	await context.send('Now playing: {}'.format(query))
 
 
 	# This command downloads files into repl.it, and the quality of the music it plays is terrible probably because of repl.it's limited resources.
@@ -145,7 +146,7 @@ class Music(commands.Cog):
 		await context.voice_client.disconnect()
 
 		
-	@play.before_invoke
+	#@play.before_invoke
 	#@yt.before_invoke
 	@stream.before_invoke
 	async def ensure_voice(self, context):
