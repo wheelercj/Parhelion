@@ -104,16 +104,17 @@ class Music(commands.Cog):
 
 		await context.send('Now playing: {}'.format(query))
 
-		
-	@commands.command()
-	async def yt(self, context, *, url):
-		'''Plays from a url (almost anything youtube_dl supports)'''
 
-		async with context.typing():
-			player = await YTDLSource.from_url(url, loop=self.bot.loop)
-			context.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+	# This command downloads files into repl.it, and the quality of the music it plays is terrible probably because of repl.it's limited resources.
+	# @commands.command()
+	# async def yt(self, context, *, url):
+	# 	'''Plays from a url (almost anything youtube_dl supports)'''
 
-		await context.send('Now playing: {}'.format(player.title))
+	# 	async with context.typing():
+	# 		player = await YTDLSource.from_url(url, loop=self.bot.loop)
+	# 		context.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+
+	# 	await context.send('Now playing: {}'.format(player.title))
 
 		
 	@commands.command()
