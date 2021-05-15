@@ -146,7 +146,7 @@ class Music(commands.Cog):
 
 		
 	@play.before_invoke
-	@yt.before_invoke
+	#@yt.before_invoke
 	@stream.before_invoke
 	async def ensure_voice(self, context):
 		if context.voice_client is None:
