@@ -55,7 +55,12 @@ async def remind(context, chosen_time: str = '15m', message: str = ''):
 		await context.send(f'{context.author.mention}, here is your {chosen_time} reminder: {message}', tts=use_tts)
 		delete_reminder(reminder)
 	except Exception as e:
-		await context.send(f'{context.author.mention}, your reminder was cancelled because of an error: {e}')
+		if e == 'invalid load key, \'\\xef\'':
+			await context.send(f'Reminder error: {e}.')
+			with open('reminders.txt', 'w') as _:
+				pass
+		else:
+			await context.send(f'{context.author.mention}, your reminder was cancelled because of an error: {e}')
 
 
 def parse_time(Time: str) -> float:
