@@ -1,6 +1,8 @@
+import os
 from discord.ext import commands
 
 
+discord_user_id = os.environ['DISCORD_USER_ID']
 bot = commands.Bot(command_prefix=';')
 
 
@@ -14,6 +16,12 @@ async def echo(context, *, message: str):
 async def ping(context):
 	'''Pings the server'''
 	await context.send(f'Pong! It took {round(bot.latency, 2)} ms.')
+
+
+@bot.command(aliases=['about'])
+async def info(context):
+	'''Displays general info about this bot'''
+	pass  # TODO
 
 
 @bot.command(aliases=['python', 'eval'])
@@ -61,3 +69,13 @@ async def rot13(context, *, message: str):
 			new_string += char
 
 	await context.send(new_string)
+
+
+@bot.command(hidden=True)
+async def servers(context):
+	'''Displays how many servers this bot is in'''
+	await context.send(f'This bot is in {len(bot.guilds)} servers')
+
+	if str(context.author.id) == discord_user_id:
+		for guild in bot.guilds:
+			await context.send(f'- {guild.name}')
