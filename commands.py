@@ -30,6 +30,12 @@ async def info(context):
 	await context.send(f'Enter ;help for a list of commands.\nThis bot was created by {a} except for the parts otherwise specified. Here\'s a link to the bot\'s Repl.it page: https://replit.com/@wheelercj/simple-Discord-bot')
 
 
+@bot.command()
+async def invite(context):
+	'''Gives the link to invite this bot to another server'''
+	await context.send('You can invite me to another server that you have "manage server" permissions in with this link: https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352')
+
+
 @bot.command(aliases=['python', 'eval'])
 async def py(context, *, string: str):
 	'''Evaluates a Python expression and returns the result
