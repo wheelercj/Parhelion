@@ -21,13 +21,16 @@ async def ping(context):
 @bot.command(aliases=['about'])
 async def info(context):
 	'''Displays general info about this bot'''
-	a = 'https://replit.com/@wheelercj'
+	name = get_bot_developers_name(context)
+	await context.send(f'Enter ;help for a list of commands.\nThis bot was created by {name} except for the parts otherwise specified. Here\'s a link to the bot\'s Repl.it page: https://replit.com/@wheelercj/simple-Discord-bot')
+
+
+def get_bot_developers_name(context):
+	# If I am present in the server, my Discord username will be returned.
 	for member in context.guild.members:
 		if member.id == discord_user_id:
-			a = context.guild.get_member(discord_user_id).name
-			break
-
-	await context.send(f'Enter ;help for a list of commands.\nThis bot was created by {a} except for the parts otherwise specified. Here\'s a link to the bot\'s Repl.it page: https://replit.com/@wheelercj/simple-Discord-bot')
+			return context.guild.get_member(discord_user_id).name
+	return 'Chris Wheeler'
 
 
 @bot.command()
