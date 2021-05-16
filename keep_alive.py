@@ -1,3 +1,5 @@
+# Source of the code in this file: https://ritza.co/showcase/repl.it/building-a-discord-bot-with-python-and-repl-it.html
+
 from flask import Flask
 from threading import Thread
 
