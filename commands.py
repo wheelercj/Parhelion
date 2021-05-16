@@ -2,7 +2,7 @@ import os
 from discord.ext import commands
 
 
-discord_user_id = os.environ['DISCORD_USER_ID']
+discord_user_id = int(os.environ['DISCORD_USER_ID'])
 bot = commands.Bot(command_prefix=';')
 
 
@@ -21,7 +21,13 @@ async def ping(context):
 @bot.command(aliases=['about'])
 async def info(context):
 	'''Displays general info about this bot'''
-	pass  # TODO
+	a = 'https://replit.com/@wheelercj'
+	for member in context.guild.members:
+		if member.id == discord_user_id:
+			a = context.guild.get_member(discord_user_id).name
+			break
+
+	await context.send(f'Enter ;help for a list of commands.\nThis bot was created by {a} except for the parts otherwise specified. Here\'s a link to the bot\'s Repl.it page: https://replit.com/@wheelercj/simple-Discord-bot')
 
 
 @bot.command(aliases=['python', 'eval'])
@@ -76,6 +82,6 @@ async def servers(context):
 	'''Displays how many servers this bot is in'''
 	await context.send(f'This bot is in {len(bot.guilds)} servers')
 
-	if str(context.author.id) == discord_user_id:
+	if context.author.id == discord_user_id:
 		for guild in bot.guilds:
 			await context.send(f'- {guild.name}')
