@@ -39,8 +39,7 @@ class Reminder:
 			or self.channel != other.channel
 
 
-
-@bot.command(aliases=['reminder'])
+@bot.command(aliases=['reminder', 'remindme'])
 async def remind(context, chosen_time: str = '15m', message: str = ''):
 	'''Sends a reminder, e.g. ;remind 1h30m "iron socks"
 	
