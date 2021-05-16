@@ -39,24 +39,9 @@ async def invite(context):
 	await context.send('You can invite me to another server that you have "manage server" permissions in with this link: https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352')
 
 
-@bot.command(aliases=['python', 'eval'])
-async def py(context, *, string: str):
-	'''Evaluates a Python expression and returns the result
-
-	Print statements don't work with this because they don't return anything.
-	'''
-	try:
-		await context.send(eval(string))
-	except Exception as e:
-		await context.send(f'Python error: {e}')
-
-
-@bot.command()
+@bot.command(aliases=['py', 'python', 'eval'])
 async def calc(context, *, string: str):
-	'''Evaluates a math expression
-	
-	This is an alias of ;py
-	'''
+	'''Evaluates a math expression'''
 	try:
 		await context.send(eval(string))
 	except Exception as e:
