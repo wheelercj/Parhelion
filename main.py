@@ -48,5 +48,5 @@ async def answer_mention(message: str, bot):
 
 
 keep_alive()
-token = os.environ.get('DISCORD_BOT_SECRET')
+token = os.environ.get('DISCORD_BOT_SECRET_TOKEN')
 bot.run(token)

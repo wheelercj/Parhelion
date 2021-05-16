@@ -2,7 +2,7 @@ import os
 from discord.ext import commands
 
 
-my_discord_user_id = int(os.environ['DISCORD_USER_ID'])
+my_discord_user_id = int(os.environ['MY_DISCORD_USER_ID'])
 bot = commands.Bot(command_prefix=';')
 
 
