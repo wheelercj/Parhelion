@@ -2,7 +2,7 @@ import os
 from discord.ext import commands
 
 
-discord_user_id = int(os.environ['DISCORD_USER_ID'])
+my_discord_user_id = int(os.environ['DISCORD_USER_ID'])
 bot = commands.Bot(command_prefix=';')
 
 
@@ -21,15 +21,15 @@ async def ping(context):
 @bot.command(aliases=['about'])
 async def info(context):
 	'''Displays general info about this bot'''
-	name = get_bot_developers_name(context)
+	name = get_bot_devs_name(context)
 	await context.send(f'Enter ;help for a list of commands.\nThis bot was created by {name} except for the parts otherwise specified. Here\'s a link to the bot\'s Repl.it page: https://replit.com/@wheelercj/simple-Discord-bot')
 
 
-def get_bot_developers_name(context):
+def get_bot_devs_name(context):
 	# If I am present in the server, my Discord username will be returned.
 	for member in context.guild.members:
-		if member.id == discord_user_id:
-			return context.guild.get_member(discord_user_id).name
+		if member.id == my_discord_user_id:
+			return context.guild.get_member(my_discord_user_id).name
 	return 'Chris Wheeler'
 
 
@@ -41,11 +41,31 @@ async def invite(context):
 
 @bot.command(aliases=['py', 'python', 'eval'])
 async def calc(context, *, string: str):
-	'''Evaluates a math expression'''
-	try:
-		await context.send(eval(string))
-	except Exception as e:
-		await context.send(f'Python error: {e}')
+    '''Evaluates math expressions'''
+    try:
+        if i_am_the_dev(context):
+            await context.send(eval(string))
+        else:
+            # The eval function can do just about anything by default, so a
+            # lot of its features have to be removed for security. For more
+            # info, see https://realpython.com/python-eval-function/#minimizing-the-security-issues-of-eval
+            allowed_names = {}
+            code = compile(string, '<string>', 'eval')
+            for name in code.co_names:
+                if name not in allowed_names:
+                    raise NameError(f'Use of "{name}" is not allowed.')
+
+            await context.send(eval(code, {"__builtins__": {}}, allowed_names))
+    except NameError as e:
+        await context.send(e)
+    except Exception as e:
+        await context.send(f'Python error: {e}')
+
+
+def i_am_the_dev(context):
+	if context.author.id == my_discord_user_id:
+		return True
+	return False
 
 
 @bot.command(hidden=True)
@@ -75,6 +95,3 @@ async def rot13(context, *, message: str):
 async def servers(context):
 	'''Says how many servers this bot is in'''
 	await context.send(f'I am in {len(bot.guilds)} servers.')
-	if context.author.id == discord_user_id:
-		for guild in bot.guilds:
-			await context.send(f'- {guild.name}')
