@@ -41,7 +41,7 @@ class Reminder:
 
 @bot.command(aliases=['reminder', 'remindme'])
 async def remind(context, chosen_time: str = '15m', message: str = ''):
-	'''Sends a reminder, e.g. ;remind 1h30m "iron socks"
+	'''Gives a reminder, e.g. ;remind 1h30m "iron socks"
 	
 	Currently, these reminders are saved in a publicly accessible file.
 	'''

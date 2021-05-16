@@ -6,13 +6,13 @@ my_discord_user_id = int(os.environ['MY_DISCORD_USER_ID'])
 bot = commands.Bot(command_prefix=';')
 
 
-@bot.command()
+@bot.command(hidden=True)
 async def echo(context, *, message: str):
-	'''Displays a message'''
+	'''Repeats a message'''
 	await context.send(message)
 
 
-@bot.command()
+@bot.command(hidden=True)
 async def ping(context):
 	'''Pings the server'''
 	await context.send(f'Pong! It took {round(bot.latency, 2)} ms.')
@@ -20,7 +20,7 @@ async def ping(context):
 
 @bot.command(aliases=['about'])
 async def info(context):
-	'''Displays general info about this bot'''
+	'''Shows general info about this bot'''
 	name = get_bot_devs_name(context)
 	await context.send(f'Enter ;help for a list of commands.\nThis bot was created by {name} except for the parts otherwise specified. Here\'s a link to the bot\'s Repl.it page: https://replit.com/@wheelercj/simple-Discord-bot')
 
@@ -35,7 +35,7 @@ def get_bot_devs_name(context):
 
 @bot.command()
 async def invite(context):
-	'''Gives the link to invite this bot to another server'''
+	'''Shows the link to invite this bot to another server'''
 	await context.send('You can invite me to another server that you have "manage server" permissions in with this link: https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352')
 
 
@@ -93,5 +93,5 @@ async def rot13(context, *, message: str):
 
 @bot.command()
 async def servers(context):
-	'''Says how many servers this bot is in'''
+	'''Shows how many servers this bot is in'''
 	await context.send(f'I am in {len(bot.guilds)} servers.')
