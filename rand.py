@@ -19,6 +19,18 @@ class Random(commands.Cog):
 			await context.send(str(random.randint(high, low)))
 
 
+	@commands.command(name='flip-coin', aliases=['flip'])
+	async def flip_coin(self, context):
+		'''Flips a coin'''
+		n = random.randint(1, 2)
+		if n == 1:
+			await context.send('heads')
+		else:
+			await context.send('tails')
+
+
+	# Source of the roll and choose commands: https://github.com/Rapptz/discord.py/blob/8517f1e085df27acd5191d0d0cb2363242be0c29/examples/basic_bot.py#L30
+	# License: https://github.com/Rapptz/discord.py/blob/v1.7.1/LICENSE
 	@commands.command()
 	async def roll(self, context, dice: str):
 		'''Rolls dice in NdN format'''
@@ -30,16 +42,6 @@ class Random(commands.Cog):
 
 		result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
 		await context.send(result)
-
-
-	@commands.command(name='flip-coin', aliases=['flip'])
-	async def flip_coin(self, context):
-		'''Flips a coin'''
-		n = random.randint(1, 2)
-		if n == 1:
-			await context.send('heads')
-		else:
-			await context.send('tails')
 
 
 	@commands.command()
