@@ -86,11 +86,10 @@ async def rot13(context, *, message: str):
 	await context.send(new_string)
 
 
-@bot.command(hidden=True)
+@bot.command()
 async def servers(context):
-	'''Displays how many servers this bot is in'''
-	await context.send(f'This bot is in {len(bot.guilds)} servers')
-
+	'''Says how many servers this bot is in'''
+	await context.send(f'I am in {len(bot.guilds)} servers.')
 	if context.author.id == discord_user_id:
 		for guild in bot.guilds:
 			await context.send(f'- {guild.name}')
