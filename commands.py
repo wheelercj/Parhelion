@@ -88,3 +88,13 @@ async def rot13(context, *, message: str):
 async def servers(context):
 	'''Shows how many servers this bot is in'''
 	await context.send(f'I am in {len(bot.guilds)} servers.')
+
+
+@bot.command(hidden=True)
+async def leave(context):
+	'''Makes the bot leave the server'''
+	if not i_am_the_dev(context):
+		await context.send(f'Access to the leave command denied. Server administrators should still be able to remove any bot.')
+	else:
+		await context.send(f'Now leaving the server. Goodbye!')
+		await context.guild.leave()
