@@ -1,4 +1,5 @@
 import os
+import discord
 from discord.ext import commands
 
 
@@ -21,16 +22,8 @@ async def ping(context):
 @bot.command(aliases=['about'])
 async def info(context):
 	'''Shows general info about this bot'''
-	name = get_bot_devs_name(context)
-	await context.send(f'Enter ;help for a list of commands.\nThis bot was created by {name} except for the parts otherwise specified. Here\'s a link to the bot\'s Repl.it page: https://replit.com/@wheelercj/simple-Discord-bot')
-
-
-def get_bot_devs_name(context):
-	# If I am present in the server, my Discord username will be returned.
-	for member in context.guild.members:
-		if member.id == my_discord_user_id:
-			return context.guild.get_member(my_discord_user_id).name
-	return 'Chris Wheeler'
+	embed = discord.Embed(description='Enter `;help` for a list of commands.\nThis bot was created by Chris Wheeler, except for the parts otherwise specified. See the source on Repl.it by clicking [here](https://replit.com/@wheelercj/simple-Discord-bot).')
+	await context.send(embed=embed)
 
 
 @bot.command()
