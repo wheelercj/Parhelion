@@ -2,7 +2,6 @@ import re
 import asyncio
 import datetime
 import pickle
-import discord
 from commands import *
 
 
@@ -52,7 +51,7 @@ async def remind(context, chosen_time: str = '15m', *, message: str = ''):
 
 		await asyncio.sleep(seconds)
 		await context.send(f'{context.author.mention}, here is your {chosen_time} reminder: {message}', tts=use_tts)
-		delete_reminder(reminder)
+		await delete_reminder(reminder, bot)
 	except Exception as e:
 		if e == 'invalid load key, \'\\xef\'':
 			await context.send(f'Reminder error: {e}.')
@@ -140,12 +139,12 @@ async def cotinue_reminder(reminder, bot):
 			await channel.send(f'{reminder.author}, an error delayed your reminder: {reminder.message}', tts=use_tts)
 			await channel.send(f'The reminder had been set for {end_time.year}-{end_time.month}-{end_time.day} at {end_time.hour}:{end_time.minute} UTC')
 
-		delete_reminder(reminder)
+		await delete_reminder(reminder)
 	except Exception as e:
 		await channel.send(f'{reminder.author.mention}, your reminder was cancelled because of an error: {e}')
 
 
-def delete_reminder(reminder):
+async def delete_reminder(reminder, bot):
 	'''Remove one reminder from the file of saved reminders.'''
 	reminders = load_reminders()
 	try:
@@ -153,5 +152,5 @@ def delete_reminder(reminder):
 		with open(reminders_file, 'wb') as file:
 			for r in reminders:
 				pickle.dump(r, file)
-	except ValueError:
-		print(f'Error: failed to delete reminder: {reminder}')
+	except Exception as e:
+		await dev_mail(bot, f'Error: failed to delete reminder: {reminder}\nbecause of error: {e}')

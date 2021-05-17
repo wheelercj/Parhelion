@@ -4,6 +4,7 @@ from discord.ext import commands
 
 
 my_discord_user_id = int(os.environ['MY_DISCORD_USER_ID'])
+my_channel_id = int(os.environ['MY_CHANNEL_ID'])
 bot = commands.Bot(command_prefix=';')
 
 
@@ -59,6 +60,12 @@ def i_am_the_dev(context):
 	if context.author.id == my_discord_user_id:
 		return True
 	return False
+
+
+async def dev_mail(bot, message):
+	channel = await bot.fetch_channel(my_channel_id)
+	embed = discord.Embed(title='dev mail', description=message)
+	await channel.send(embed=embed)
 
 
 @bot.command(hidden=True)
