@@ -1,3 +1,4 @@
+import discord
 import random
 import linecache
 from commands import *
@@ -27,6 +28,23 @@ class Random(commands.Cog):
 			await context.send('heads')
 		else:
 			await context.send('tails')
+
+
+	@commands.command()
+	async def quote(self, context):
+		'''Displays a random famous quote'''
+		# These three variables depend on the format of quotes.txt.
+		first_quote_line = 4
+		last_quote_line = 298
+		delta = 3
+
+		quote_count = (last_quote_line - first_quote_line) / delta
+		rand_line = random.randint(0, quote_count) * delta + first_quote_line
+		quote = linecache.getline('quotes.txt', rand_line)
+		author = linecache.getline('quotes.txt', rand_line + 1)
+
+		embed = discord.Embed(description=f'{quote}\n{author}')
+		await context.send(embed=embed)
 
 
 	# Source of the roll and choose commands: https://github.com/Rapptz/discord.py/blob/8517f1e085df27acd5191d0d0cb2363242be0c29/examples/basic_bot.py#L30
