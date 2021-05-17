@@ -40,12 +40,12 @@ class Reminder:
 
 
 @bot.command(aliases=['reminder', 'remindme'])
-async def remind(context, chosen_time: str = '15m', message: str = ''):
-	'''Gives a reminder, e.g. ;remind 1h30m "iron socks"
+async def remind(context, chosen_time: str = '15m', *, message: str = ''):
+	'''Gives a reminder, e.g. ;remind 1h30m iron socks
 	
 	Currently, these reminders are saved in a publicly accessible file.
 	'''
-	await context.send(f'Reminder set!')
+	await context.send(f'Reminder set! In {chosen_time}, I will remind you: {message}')
 	try:
 		seconds = parse_time(chosen_time)
 		reminder = await save_reminder(context, chosen_time, seconds, message)
