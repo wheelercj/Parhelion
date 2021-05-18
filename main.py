@@ -4,12 +4,22 @@ from reminders import *
 from music import *
 from rand import *
 from keep_alive import keep_alive
+import logging
+
+
+# Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
+# Python's intro to logging: https://docs.python.org/3/howto/logging.html#logging-basic-tutorial
+logger = logging.getLogger('discord')
+logger.setLevel(logging.WARNING)
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
 
 
 @bot.event
 async def on_connect():
 	try:
-		print('Connecting . . . ')
+		print('Loading . . . ')
 		reminders = load_reminders()
 		if reminders is not None:
 			for r in reminders:
@@ -37,7 +47,7 @@ async def on_message(message: str):
 async def answer_mention(message: str, bot):
 	'''Respond when mentioned'''
 	# For some reason, bot.user.mention is always missing the exclamation
-	# point that's in the unrendered version of mentions.
+	# mark that's in the unrendered version of mentions.
 	mention = bot.user.mention[:2] + '!' + bot.user.mention[2:]
 	if mention in message.content:
 		nickname = message.author.nick
