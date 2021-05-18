@@ -4,7 +4,7 @@ from discord.ext import commands
 
 
 my_channel_id = int(os.environ['MY_CHANNEL_ID'])
-bot = commands.Bot(command_prefix=';')
+bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
 
 
 @bot.command(hidden=True)
