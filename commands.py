@@ -82,10 +82,13 @@ async def py(context, *, string: str):
 		await context.send(f'Python error: {e}')
 
 
-async def dev_mail(bot, message):
+async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
 	channel = await bot.fetch_channel(my_channel_id)
-	embed = discord.Embed(title='dev mail', description=message)
-	await channel.send(embed=embed)
+	if use_embed:
+		embed = discord.Embed(title=embed_title, description=message)
+		await channel.send(embed=embed)
+	else:
+		await channel.send(message)
 
 
 @bot.command(hidden=True)

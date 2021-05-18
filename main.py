@@ -74,6 +74,13 @@ async def on_command_error(context, error):
 		await context.send(error)
 
 
+@bot.event
+async def on_guild_join(guild):
+	message = f'I\'ve joined a new server called "{guild}"!' \
+			f'\nI am now in {len(bot.guilds)} servers.'
+	await dev_mail(bot, message, use_embed=False)
+
+
 keep_alive()
 token = os.environ.get('DISCORD_BOT_SECRET_TOKEN')
 bot.run(token)
