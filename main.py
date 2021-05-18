@@ -7,6 +7,7 @@ import logging
 from reminders import *
 from music import *
 from rand import *
+from docs import *
 from keep_alive import keep_alive
 
 
