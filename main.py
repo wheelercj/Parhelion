@@ -68,6 +68,12 @@ async def on_command(context):
 	logger.log(COMMANDS, message)
 
 
+@bot.event
+async def on_command_error(context, error):
+	if isinstance(error, commands.CommandOnCooldown):
+		await context.send(error)
+
+
 keep_alive()
 token = os.environ.get('DISCORD_BOT_SECRET_TOKEN')
 bot.run(token)

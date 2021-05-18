@@ -39,6 +39,7 @@ class Reminder:
 
 
 @bot.command(aliases=['reminder', 'remindme'])
+@commands.cooldown(2, 10)
 async def remind(context, chosen_time: str = '15m', *, message: str = ''):
 	'''Gives a reminder, e.g. ;remind 1h30m iron socks
 	

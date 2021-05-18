@@ -1,8 +1,8 @@
 # TODO
 
 ## rate and request limits security
-* Track the rate of invalid requests.
-* Set cooldowns on commands and global cooldowns on people.
+* Track the rate of invalid requests. (made where?)
+* Set global cooldowns on people.
 
 ## other
 * Add more info to the web page that shows up when people run the bot on the spotlight page. Is it possible to have the program copy the contents of the readme and put them into the site?

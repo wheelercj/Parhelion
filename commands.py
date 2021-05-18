@@ -12,18 +12,21 @@ bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
 
 
 @bot.command(hidden=True)
+@commands.cooldown(2, 10)
 async def echo(context, *, message: str):
 	'''Repeats a message'''
 	await context.send(message)
 
 
 @bot.command(hidden=True)
+@commands.cooldown(2, 10)
 async def ping(context):
 	'''Pings the server'''
 	await context.send(f'Pong! It took {round(bot.latency, 2)} ms.')
 
 
 @bot.command(aliases=['about', 'source', 'src'])
+@commands.cooldown(1, 60)
 async def info(context):
 	'''Shows general info about this bot'''
 	# If this is the original instance of this bot:
@@ -38,6 +41,7 @@ async def info(context):
 
 
 @bot.command()
+@commands.cooldown(1, 60)
 async def invite(context):
 	'''Shows the link to invite this bot to another server'''
 	embed = discord.Embed(description='You can invite me to another server that you have "manage server" permissions in with this link: https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352')
@@ -45,6 +49,7 @@ async def invite(context):
 
 
 @bot.command()
+@commands.cooldown(2, 10)
 async def calc(context, *, string: str):
 	'''Evaluates math expressions'''
 	try:
@@ -66,6 +71,7 @@ async def calc(context, *, string: str):
 
 @bot.command(hidden=True, aliases=['python', 'eval'])
 @commands.is_owner()
+@commands.cooldown(4, 10)
 async def py(context, *, string: str):
 	'''Evaluates Python expressions'''
 	try:
@@ -83,12 +89,14 @@ async def dev_mail(bot, message):
 
 
 @bot.command(hidden=True)
+@commands.cooldown(2, 10)
 async def reverse(context, *, message: str):
 	'''Reverses a message'''
 	await context.send(message[::-1])
 
 
 @bot.command(hidden=True)
+@commands.cooldown(2, 10)
 async def rot13(context, *, message: str):
 	'''Rotates each letter of a message 13 letters through the alphabet'''
 	message = message.lower()
@@ -106,6 +114,7 @@ async def rot13(context, *, message: str):
 
 
 @bot.command()
+@commands.cooldown(1, 60)
 async def servers(context):
 	'''Shows how many servers this bot is in'''
 	await context.send(f'I am in {len(bot.guilds)} servers.')

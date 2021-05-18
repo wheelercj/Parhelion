@@ -86,6 +86,7 @@ class Music(commands.Cog):
 
 		
 	@commands.command()
+	@commands.cooldown(2, 10)
 	async def join(self, context, *, channel: discord.VoiceChannel):
 		'''Joins a voice channel'''
 
@@ -100,7 +101,7 @@ class Music(commands.Cog):
 		if isinstance(error, commands.BadArgument):
 			await context.send(f'Channel not found.')
 		
-		
+
 	# I don't want to allow downloading of audio files to repl.it, so this command can never be used anyways.	
 	# @commands.command()
 	# async def play(self, context, *, query):
@@ -125,6 +126,7 @@ class Music(commands.Cog):
 
 		
 	@commands.command()
+	@commands.cooldown(2, 10)
 	async def stream(self, context, *, url):
 		'''Streams from a url (same as yt, but doesn't predownload)'''
 
@@ -136,6 +138,7 @@ class Music(commands.Cog):
 
 		
 	@commands.command()
+	@commands.cooldown(2, 10)
 	async def volume(self, context, volume: int):
 		'''Changes the player's volume'''
 

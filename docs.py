@@ -12,6 +12,7 @@ docs = {
 
 
 @bot.command(aliases=['listdocs'])
+@commands.cooldown(2, 10)
 async def docs(context):
 	'''Lists the names of all docs'''
 	doc_names = ''
@@ -22,6 +23,7 @@ async def docs(context):
 
 
 @bot.command()
+@commands.cooldown(2, 10)
 async def doc(context, *, name: str):
 	'''Shows info about a topic'''
 	try:
