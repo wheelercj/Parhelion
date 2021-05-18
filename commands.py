@@ -23,7 +23,14 @@ async def ping(context):
 @bot.command(aliases=['about'])
 async def info(context):
 	'''Shows general info about this bot'''
-	embed = discord.Embed(description='Enter `;help` for a list of commands.\nThis bot was created by Chris Wheeler, except for the parts otherwise specified. See the source on Repl.it by clicking [here](https://replit.com/@wheelercj/simple-Discord-bot).')
+	# If this is the original instance of this bot:
+	if '☼♫' in [x.name for x in bot.guilds]:
+		embed = discord.Embed(description='Enter `;help` for a list of commands.\nThis bot was created by Chris Wheeler, except for the parts otherwise specified. See the source on Repl.it by clicking [here](https://replit.com/@wheelercj/simple-Discord-bot).')
+
+	# Else if this is a forked copy of this bot:
+	else:
+		embed = discord.Embed(description='Enter `;help` for a list of commands.\nThis is a fork of a bot created by Chris Wheeler. You can see the original source on Repl.it by clicking [here](https://replit.com/@wheelercj/simple-Discord-bot).')
+
 	await context.send(embed=embed)
 
 
