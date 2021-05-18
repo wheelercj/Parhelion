@@ -40,7 +40,8 @@ async def info(context):
 @bot.command()
 async def invite(context):
 	'''Shows the link to invite this bot to another server'''
-	await context.send('You can invite me to another server that you have "manage server" permissions in with this link: https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352')
+	embed = discord.Embed(description='You can invite me to another server that you have "manage server" permissions in with this link: https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352')
+	await context.send(embed=embed)
 
 
 @bot.command()
