@@ -128,7 +128,7 @@ class Music(commands.Cog):
 	@commands.command()
 	@commands.cooldown(2, 10)
 	async def stream(self, context, *, url):
-		'''Streams from a url (same as yt, but doesn't predownload)'''
+		'''Streams audio from a url'''
 
 		async with context.typing():
 			player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
