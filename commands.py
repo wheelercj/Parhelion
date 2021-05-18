@@ -75,6 +75,7 @@ async def py(context, *, string: str):
 	except Exception as e:
 		await context.send(f'Python error: {e}')
 
+
 async def dev_mail(bot, message):
 	channel = await bot.fetch_channel(my_channel_id)
 	embed = discord.Embed(title='dev mail', description=message)
