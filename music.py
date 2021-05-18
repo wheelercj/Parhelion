@@ -95,6 +95,12 @@ class Music(commands.Cog):
 		await channel.connect()
 
 
+	@join.error
+	async def join_error(self, context, error):
+		if isinstance(error, commands.BadArgument):
+			await context.send(f'Channel not found.')
+		
+		
 	# I don't want to allow downloading of audio files to repl.it, so this command can never be used anyways.	
 	# @commands.command()
 	# async def play(self, context, *, query):
