@@ -1,5 +1,9 @@
+# External imports
 import os
 import discord
+import inspect
+
+# Internal imports
 from discord.ext import commands
 
 
