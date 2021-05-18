@@ -17,7 +17,7 @@ After adding this bot, you can see a full list of commands by entering `;help`.
 Here are some guides to making Discord bots that I found helpful:
 * https://ritza.co/showcase/repl.it/building-a-discord-bot-with-python-and-repl-it.html
 * https://www.freecodecamp.org/news/create-a-discord-bot-with-python/
-* https://discordpy.readthedocs.io/en/latest/ext/commands/commands.html#invocation-context
+* https://discordpy.readthedocs.io/en/latest/index.html
 * https://github.com/Rapptz/discord.py/tree/v1.7.1/examples
 * https://discord.com/developers/docs/intro
 
