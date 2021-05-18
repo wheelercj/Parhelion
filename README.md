@@ -27,9 +27,4 @@ Below is a list of the commands that this bot has as of May 16, 2021. This image
 ![help demo](images/help_demo.png)
 
 ## optional environment variables
-If you make a fork of this bot, the only environment variable you will need to set is `DISCORD_BOT_SECRET_TOKEN`, as explained above. However, there are some optional environment variables you can set for more development tools:
-* `MY_CHANNEL_ID` is for using the `dev_mail` async function. Choose the channel where you want to receive high-priority error messages from the bot. Currently, the `dev_mail` async function is only called to alert the developer if and when the reminders stop working and need a bugfix to continue.
-* `MY_DISCORD_USER_ID` will let you, as the developer, use:  
-  * the `;leave` command to make your instance of the bot leave the server you use the command in even if you don't have manage server permissions
-  * the `i_am_the_dev` function, which will always return `True` for you and `False` for everyone else (based on who called the command that this function is called in)
-  * the `;calc` command will consider your inputs to be Python code instead of just simple math expressions, and will run them and return the result (be careful with this!)
+If you make a fork of this bot, the only environment variable you will need to set is `DISCORD_BOT_SECRET_TOKEN`, as explained above. However, there is an optional environment variable you can set for another development tool: `MY_CHANNEL_ID`, which is for using the `dev_mail` async function. Choose the channel where you want to receive high-priority error messages from the bot. Currently, the `dev_mail` async function is only called to alert the developer if and when the reminders stop working and need a bugfix to continue.

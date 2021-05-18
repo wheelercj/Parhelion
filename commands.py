@@ -3,7 +3,6 @@ import discord
 from discord.ext import commands
 
 
-my_discord_user_id = int(os.environ['MY_DISCORD_USER_ID'])
 my_channel_id = int(os.environ['MY_CHANNEL_ID'])
 bot = commands.Bot(command_prefix=';')
 
@@ -40,34 +39,36 @@ async def invite(context):
 	await context.send('You can invite me to another server that you have "manage server" permissions in with this link: https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352')
 
 
-@bot.command(aliases=['py', 'python', 'eval'])
+@bot.command()
 async def calc(context, *, string: str):
-    '''Evaluates math expressions'''
-    try:
-        if i_am_the_dev(context):
-            await context.send(eval(string))
-        else:
-            # The eval function can do just about anything by default, so a
-            # lot of its features have to be removed for security. For more
-            # info, see https://realpython.com/python-eval-function/#minimizing-the-security-issues-of-eval
-            allowed_names = {}
-            code = compile(string, '<string>', 'eval')
-            for name in code.co_names:
-                if name not in allowed_names:
-                    raise NameError(f'Use of "{name}" is not allowed.')
+	'''Evaluates math expressions'''
+	try:
+		# The eval function can do just about anything by default, so a
+		# lot of its features have to be removed for security. For more
+		# info, see https://realpython.com/python-eval-function/#minimizing-the-security-issues-of-eval 
+		allowed_names = {}
+		code = compile(string, '<string>', 'eval')
+		for name in code.co_names:
+			if name not in allowed_names:
+				raise NameError(f'Use of "{name}" is not allowed.')
 
-            await context.send(eval(code, {"__builtins__": {}}, allowed_names))
-    except NameError as e:
-        await context.send(e)
-    except Exception as e:
-        await context.send(f'Python error: {e}')
+		await context.send(eval(code, {"__builtins__": {}}, allowed_names))
+	except NameError as e:
+		await context.send(e)
+	except Exception as e:
+		await context.send(f'Python error: {e}')
 
 
-def i_am_the_dev(context):
-	if context.author.id == my_discord_user_id:
-		return True
-	return False
-
+@bot.command(hidden=True, aliases=['python', 'eval'])
+@commands.is_owner()
+async def py(context, *, string: str):
+	'''Evaluates Python expressions'''
+	try:
+		# The eval function can do just about anything by default. Be
+		# careful with this command! For more info, see https://realpython.com/python-eval-function/#minimizing-the-security-issues-of-eval
+		await context.send(eval(string))
+	except Exception as e:
+		await context.send(f'Python error: {e}')
 
 async def dev_mail(bot, message):
 	channel = await bot.fetch_channel(my_channel_id)
@@ -105,10 +106,8 @@ async def servers(context):
 
 
 @bot.command(hidden=True)
+@commands.is_owner()
 async def leave(context):
 	'''Makes the bot leave the server'''
-	if not i_am_the_dev(context):
-		await context.send(f'Access to the leave command denied. Server administrators should still be able to remove any bot.')
-	else:
-		await context.send(f'Now leaving the server. Goodbye!')
-		await context.guild.leave()
+	await context.send(f'Now leaving the server. Goodbye!')
+	await context.guild.leave()
