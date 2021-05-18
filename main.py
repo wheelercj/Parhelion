@@ -14,7 +14,7 @@ from keep_alive import keep_alive
 # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
 # Python's intro to logging: https://docs.python.org/3/howto/logging.html#logging-basic-tutorial
 logger = logging.getLogger('discord')
-COMMANDS = 25  # Each command use will be logged, as well as warnings, errors, and criticals.
+COMMANDS = 25  # Logs each command use (as well as warnings, errors, and criticals).
 logger.setLevel(COMMANDS)
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
@@ -60,6 +60,12 @@ async def answer_mention(message: str, bot):
 			await message.channel.send(f'Hello {nickname.split()[0]}!')
 		else:
 			await message.channel.send(f'Hello {message.author.name.split()[0]}!')
+
+
+@bot.event
+async def on_command(context):
+	message = f'author: {context.author}; command: {context.message.content}'
+	logger.log(COMMANDS, message)
 
 
 keep_alive()

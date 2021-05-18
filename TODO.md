@@ -1,7 +1,6 @@
 # TODO
 
 ## rate and request limits security
-* Use the logging module to log info like which commands were used when.
 * Track the rate of invalid requests.
 * Set cooldowns on commands and global cooldowns on people.
 
