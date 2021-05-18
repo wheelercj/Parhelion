@@ -6,6 +6,7 @@
 
 ## other
 * Add more info to the web page that shows up when people run the bot on the spotlight page. Is it possible to have the program copy the contents of the readme and put them into the site?
+* Add to the doc command: if KeyError, try to guess which docs might have been meant and suggest them.
 
 ## improve reminders
 * Use the replit database to store the reminders instead of reminders.txt? (https://docs.replit.com/misc/database)
