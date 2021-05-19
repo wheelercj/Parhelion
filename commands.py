@@ -15,12 +15,24 @@ use_hidden = True
 @bot.command(hidden=use_hidden)
 @commands.cooldown(1, 30)
 async def hhelp(context):
-	'''Shows help for the hidden commands'''
-	message = 'Hidden Commands:'
+	'''Shows help for all the hidden commands'''
+	hidden_commands = []
 	for cmd in bot.commands:
 		if cmd.hidden:
-			message += f'\n  {cmd.name:<21}{cmd.short_doc}'
+			hidden_commands.append(cmd)
 
+	# Alphabetize.
+	hidden_commands = sorted(hidden_commands, key=lambda x: x.name)
+
+	# Get column width.
+	hidden_names = [x.name for x in hidden_commands]
+	width = len(max(hidden_names, key=len)) + 1
+
+	message = 'Hidden Commands:'
+	for cmd in hidden_commands:
+		message += f'\n  {cmd.name:<{width}}{cmd.short_doc}'
+	message += '\n\n Type ;help command for more info on a command.'
+	
 	await context.send(f'```{message}```')
 
 
@@ -114,7 +126,7 @@ async def reverse(context, *, message: str):
 @bot.command(hidden=use_hidden)
 @commands.cooldown(2, 10)
 async def rot13(context, *, message: str):
-	'''Rotates each letter of a message 13 letters through the alphabet'''
+	'''Rotates each letter 13 letters through the alphabet'''
 	message = message.lower()
 	new_string = ''
 	alphabet = 'abcdefghijklmnopqrstuvwxyz'
