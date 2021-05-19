@@ -39,7 +39,7 @@ class Reminder:
 
 
 @bot.command(aliases=['reminder', 'remindme'])
-@commands.cooldown(2, 10)
+@commands.cooldown(3, 15)
 async def remind(context, chosen_time: str = '15m', *, message: str = ''):
 	'''Gives a reminder, e.g. ;remind 1h30m iron socks
 	
@@ -64,7 +64,7 @@ async def remind(context, chosen_time: str = '15m', *, message: str = ''):
 
 @bot.command(hidden=use_hidden, name='del-r.txt')
 @commands.is_owner()
-@commands.cooldown(2, 10)
+@commands.cooldown(3, 15)
 async def delete_reminders_txt(context):
 	'''Deletes everything in reminders.txt
 	

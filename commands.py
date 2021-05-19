@@ -13,7 +13,7 @@ use_hidden = True
 
 
 @bot.command(hidden=use_hidden)
-@commands.cooldown(1, 30)
+@commands.cooldown(3, 15)
 async def hhelp(context):
 	'''Shows help for all the hidden commands'''
 	hidden_commands = []
@@ -37,21 +37,21 @@ async def hhelp(context):
 
 
 @bot.command(hidden=use_hidden)
-@commands.cooldown(2, 10)
+@commands.cooldown(3, 15)
 async def echo(context, *, message: str):
 	'''Repeats a message'''
 	await context.send(message)
 
 
 @bot.command(hidden=use_hidden)
-@commands.cooldown(2, 10)
+@commands.cooldown(3, 15)
 async def ping(context):
 	'''Pings the server'''
 	await context.send(f'Pong! It took {round(bot.latency, 2)} ms.')
 
 
 @bot.command(aliases=['info'])
-@commands.cooldown(1, 60)
+@commands.cooldown(3, 15)
 async def about(context):
 	'''Shows general info about this bot'''
 	# If this is the original instance of this bot:
@@ -66,7 +66,7 @@ async def about(context):
 
 
 @bot.command()
-@commands.cooldown(1, 60)
+@commands.cooldown(3, 15)
 async def invite(context):
 	'''Shows the link to invite this bot to another server'''
 	embed = discord.Embed(description='You can invite me to another server that you have "manage server" permissions in with this link: https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352')
@@ -74,7 +74,7 @@ async def invite(context):
 
 
 @bot.command()
-@commands.cooldown(2, 10)
+@commands.cooldown(3, 15)
 async def calc(context, *, string: str):
 	'''Evaluates a math expression'''
 	try:
@@ -96,7 +96,7 @@ async def calc(context, *, string: str):
 
 @bot.command(hidden=use_hidden, aliases=['python', 'eval'])
 @commands.is_owner()
-@commands.cooldown(4, 10)
+@commands.cooldown(3, 15)
 async def py(context, *, string: str):
 	'''Evaluates a Python expression'''
 	try:
@@ -117,14 +117,14 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
 
 
 @bot.command(hidden=use_hidden)
-@commands.cooldown(2, 10)
+@commands.cooldown(3, 15)
 async def reverse(context, *, message: str):
 	'''Reverses a message'''
 	await context.send(message[::-1])
 
 
 @bot.command(hidden=use_hidden)
-@commands.cooldown(2, 10)
+@commands.cooldown(3, 15)
 async def rot13(context, *, message: str):
 	'''Rotates each letter 13 letters through the alphabet'''
 	message = message.lower()
@@ -142,7 +142,7 @@ async def rot13(context, *, message: str):
 
 
 @bot.command()
-@commands.cooldown(1, 60)
+@commands.cooldown(3, 15)
 async def servers(context):
 	'''Shows how many servers this bot is in'''
 	await context.send(f'I am in {len(bot.guilds)} servers.')
@@ -150,6 +150,7 @@ async def servers(context):
 
 @bot.command(hidden=use_hidden)
 @commands.is_owner()
+@commands.cooldown(3, 15)
 async def leave(context):
 	'''Makes the bot leave the server'''
 	await context.send(f'Now leaving the server. Goodbye!')
