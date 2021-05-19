@@ -2,6 +2,7 @@
 import os
 import discord
 import logging
+import inspect
 
 # Internal imports
 from reminders import *
@@ -81,19 +82,19 @@ async def on_guild_join(guild):
 	await dev_mail(bot, message, use_embed=False)
 
 
-@bot.command(hidden=use_hidden, aliases=['source', 'src'])
-@commands.is_owner()
-async def inspect(context, *, string: str):
-	'''Shows the source code of a command
-	
-	If the command is in a cog, you must provide the cog's name, 
-	i.e. `Cog.command`
-	Caution: this command uses the eval function!
-	'''
+@bot.command(name='inspect', aliases=['source', 'src'])
+@commands.cooldown(3, 15)
+async def _inspect(context, *, command: str):
+	'''Shows the source code of a command'''
 	try:
-		source = str(inspect.getsource(eval(string).callback))
+		cmds = {cmd.name: cmd for cmd in bot.commands}
+		if command not in cmds.keys():
+			raise NameError(f'Command {command} not found.')
+		source = str(inspect.getsource(cmds[command].callback))
 		await context.send(f'```py\n{source}```')
 	except NameError as e:
+		await context.send(e)
+	except KeyError as e:
 		await context.send(e)
 
 
