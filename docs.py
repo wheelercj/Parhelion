@@ -11,7 +11,7 @@ docs = {
 }
 
 
-@bot.command(aliases=['listdocs'], hide=use_hidden)
+@bot.command(aliases=['listdocs'], hidden=use_hidden)
 @commands.cooldown(2, 10)
 async def docs(context):
 	'''Lists the names of all docs'''
@@ -22,7 +22,7 @@ async def docs(context):
 	await context.send(embed=embed)
 
 
-@bot.command(hide=use_hidden)
+@bot.command(hidden=use_hidden)
 @commands.cooldown(2, 10)
 async def doc(context, *, name: str):
 	'''Shows info about a topic'''
