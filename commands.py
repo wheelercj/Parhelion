@@ -25,9 +25,9 @@ async def ping(context):
 	await context.send(f'Pong! It took {round(bot.latency, 2)} ms.')
 
 
-@bot.command(aliases=['about', 'source', 'src'])
+@bot.command(aliases=['info'])
 @commands.cooldown(1, 60)
-async def info(context):
+async def about(context):
 	'''Shows general info about this bot'''
 	# If this is the original instance of this bot:
 	if '☼♫' in [x.name for x in bot.guilds]:
