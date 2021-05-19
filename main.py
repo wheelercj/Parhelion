@@ -81,9 +81,9 @@ async def on_guild_join(guild):
 	await dev_mail(bot, message, use_embed=False)
 
 
-@bot.command(hidden=use_hidden, aliases=['source'])
+@bot.command(hidden=use_hidden, aliases=['source', 'src'])
 @commands.is_owner()
-async def src(context, *, string: str):
+async def inspect(context, *, string: str):
 	'''Shows the source code of a command
 	
 	If the command is in a cog, you must provide the cog's name, 
