@@ -56,12 +56,25 @@ async def remind(context, chosen_time: str = '15m', *, message: str = ''):
 	except Exception as e:
 		if e == 'invalid load key, \'\\xef\'':
 			await context.send(f'Reminder error: {e}.')
-			with open('reminders.txt', 'w') as _:
+			with open(reminders_file, 'w') as _:
 				pass
 		else:
 			await context.send(f'{context.author.mention}, your reminder was cancelled because of an error: {e}')
 
 
+@bot.command(hidden=True, name='delete-all-reminders')
+@commands.is_owner()
+@commands.cooldown(2, 10)
+async def delete_all_reminders(context):
+	'''Deletes everything in reminders.txt
+	
+	For recovering from errors that make the file unparseable.
+	'''
+	with open(reminders_file, 'w') as _:
+		pass
+	dev_mail(bot, 'All reminders deleted.', use_embed=False)
+
+	
 def parse_time(Time: str) -> float:
 	'''Convert a str of one or multiple units of time to a float of seconds.
 	
