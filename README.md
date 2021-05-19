@@ -22,7 +22,7 @@ Here are some guides to making Discord bots that I found helpful:
 * https://discord.com/developers/docs/intro
 
 ## commands
-Below is a list of the commands that this bot has as of May 16, 2021. This image will not always be kept up-to-date.
+Here's most of this bot's commands. This image will not always be kept up-to-date.
 
 ![help demo](images/help_demo.png)
 
