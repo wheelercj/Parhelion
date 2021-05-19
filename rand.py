@@ -35,7 +35,7 @@ class Random(commands.Cog):
 	@commands.command()
 	@commands.cooldown(2, 10)
 	async def quote(self, context):
-		'''Displays a random famous quote'''
+		'''Shows a random famous quote'''
 		# These three variables depend on the format of quotes.txt.
 		first_quote_line = 4
 		last_quote_line = 298

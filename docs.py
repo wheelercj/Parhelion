@@ -14,7 +14,7 @@ docs = {
 @bot.command(aliases=['listdocs'], hidden=use_hidden)
 @commands.cooldown(2, 10)
 async def docs(context):
-	'''Lists the names of all docs'''
+	'''Shows the names of all docs'''
 	doc_names = ''
 	for doc_name in docs.keys():
 		doc_names += f'\n{doc_name}'

@@ -32,7 +32,7 @@ async def hhelp(context):
 	for cmd in hidden_commands:
 		message += f'\n  {cmd.name:<{width}}{cmd.short_doc}'
 	message += '\n\n Type ;help command for more info on a command.'
-	
+
 	await context.send(f'```{message}```')
 
 
@@ -76,7 +76,7 @@ async def invite(context):
 @bot.command()
 @commands.cooldown(2, 10)
 async def calc(context, *, string: str):
-	'''Evaluates math expressions'''
+	'''Evaluates a math expression'''
 	try:
 		# The eval function can do just about anything by default, so a
 		# lot of its features have to be removed for security. For more
@@ -98,7 +98,7 @@ async def calc(context, *, string: str):
 @commands.is_owner()
 @commands.cooldown(4, 10)
 async def py(context, *, string: str):
-	'''Evaluates Python expressions'''
+	'''Evaluates a Python expression'''
 	try:
 		# The eval function can do just about anything by default. Be
 		# careful with this command! For more info, see https://realpython.com/python-eval-function/#minimizing-the-security-issues-of-eval
