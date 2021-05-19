@@ -9,16 +9,29 @@ from discord.ext import commands
 
 my_channel_id = int(os.environ['MY_CHANNEL_ID'])
 bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
+use_hidden = True
 
 
-@bot.command(hidden=True)
+@bot.command(hidden=use_hidden)
+@commands.cooldown(1, 30)
+async def hhelp(context):
+	'''Shows help for the hidden commands'''
+	message = 'Hidden Commands:'
+	for cmd in bot.commands:
+		if cmd.hidden:
+			message += f'\n  {cmd.name:<21}{cmd.short_doc}'
+
+	await context.send(f'```{message}```')
+
+
+@bot.command(hidden=use_hidden)
 @commands.cooldown(2, 10)
 async def echo(context, *, message: str):
 	'''Repeats a message'''
 	await context.send(message)
 
 
-@bot.command(hidden=True)
+@bot.command(hidden=use_hidden)
 @commands.cooldown(2, 10)
 async def ping(context):
 	'''Pings the server'''
@@ -69,7 +82,7 @@ async def calc(context, *, string: str):
 		await context.send(f'Python error: {e}')
 
 
-@bot.command(hidden=True, aliases=['python', 'eval'])
+@bot.command(hidden=use_hidden, aliases=['python', 'eval'])
 @commands.is_owner()
 @commands.cooldown(4, 10)
 async def py(context, *, string: str):
@@ -91,14 +104,14 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
 		await channel.send(message)
 
 
-@bot.command(hidden=True)
+@bot.command(hidden=use_hidden)
 @commands.cooldown(2, 10)
 async def reverse(context, *, message: str):
 	'''Reverses a message'''
 	await context.send(message[::-1])
 
 
-@bot.command(hidden=True)
+@bot.command(hidden=use_hidden)
 @commands.cooldown(2, 10)
 async def rot13(context, *, message: str):
 	'''Rotates each letter of a message 13 letters through the alphabet'''
@@ -123,7 +136,7 @@ async def servers(context):
 	await context.send(f'I am in {len(bot.guilds)} servers.')
 
 
-@bot.command(hidden=True)
+@bot.command(hidden=use_hidden)
 @commands.is_owner()
 async def leave(context):
 	'''Makes the bot leave the server'''

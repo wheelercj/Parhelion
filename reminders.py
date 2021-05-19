@@ -62,7 +62,7 @@ async def remind(context, chosen_time: str = '15m', *, message: str = ''):
 			await context.send(f'{context.author.mention}, your reminder was cancelled because of an error: {e}')
 
 
-@bot.command(hidden=True, name='delete-all-reminders')
+@bot.command(hidden=use_hidden, name='delete-all-reminders')
 @commands.is_owner()
 @commands.cooldown(2, 10)
 async def delete_all_reminders(context):

@@ -81,7 +81,7 @@ async def on_guild_join(guild):
 	await dev_mail(bot, message, use_embed=False)
 
 
-@bot.command(hidden=True, aliases=['source'])
+@bot.command(hidden=use_hidden, aliases=['source'])
 @commands.is_owner()
 async def src(context, *, string: str):
 	'''Shows the source code of a command
