@@ -129,3 +129,17 @@ async def leave(context):
 	'''Makes the bot leave the server'''
 	await context.send(f'Now leaving the server. Goodbye!')
 	await context.guild.leave()
+
+
+@bot.command(hidden=True, aliases=['source'])
+@commands.is_owner()
+async def src(context, *, string: str):
+	'''Shows the source code of a command
+	
+	Caution: this command uses the eval function!
+	'''
+	try:
+		source = str(inspect.getsource(eval(string).callback))
+		await context.send(f'```py\n{source}```')
+	except NameError as e:
+		await context.send(e)
