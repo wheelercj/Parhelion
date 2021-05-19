@@ -65,7 +65,7 @@ async def answer_mention(message: str, bot):
 
 @bot.event
 async def on_command(context):
-	message = f'author: {context.author.display_name}; command: {context.message.content}'
+	message = f'author: {context.author.display_name}; guild: {context.guild}; command: {context.message.content}'
 	logger.log(COMMANDS, message)
 
 
