@@ -16,7 +16,7 @@ use_hidden = True
 
 @bot.command(hidden=use_hidden)
 @commands.cooldown(3, 15)
-async def hhelp(context):
+async def hhelp(ctx):
 	'''Shows help for all the hidden commands'''
 	hidden_commands = []
 	for cmd in bot.commands:
@@ -37,26 +37,26 @@ async def hhelp(context):
 			message += ' (owner only)'
 	message += '\n\n Type ;help command for more info on a command.'
 
-	await context.send(f'```{message}```')
+	await ctx.send(f'```{message}```')
 
 
 @bot.command(hidden=use_hidden)
 @commands.cooldown(3, 15)
-async def echo(context, *, message: str):
+async def echo(ctx, *, message: str):
 	'''Repeats a message'''
-	await context.send(message)
+	await ctx.send(message)
 
 
 @bot.command(hidden=use_hidden)
 @commands.cooldown(3, 15)
-async def ping(context):
+async def ping(ctx):
 	'''Pings the server'''
-	await context.send(f'Pong! It took {round(bot.latency, 2)} ms.')
+	await ctx.send(f'Pong! It took {round(bot.latency, 2)} ms.')
 
 
 @bot.command(aliases=['info'])
 @commands.cooldown(3, 15)
-async def about(context):
+async def about(ctx):
 	'''Shows general info about this bot'''
 	# If this is the original instance of this bot:
 	if '☼♫' in [x.name for x in bot.guilds]:
@@ -66,20 +66,20 @@ async def about(context):
 	else:
 		embed = discord.Embed(description='Enter `;help` for a list of commands.\nThis is a fork of a bot created by Chris Wheeler. You can see the original source on Repl.it by clicking [here](https://replit.com/@wheelercj/simple-Discord-bot).')
 
-	await context.send(embed=embed)
+	await ctx.send(embed=embed)
 
 
 @bot.command()
 @commands.cooldown(3, 15)
-async def invite(context):
+async def invite(ctx):
 	'''Shows the link to invite this bot to another server'''
 	embed = discord.Embed(description='You can invite me to another server that you have "manage server" permissions in with this link: https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352')
-	await context.send(embed=embed)
+	await ctx.send(embed=embed)
 
 
 @bot.command()
 @commands.cooldown(3, 15)
-async def calc(context, *, string: str):
+async def calc(ctx, *, string: str):
 	'''Evaluates a math expression
 	
 	Uses a limited version of Python's eval function.'''
@@ -93,36 +93,36 @@ async def calc(context, *, string: str):
 			if name not in allowed_names:
 				raise NameError(f'Use of "{name}" is not allowed.')
 
-		await context.send(eval(code, {"__builtins__": {}}, allowed_names))
+		await ctx.send(eval(code, {"__builtins__": {}}, allowed_names))
 	except NameError as e:
-		await context.send(e)
+		await ctx.send(e)
 	except Exception as e:
-		await context.send(f'Python error: {e}')
+		await ctx.send(f'Python error: {e}')
 
 
 @bot.command(name='eval', hidden=use_hidden)
 @commands.is_owner()
 @commands.cooldown(3, 15)
-async def _eval(context, *, string: str):
+async def _eval(ctx, *, string: str):
 	'''Evaluates a Python expression
 	
 	This command is very powerful. Be careful!'''
 	try:
-		await context.send(eval(string))
+		await ctx.send(eval(string))
 	except Exception as e:
-		await context.send(f'Python error: {e}')
+		await ctx.send(f'Python error: {e}')
 
 
 @bot.command(name='exec', hidden=use_hidden)
 @commands.is_owner()
 @commands.cooldown(3, 15)
-async def _exec(context, *, string: str):
+async def _exec(ctx, *, string: str):
 	'''Executes a Python statement
 	
 	This command is very powerful. Be careful!'''
 	string = remove_backticks(string)
 	env = {
-		'context': context,
+		'ctx': ctx,
 		'asyncio': asyncio,
 	}
 
@@ -130,7 +130,7 @@ async def _exec(context, *, string: str):
 		code = f'async def func():\n{textwrap.indent(string, "    ")}\nasyncio.get_running_loop().create_task(func())'
 		exec(code, env)
 	except Exception as e:
-		await context.send(f'Python error: {e}')
+		await ctx.send(f'Python error: {e}')
 
 
 def remove_backticks(string: str):
@@ -156,14 +156,14 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
 
 @bot.command(hidden=use_hidden)
 @commands.cooldown(3, 15)
-async def reverse(context, *, message: str):
+async def reverse(ctx, *, message: str):
 	'''Reverses a message'''
-	await context.send(message[::-1])
+	await ctx.send(message[::-1])
 
 
 @bot.command(hidden=use_hidden)
 @commands.cooldown(3, 15)
-async def rot13(context, *, message: str):
+async def rot13(ctx, *, message: str):
 	'''Rotates each letter 13 letters through the alphabet'''
 	message = message.lower()
 	new_string = ''
@@ -176,20 +176,20 @@ async def rot13(context, *, message: str):
 		else:
 			new_string += char
 
-	await context.send(new_string)
+	await ctx.send(new_string)
 
 
 @bot.command(aliases=['servers'])
 @commands.cooldown(3, 15)
-async def stats(context):
+async def stats(ctx):
 	'''Shows how many servers this bot is in'''
-	await context.send(f'I am in {len(bot.guilds)} servers.')
+	await ctx.send(f'I am in {len(bot.guilds)} servers.')
 
 
 @bot.command(hidden=use_hidden)
 @commands.is_owner()
 @commands.cooldown(3, 15)
-async def leave(context):
+async def leave(ctx):
 	'''Makes the bot leave the server'''
-	await context.send(f'Now leaving the server. Goodbye!')
-	await context.guild.leave()
+	await ctx.send(f'Now leaving the server. Goodbye!')
+	await ctx.guild.leave()

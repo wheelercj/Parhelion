@@ -64,15 +64,15 @@ async def answer_mention(message: str, bot):
 
 
 @bot.event
-async def on_command(context):
-	log_message = f'author: {context.author.display_name}; guild: {context.guild}; command: {context.message.content}'
+async def on_command(ctx):
+	log_message = f'author: {ctx.author.display_name}; guild: {ctx.guild}; command: {ctx.message.content}'
 	logger.log(COMMANDS, log_message)
 
 
 @bot.event
-async def on_command_error(context, error):
+async def on_command_error(ctx, error):
 	if isinstance(error, commands.CommandOnCooldown):
-		await context.send(error)
+		await ctx.send(error)
 
 
 @bot.event
@@ -84,18 +84,18 @@ async def on_guild_join(guild):
 
 @bot.command(name='inspect', aliases=['source', 'src'])
 @commands.cooldown(3, 15)
-async def _inspect(context, *, command: str):
+async def _inspect(ctx, *, command: str):
 	'''Shows the source code of a command'''
 	try:
 		cmds = {cmd.name: cmd for cmd in bot.commands}
 		if command not in cmds.keys():
 			raise NameError(f'Command {command} not found.')
 		source = str(inspect.getsource(cmds[command].callback))
-		await context.send(f'```py\n{source}```')
+		await ctx.send(f'```py\n{source}```')
 	except NameError as e:
-		await context.send(e)
+		await ctx.send(e)
 	except KeyError as e:
-		await context.send(e)
+		await ctx.send(e)
 
 
 keep_alive()

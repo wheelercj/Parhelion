@@ -40,32 +40,32 @@ class Reminder:
 
 @bot.command(aliases=['reminder', 'remindme'])
 @commands.cooldown(3, 15)
-async def remind(context, chosen_time: str = '15m', *, message: str = ''):
+async def remind(ctx, chosen_time: str = '15m', *, message: str = ''):
 	'''Gives a reminder, e.g. ;remind 1h30m iron socks
 	
 	Currently, these reminders are saved in a publicly accessible file.
 	'''
-	await context.send(f'Reminder set! In {chosen_time}, I will remind you: {message}')
+	await ctx.send(f'Reminder set! In {chosen_time}, I will remind you: {message}')
 	try:
 		seconds = parse_time(chosen_time)
-		reminder = await save_reminder(context, chosen_time, seconds, message)
+		reminder = await save_reminder(ctx, chosen_time, seconds, message)
 
 		await asyncio.sleep(seconds)
-		await context.send(f'{context.author.mention}, here is your {chosen_time} reminder: {message}', tts=use_tts)
+		await ctx.send(f'{ctx.author.mention}, here is your {chosen_time} reminder: {message}', tts=use_tts)
 		await delete_reminder(reminder, bot)
 	except Exception as e:
 		if e == 'invalid load key, \'\\xef\'':
-			await context.send(f'Reminder error: {e}.')
+			await ctx.send(f'Reminder error: {e}.')
 			with open(reminders_file, 'w') as _:
 				pass
 		else:
-			await context.send(f'{context.author.mention}, your reminder was cancelled because of an error: {e}')
+			await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
 
 
 @bot.command(hidden=use_hidden, name='del-r.txt')
 @commands.is_owner()
 @commands.cooldown(3, 15)
-async def delete_reminders_txt(context):
+async def delete_reminders_txt(ctx):
 	'''Deletes everything in reminders.txt
 	
 	For recovering from errors that make the file unparseable.
@@ -106,12 +106,12 @@ def parse_time(Time: str) -> float:
 				raise SyntaxError
 
 
-async def save_reminder(context, chosen_time: str, seconds: int, message: str):
+async def save_reminder(ctx, chosen_time: str, seconds: int, message: str):
 	'''Save one reminder to the saved reminders file.'''
 	start_time = datetime.datetime.now()
 	end_time = start_time + datetime.timedelta(0, seconds)
-	author = str(context.author.mention)
-	channel = context.channel.id
+	author = str(ctx.author.mention)
+	channel = ctx.channel.id
 
 	reminder = Reminder(chosen_time, start_time, end_time, message, author, channel)
 	with open(reminders_file, 'ab') as file:

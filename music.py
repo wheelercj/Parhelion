@@ -87,86 +87,86 @@ class Music(commands.Cog):
 		
 	@commands.command()
 	@commands.cooldown(3, 15)
-	async def join(self, context, *, channel: discord.VoiceChannel):
+	async def join(self, ctx, *, channel: discord.VoiceChannel):
 		'''Joins a voice channel'''
 
-		if context.voice_client is not None:
-			return await context.voice_client.move_to(channel)
+		if ctx.voice_client is not None:
+			return await ctx.voice_client.move_to(channel)
 
 		await channel.connect()
 
 
 	@join.error
-	async def join_error(self, context, error):
+	async def join_error(self, ctx, error):
 		if isinstance(error, commands.BadArgument):
-			await context.send(f'Channel not found.')
+			await ctx.send(f'Channel not found.')
 		
 
 	# I don't want to allow downloading of audio files to repl.it, so this command can never be used anyways.	
 	# @commands.command()
-	# async def play(self, context, *, query):
+	# async def play(self, ctx, *, query):
 	# 	'''Plays a file from the local filesystem'''
 
 	# 	source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(query))
-	# 	context.voice_client.play(source, after=lambda e: print('Player error: %s' % e) if e else None)
+	# 	ctx.voice_client.play(source, after=lambda e: print('Player error: %s' % e) if e else None)
 
-	# 	await context.send('Now playing: {}'.format(query))
+	# 	await ctx.send('Now playing: {}'.format(query))
 
 
 	# This command downloads files into repl.it, and the quality of the music it plays is terrible probably because of repl.it's limited resources.
 	# @commands.command()
-	# async def yt(self, context, *, url):
+	# async def yt(self, ctx, *, url):
 	# 	'''Plays from a url (almost anything youtube_dl supports)'''
 
-	# 	async with context.typing():
+	# 	async with ctx.typing():
 	# 		player = await YTDLSource.from_url(url, loop=self.bot.loop)
-	# 		context.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+	# 		ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
 
-	# 	await context.send('Now playing: {}'.format(player.title))
+	# 	await ctx.send('Now playing: {}'.format(player.title))
 
 		
 	@commands.command()
 	@commands.cooldown(3, 15)
-	async def stream(self, context, *, url):
+	async def stream(self, ctx, *, url):
 		'''Streams audio from a url'''
 
-		async with context.typing():
+		async with ctx.typing():
 			player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-			context.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+			ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
 
-		await context.send('Now playing: {}'.format(player.title))
+		await ctx.send('Now playing: {}'.format(player.title))
 
 		
 	@commands.command()
 	@commands.cooldown(3, 15)
-	async def volume(self, context, volume: int):
+	async def volume(self, ctx, volume: int):
 		'''Changes the player's volume'''
 
-		if context.voice_client is None:
-			return await context.send('Not connected to a voice channel.')
+		if ctx.voice_client is None:
+			return await ctx.send('Not connected to a voice channel.')
 
-		context.voice_client.source.volume = volume / 100
-		await context.send('Changed volume to {}%'.format(volume))
+		ctx.voice_client.source.volume = volume / 100
+		await ctx.send('Changed volume to {}%'.format(volume))
 
 		
 	@commands.command()
-	async def stop(self, context):
+	async def stop(self, ctx):
 		'''Stops and disconnects the bot from voice'''
-		await context.voice_client.disconnect()
+		await ctx.voice_client.disconnect()
 
 		
 	#@play.before_invoke
 	#@yt.before_invoke
 	@stream.before_invoke
-	async def ensure_voice(self, context):
-		if context.voice_client is None:
-			if context.author.voice:
-				await context.author.voice.channel.connect()
+	async def ensure_voice(self, ctx):
+		if ctx.voice_client is None:
+			if ctx.author.voice:
+				await ctx.author.voice.channel.connect()
 			else:
-				await context.send('You are not connected to a voice channel.')
+				await ctx.send('You are not connected to a voice channel.')
 				raise commands.CommandError('Author not connected to a voice channel.')
-		elif context.voice_client.is_playing():
-			context.voice_client.stop()
+		elif ctx.voice_client.is_playing():
+			ctx.voice_client.stop()
 
 
 bot.add_cog(Music(bot))

@@ -11,30 +11,30 @@ class Random(commands.Cog):
 
 	@commands.command(aliases=['random'])
 	@commands.cooldown(3, 15)
-	async def rand(self, context, low: int = 1, high: int = 6):
+	async def rand(self, ctx, low: int = 1, high: int = 6):
 		'''Gives a random number (default bounds are 1 and 6)'''
 		low = int(low)
 		high = int(high)
 		if  low <= high:
-			await context.send(str(random.randint(low, high)))
+			await ctx.send(str(random.randint(low, high)))
 		else:
-			await context.send(str(random.randint(high, low)))
+			await ctx.send(str(random.randint(high, low)))
 
 
 	@commands.command(name='flip-coin', aliases=['flip'])
 	@commands.cooldown(3, 15)
-	async def flip_coin(self, context):
+	async def flip_coin(self, ctx):
 		'''Flips a coin'''
 		n = random.randint(1, 2)
 		if n == 1:
-			await context.send('heads')
+			await ctx.send('heads')
 		else:
-			await context.send('tails')
+			await ctx.send('tails')
 
 
 	@commands.command()
 	@commands.cooldown(3, 15)
-	async def quote(self, context):
+	async def quote(self, ctx):
 		'''Shows a random famous quote'''
 		# These three variables depend on the format of quotes.txt.
 		first_quote_line = 4
@@ -47,30 +47,30 @@ class Random(commands.Cog):
 		author = linecache.getline('quotes.txt', rand_line + 1)
 
 		embed = discord.Embed(description=f'{quote}\n{author}')
-		await context.send(embed=embed)
+		await ctx.send(embed=embed)
 
 
 	# Source of the roll and choose commands: https://github.com/Rapptz/discord.py/blob/8517f1e085df27acd5191d0d0cb2363242be0c29/examples/basic_bot.py#L30
 	# License: https://github.com/Rapptz/discord.py/blob/v1.7.1/LICENSE
 	@commands.command()
 	@commands.cooldown(3, 15)
-	async def roll(self, context, dice: str):
+	async def roll(self, ctx, dice: str):
 		'''Rolls dice in NdN format'''
 		try:
 			rolls, limit = map(int, dice.split('d'))
 		except Exception:
-			await context.send('Error: format has to be in NdN.')
+			await ctx.send('Error: format has to be in NdN.')
 			return
 
 		result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
-		await context.send(result)
+		await ctx.send(result)
 
 
 	@commands.command()
 	@commands.cooldown(3, 15)
-	async def choose(self, context, *choices: str):
+	async def choose(self, ctx, *choices: str):
 		'''Chooses randomly between multiple choices'''
-		await context.send(random.choice(choices))
+		await ctx.send(random.choice(choices))
 
 
 bot.add_cog(Random(bot))
