@@ -25,11 +25,13 @@ async def hhelp(context):
 
 	# Get column width.
 	hidden_names = [x.name for x in hidden_commands]
-	width = len(max(hidden_names, key=len)) + 1
+	width = len(max(hidden_names, key=len))
 
 	message = 'Hidden Commands:'
 	for cmd in hidden_commands:
-		message += f'\n  {cmd.name:<{width}}{cmd.short_doc}'
+		message += f'\n  {cmd.name:<{width}} {cmd.short_doc}'
+		if len(cmd.checks):
+			message += ' (owner only)'
 	message += '\n\n Type ;help command for more info on a command.'
 
 	await context.send(f'```{message}```')
