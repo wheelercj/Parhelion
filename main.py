@@ -1,8 +1,10 @@
 # External imports
 import os
+import sys
 import discord
 import logging
 import inspect
+import traceback
 
 # Internal imports
 from reminders import *
@@ -71,8 +73,16 @@ async def on_command(ctx):
 
 @bot.event
 async def on_command_error(ctx, error):
+	if hasattr(ctx.command, 'on_error'):
+            return
+
 	if isinstance(error, commands.CommandOnCooldown):
 		await ctx.send(error)
+	elif isinstance(error, commands.UserInputError):
+		await ctx.send(error)
+	else:
+		print(f'Ignoring exception in command {ctx.command}:', file=sys.stderr)
+		traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 
 @bot.event
