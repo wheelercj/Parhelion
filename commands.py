@@ -3,6 +3,7 @@ import os
 import discord
 import textwrap
 import asyncio
+from math import *
 
 # Internal imports
 from discord.ext import commands
