@@ -120,6 +120,7 @@ async def _exec(context, *, string: str):
 	'''Executes a Python statement
 	
 	This command is very powerful. Be careful!'''
+	string = remove_backticks(string)
 	env = {
 		'context': context,
 		'asyncio': asyncio,
@@ -130,6 +131,18 @@ async def _exec(context, *, string: str):
 		exec(code, env)
 	except Exception as e:
 		await context.send(f'Python error: {e}')
+
+
+def remove_backticks(string: str):
+	'''Removes backticks around a code block, if they are there'''
+	if string.startswith('```'):
+		string = string[3:]
+		if string.startswith('py\n'):
+			string = string[3:]
+		if string.endswith('```'):
+			string = string[:-3]
+
+	return string
 
 
 async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
