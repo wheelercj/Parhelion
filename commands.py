@@ -1,6 +1,8 @@
 # External imports
 import os
 import discord
+import textwrap
+import asyncio
 
 # Internal imports
 from discord.ext import commands
@@ -77,7 +79,9 @@ async def invite(context):
 @bot.command()
 @commands.cooldown(3, 15)
 async def calc(context, *, string: str):
-	'''Evaluates a math expression'''
+	'''Evaluates a math expression
+	
+	Uses a limited version of Python's eval function.'''
 	try:
 		# The eval function can do just about anything by default, so a
 		# lot of its features have to be removed for security. For more
@@ -95,15 +99,36 @@ async def calc(context, *, string: str):
 		await context.send(f'Python error: {e}')
 
 
-@bot.command(hidden=use_hidden, aliases=['python', 'eval'])
+@bot.command(name='eval', hidden=use_hidden)
 @commands.is_owner()
 @commands.cooldown(3, 15)
-async def py(context, *, string: str):
-	'''Evaluates a Python expression'''
+async def _eval(context, *, string: str):
+	'''Evaluates a Python expression
+	
+	This command is very powerful. Be careful!'''
 	try:
-		# The eval function can do just about anything by default. Be
-		# careful with this command! For more info, see https://realpython.com/python-eval-function/#minimizing-the-security-issues-of-eval
 		await context.send(eval(string))
+	except Exception as e:
+		await context.send(f'Python error: {e}')
+
+
+@bot.command(name='exec', hidden=use_hidden)
+@commands.is_owner()
+@commands.cooldown(3, 15)
+async def _exec(context, *, string: str):
+	'''Executes a Python statement
+	
+	This command is very powerful. Be careful!'''
+	# The exec function can do just about anything by default.
+	# Be careful with this command!
+	env = {
+		'context': context,
+		'asyncio': asyncio,
+	}
+
+	try:
+		code = f'async def func():\n{textwrap.indent(string, "    ")}\nasyncio.get_running_loop().create_task(func())'
+		exec(code, env)
 	except Exception as e:
 		await context.send(f'Python error: {e}')
 
