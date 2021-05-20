@@ -142,7 +142,7 @@ async def rot13(context, *, message: str):
 	await context.send(new_string)
 
 
-@bot.command()
+@bot.command(aliases=['stats'])
 @commands.cooldown(3, 15)
 async def servers(context):
 	'''Shows how many servers this bot is in'''
