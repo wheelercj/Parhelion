@@ -40,7 +40,7 @@ class Reminder:
 
 @bot.command(aliases=['reminder', 'remindme'])
 @commands.cooldown(3, 15)
-async def remind(ctx, chosen_time: str = '15m', *, message: str = ''):
+async def remind(ctx, chosen_time: str, *, message: str):
 	'''Gives a reminder, e.g. ;remind 1h30m iron socks
 	
 	Currently, these reminders are saved in a publicly accessible file.
@@ -72,7 +72,7 @@ async def delete_reminders_txt(ctx):
 	'''
 	with open(reminders_file, 'w') as _:
 		pass
-	dev_mail(bot, 'All reminders deleted.', use_embed=False)
+	await dev_mail(bot, 'All reminders deleted.', use_embed=False)
 
 	
 def parse_time(Time: str) -> float:
