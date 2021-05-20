@@ -119,8 +119,6 @@ async def _exec(context, *, string: str):
 	'''Executes a Python statement
 	
 	This command is very powerful. Be careful!'''
-	# The exec function can do just about anything by default.
-	# Be careful with this command!
 	env = {
 		'context': context,
 		'asyncio': asyncio,
