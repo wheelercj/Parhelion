@@ -120,6 +120,7 @@ async def _exec(ctx, *, string: str):
 	string = remove_backticks(string)
 	env = {
 		'ctx': ctx,
+		'bot': bot,
 		'asyncio': asyncio,
 	}
 
