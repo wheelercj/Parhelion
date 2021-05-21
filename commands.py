@@ -124,7 +124,7 @@ async def _exec(ctx, *, string: str):
 	}
 
 	try:
-		code = f'async def func():\n{textwrap.indent(string, "    ")}\nasyncio.get_running_loop().create_task(func())'
+		code = f'async def func():\n    try:\n{textwrap.indent(string, "        ")}\n    except Exception as e:\n        await ctx.send("Python error: %s" % e)\nasyncio.get_running_loop().create_task(func())'
 		exec(code, env)
 	except Exception as e:
 		await ctx.send(f'Python error: {e}')
