@@ -27,9 +27,7 @@ Here's most of this bot's commands. This image will not always be kept up-to-dat
 ![help demo](images/help_demo.png)
 
 ## optional environment variables
-If you make a fork of this bot, the only environment variable you will need to set is `DISCORD_BOT_SECRET_TOKEN`, as explained above. However, there is an optional environment variable you can set: `MY_CHANNEL_ID`. This lets you use the `dev_mail` async function. Choose the Discord channel where you want to receive high-priority messages from the bot. The `dev_mail` async function is only called to alert the developer in situations like when the bot joins a new server, or cannot recover from certain errors without your help.
-
-&nbsp;
+If you make a fork of this bot, the only environment variable you will need to set is `DISCORD_BOT_SECRET_TOKEN`, as explained above. However, there is an optional environment variable you can set: `MY_USER_ID`. This lets you use the `dev_mail` async function, which will send you high-priority messages from the bot only to alert you of situations like when the bot joins a new server, or cannot recover from certain errors without your help.
 
 &nbsp;
 

@@ -9,7 +9,7 @@ from math import *
 from discord.ext import commands
 
 
-my_channel_id = int(os.environ['MY_CHANNEL_ID'])
+my_user_id = int(os.environ['MY_USER_ID'])
 bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
 use_hidden = True
 
@@ -146,12 +146,12 @@ def remove_backticks(string: str):
 
 
 async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
-	channel = await bot.fetch_channel(my_channel_id)
+	user = await bot.fetch_user(my_user_id)
 	if use_embed:
 		embed = discord.Embed(title=embed_title, description=message)
-		await channel.send(embed=embed)
+		await user.send(embed=embed)
 	else:
-		await channel.send(message)
+		await user.send(message)
 
 
 @bot.command(hidden=use_hidden)
