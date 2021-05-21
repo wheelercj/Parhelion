@@ -1,5 +1,6 @@
 # External imports
 import os
+import platform
 import discord
 import textwrap
 import asyncio
@@ -54,26 +55,22 @@ async def ping(ctx):
 	await ctx.send(f'Pong! It took {round(bot.latency, 2)} ms.')
 
 
-@bot.command(aliases=['info'])
+@bot.command(aliases=['info', 'stats', 'invite'])
 @commands.cooldown(3, 15)
 async def about(ctx):
 	'''Shows general info about this bot'''
-	# If this is the original instance of this bot:
-	if '☼♫' in [x.name for x in bot.guilds]:
-		embed = discord.Embed(description='Enter `;help` for a list of commands.\nThis bot was created by Chris Wheeler, except for the parts otherwise specified. See the source on Repl.it by clicking [here](https://replit.com/@wheelercj/simple-Discord-bot).')
+	embed = discord.Embed(
+		title='About me',
+		description= f'''
+			Created by Chris Wheeler
+			with Python {platform.python_version()} and [discord.py](https://discordpy.readthedocs.io/en/latest/)
 
-	# Else if this is a forked copy of this bot:
-	else:
-		embed = discord.Embed(description='Enter `;help` for a list of commands.\nThis is a fork of a bot created by Chris Wheeler. You can see the original source on Repl.it by clicking [here](https://replit.com/@wheelercj/simple-Discord-bot).')
-
-	await ctx.send(embed=embed)
-
-
-@bot.command()
-@commands.cooldown(3, 15)
-async def invite(ctx):
-	'''Shows the link to invite this bot to another server'''
-	embed = discord.Embed(description='You can invite me to another server that you have "manage server" permissions in with this link: https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352')
+			Currently in {len(bot.guilds)} servers.
+			Invite link [here](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352)
+			Source code [here](https://replit.com/@wheelercj/simple-Discord-bot)
+		'''
+	)
+	
 	await ctx.send(embed=embed)
 
 
@@ -177,13 +174,6 @@ async def rot13(ctx, *, message: str):
 			new_string += char
 
 	await ctx.send(new_string)
-
-
-@bot.command(aliases=['servers'])
-@commands.cooldown(3, 15)
-async def stats(ctx):
-	'''Shows how many servers this bot is in'''
-	await ctx.send(f'I am in {len(bot.guilds)} servers.')
 
 
 @bot.command(hidden=use_hidden)
