@@ -35,7 +35,7 @@ async def hhelp(ctx):
 	for cmd in hidden_commands:
 		message += f'\n  {cmd.name:<{width}} {cmd.short_doc}'
 		if len(cmd.checks):
-			message += ' (owner only)'
+			message += ' (bot owner only)'
 	message += '\n\n Type ;help command for more info on a command.'
 
 	await ctx.send(f'```{message}```')
