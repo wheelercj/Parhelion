@@ -12,6 +12,7 @@ from discord.ext import commands
 
 my_user_id = int(os.environ['MY_USER_ID'])
 bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
+bot.previous_commands_ctx = []
 use_hidden = True
 
 
@@ -184,3 +185,18 @@ async def leave(ctx):
 	'''Makes the bot leave the server'''
 	await ctx.send(f'Now leaving the server. Goodbye!')
 	await ctx.guild.leave()
+
+
+@bot.command(name='r', hidden=True)
+@commands.is_owner()
+@commands.cooldown(3, 15)
+async def repeat_command(ctx):
+	'''Repeats the last command you used'''
+	previous = ctx.bot.previous_commands_ctx
+	for c in previous[::-1]:
+		if c.author.id == ctx.author.id:
+			if c.command.name != 'r':
+				await c.reinvoke()
+				return
+	
+	await ctx.send('No previous command saved.')

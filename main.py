@@ -24,6 +24,9 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 
 
+my_user_id = int(os.environ['MY_USER_ID'])
+
+
 @bot.event
 async def on_connect():
 	try:
@@ -69,6 +72,10 @@ async def answer_mention(message: str, bot):
 async def on_command(ctx):
 	log_message = f'author: {ctx.author.display_name}; guild: {ctx.guild}; command: {ctx.message.content}'
 	logger.log(COMMANDS, log_message)
+
+	bot.previous_commands_ctx.append(ctx)
+	if len(bot.previous_commands_ctx) > 15:
+		previous_commands_ctx = previous_commands_ctx[8:]
 
 
 @bot.event
