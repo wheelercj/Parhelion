@@ -12,7 +12,7 @@ from discord.ext import commands
 
 my_user_id = int(os.environ['MY_USER_ID'])
 bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
-bot.previous_commands_ctx = []
+bot.previous_command_ctxs = []
 use_hidden = True
 
 
@@ -192,11 +192,12 @@ async def leave(ctx):
 @commands.cooldown(3, 15)
 async def repeat_command(ctx):
 	'''Repeats the last command you used'''
-	previous = ctx.bot.previous_commands_ctx
+	previous = ctx.bot.previous_command_ctxs
 	for c in previous[::-1]:
 		if c.author.id == ctx.author.id:
-			if c.command.name != 'r':
-				await c.reinvoke()
-				return
+			if c.command.name == 'r':
+				raise ValueError
+			await c.reinvoke()
+			return
 	
 	await ctx.send('No previous command saved.')

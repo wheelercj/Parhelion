@@ -73,9 +73,10 @@ async def on_command(ctx):
 	log_message = f'author: {ctx.author.display_name}; guild: {ctx.guild}; command: {ctx.message.content}'
 	logger.log(COMMANDS, log_message)
 
-	bot.previous_commands_ctx.append(ctx)
-	if len(bot.previous_commands_ctx) > 15:
-		previous_commands_ctx = previous_commands_ctx[8:]
+	if ctx.command.name != 'r':
+		bot.previous_command_ctxs.append(ctx)
+		if len(bot.previous_command_ctxs) > 10:
+			bot.previous_command_ctxs = bot.previous_command_ctxs[1:]
 
 
 @bot.event
