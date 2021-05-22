@@ -68,9 +68,12 @@ class Random(commands.Cog):
 
 	@commands.command()
 	@commands.cooldown(3, 15)
-	async def choose(self, ctx, *choices: str):
+	async def choose(self, ctx, choice_count: int, *choices: str):
 		'''Chooses randomly between multiple choices'''
-		await ctx.send(random.choice(choices))
+		choices_made = []
+		for _ in range(0, choice_count):
+			choices_made.append(random.choice(choices))
+		await ctx.send(''.join(choices_made))
 
 
 bot.add_cog(Random(bot))
