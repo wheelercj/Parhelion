@@ -85,8 +85,8 @@ class Reminders(commands.Cog):
 		else:
 			r_str = 'Here are your in-progress reminders:'
 			for i, r in enumerate(author_reminders):
-				end_time = f'{r.end_time.hour}:{r.end_time.minute} UTC on {r.end_time.year}/{r.end_time.month}/{r.end_time.day}'
-				r_str += f'\n\n{i+1}. "{r.message}"\nduration: {r.chosen_time}\nend time: {end_time}'
+				remaining = r.end_time - datetime.datetime.now()
+				r_str += f'\n\n{i+1}. "{r.message}"\nduration: {r.chosen_time}\ntime remaining: {str(remaining)}'
 			embed = discord.Embed(description=r_str)
 			await ctx.send(embed=embed)
 
