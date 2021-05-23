@@ -51,7 +51,7 @@ class Reminders(commands.Cog):
 	@commands.command(aliases=['reminder', 'remindme'])
 	@commands.cooldown(3, 15)
 	async def remind(self, ctx, chosen_time: str, *, message: str):
-		'''Gives a reminder, e.g. ;remind 1h30m iron socks
+		'''Sends a reminder, e.g. ;remind 1h30m iron socks
 		
 		Currently, these reminders are saved in a publicly accessible file.
 		'''
@@ -94,11 +94,11 @@ class Reminders(commands.Cog):
 	@commands.command(name='del-r', aliases=['del-reminder', 'delete-reminder'])
 	@commands.cooldown(3, 15)
 	async def del_r(self, ctx, *, index: int):
-		'''Delete a reminder by its index in list-r
+		'''Deletes a reminder by its index in list-r
 		
 		Currently, this only deletes a reminder from the saved reminders file, not
 		from the program. A deleted reminder will then only be cancelled if the
-		program is restarted.
+		bot is restarted.
 		'''
 		reminders, author_reminders = await self.load_author_reminders(ctx)
 		
@@ -156,7 +156,7 @@ class Reminders(commands.Cog):
 
 		
 	def parse_time(self, Time: str) -> float:
-		'''Convert a str of one or multiple units of time to a float of seconds.
+		'''Converts a str of one or multiple units of time to a float of seconds
 		
 		The str must be in a certain format. Valid examples:
 			2h45m
@@ -187,7 +187,7 @@ class Reminders(commands.Cog):
 
 
 	async def save_reminder(self, ctx, chosen_time: str, seconds: int, message: str):
-		'''Save one reminder to the saved reminders file.'''
+		'''Saves one reminder to the saved reminders file'''
 		start_time = datetime.datetime.now()
 		end_time = start_time + datetime.timedelta(0, seconds)
 		author_mention = str(ctx.author.mention)
@@ -202,7 +202,7 @@ class Reminders(commands.Cog):
 
 
 	async def load_reminders(self):
-		'''Load and return all reminders from the saved reminders file.'''
+		'''Loads and return all reminders from the saved reminders file'''
 		reminders = []
 		with open(self.reminders_file, 'rb') as file:
 			while True:
@@ -219,7 +219,7 @@ class Reminders(commands.Cog):
 
 
 	async def cotinue_reminder(self, reminder):
-		'''Continue a reminder that had been stopped by a server restart.'''
+		'''Continues a reminder that had been stopped by a server restart'''
 		
 		channel = self.bot.get_channel(reminder.channel)
 		try:
@@ -242,7 +242,7 @@ class Reminders(commands.Cog):
 
 
 	async def delete_reminder(self, reminder):
-		'''Remove one reminder from the file of saved reminders.'''
+		'''Removes one reminder from the file of saved reminders'''
 		reminders = await self.load_reminders()
 		try:
 			reminders.remove(reminder)

@@ -12,7 +12,7 @@ class Random(commands.Cog):
 	@commands.command(aliases=['random'])
 	@commands.cooldown(3, 15)
 	async def rand(self, ctx, low: int = 1, high: int = 6):
-		'''Gives a random number (default bounds are 1 and 6)'''
+		'''Gives a random number (default bounds: 1 and 6)'''
 		low = int(low)
 		high = int(high)
 		if  low <= high:
