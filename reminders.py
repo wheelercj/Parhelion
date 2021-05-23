@@ -74,37 +74,44 @@ class Reminders(commands.Cog):
 					await self.send_traceback(ctx, e)
 
 
-
 	@commands.command(name='list-r', aliases=['list-reminders'])
 	@commands.cooldown(3, 15)
 	async def list_reminders(self, ctx):
-		'''List all of your reminders'''
-		reminders = self.load_reminders()
+		'''Shows all of your reminders'''
+		reminders, author_reminders = await self.load_author_reminders(ctx)
 
-		if reminders is None:
+		if author_reminders is None:
 			await ctx.send('You have no saved reminders.')
 		else:
-			author_reminders = []
-			for r in reminders:
-				if r.author_id == ctx.author.id:
-					author_reminders.append(r)
-
-			if not len(author_reminders):
-				await ctx.send('You have no saved reminders.')
-			else:
-				r_str = 'Here are your in-progress reminders:'
-				for i, r in enumerate(author_reminders):
-					end_time = f'{r.end_time.hour}:{r.end_time.minute} UTC on {r.end_time.year}/{r.end_time.month}/{r.end_time.day}'
-					r_str += f'\n\n{i+1}. "{r.message}"\nduration: {r.chosen_time}\nend time: {end_time}'
-				embed = discord.Embed(description=r_str)
-				await ctx.send(embed=embed)
+			r_str = 'Here are your in-progress reminders:'
+			for i, r in enumerate(author_reminders):
+				end_time = f'{r.end_time.hour}:{r.end_time.minute} UTC on {r.end_time.year}/{r.end_time.month}/{r.end_time.day}'
+				r_str += f'\n\n{i+1}. "{r.message}"\nduration: {r.chosen_time}\nend time: {end_time}'
+			embed = discord.Embed(description=r_str)
+			await ctx.send(embed=embed)
 
 
 	@commands.command(name='del-r', aliases=['del-reminder', 'delete-reminder'])
 	@commands.cooldown(3, 15)
-	async def del_r(self, ctx, *, message: str):
-		'''Delete one of your reminders'''
-		pass
+	async def del_r(self, ctx, *, index: int):
+		'''Delete a reminder by its index in list-r
+		
+		Currently, this only deletes a reminder from the saved reminders file, not
+		from the program. A deleted reminder will then only be cancelled if the
+		program is restarted.
+		'''
+		reminders, author_reminders = await self.load_author_reminders(ctx)
+		
+		if author_reminders is None:
+			await ctx.send('You have no saved reminders.')
+		else:
+			if index > len(author_reminders):
+				await ctx.send('Reminder index not found. Use list-r.')
+			else:
+				reminders.remove(author_reminders[index-1])
+				await ctx.send(f'Reminder deleted: "{author_reminders[index-1].message}"')
+				with open(self.reminders_file, 'wb') as file:
+					pickle.dump(reminders, file)
 
 
 	@commands.command(name='del-all-r', hidden=True)
@@ -118,6 +125,26 @@ class Reminders(commands.Cog):
 		with open(self.reminders_file, 'w') as _:
 			pass
 		await ctx.send('Everything in the reminders file has been deleted.')
+
+
+	async def load_author_reminders(self, ctx):
+		'''Returns the lists of reminders and ctx.author\'s reminders
+		
+		Returns None for either/both of those that there are none of.
+		'''
+		reminders = await self.load_reminders()
+		if reminders is None:
+			return None, None
+		else:
+			author_reminders = []
+			for r in reminders:
+				if r.author_id == ctx.author.id:
+					author_reminders.append(r)
+
+			if author_reminders is None:
+				return reminders, None
+			else:
+				return reminders, author_reminders
 
 
 	async def send_traceback(self, ctx, e):
@@ -174,7 +201,7 @@ class Reminders(commands.Cog):
 		return reminder
 
 
-	def load_reminders(self):
+	async def load_reminders(self):
 		'''Load and return all reminders from the saved reminders file.'''
 		reminders = []
 		with open(self.reminders_file, 'rb') as file:
@@ -216,7 +243,7 @@ class Reminders(commands.Cog):
 
 	async def delete_reminder(self, reminder):
 		'''Remove one reminder from the file of saved reminders.'''
-		reminders = self.load_reminders()
+		reminders = await self.load_reminders()
 		try:
 			reminders.remove(reminder)
 			with open(self.reminders_file, 'wb') as file:

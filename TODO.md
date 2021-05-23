@@ -10,7 +10,5 @@
 * Add to the doc command: if KeyError, try to guess which docs might have been meant and suggest them.
 
 ## improve reminders
-* Add a way for a user to delete their active reminders.
-* Add a way for a user to list their active reminders. Show remaining time.
 * Use [discord.py tasks](https://discordpy.readthedocs.io/en/latest/ext/tasks/index.html?highlight=task) to run the reminders?
 * Use the [replit database](https://docs.replit.com/misc/database) to store the reminders instead of reminders.txt?

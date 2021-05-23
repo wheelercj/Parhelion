@@ -32,7 +32,7 @@ async def on_connect():
 	try:
 		print('Loading . . . ')
 		rem = Reminders(bot)
-		reminders = rem.load_reminders()
+		reminders = await rem.load_reminders()
 		if reminders is not None:
 			for r in reminders:
 				await rem.cotinue_reminder(r)
