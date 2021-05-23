@@ -62,7 +62,7 @@ async def remind(ctx, chosen_time: str, *, message: str):
 			await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
 
 
-@bot.command(hidden=use_hidden, name='del-r.txt')
+@bot.command(hidden=True, name='del-r.txt')
 @commands.is_owner()
 @commands.cooldown(3, 15)
 async def delete_reminders_txt(ctx):

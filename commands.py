@@ -13,10 +13,9 @@ from discord.ext import commands
 my_user_id = int(os.environ['MY_USER_ID'])
 bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
 bot.previous_command_ctxs = []
-use_hidden = True
 
 
-@bot.command(hidden=use_hidden)
+@bot.command(hidden=True)
 @commands.cooldown(3, 15)
 async def hhelp(ctx):
 	'''Shows help for all the hidden commands'''
@@ -42,14 +41,14 @@ async def hhelp(ctx):
 	await ctx.send(f'```{message}```')
 
 
-@bot.command(hidden=use_hidden)
+@bot.command(hidden=True)
 @commands.cooldown(3, 15)
 async def echo(ctx, *, message: str):
 	'''Repeats a message'''
 	await ctx.send(message)
 
 
-@bot.command(hidden=use_hidden)
+@bot.command(hidden=True)
 @commands.cooldown(3, 15)
 async def ping(ctx):
 	'''Pings the server'''
@@ -98,7 +97,7 @@ async def calc(ctx, *, string: str):
 		await ctx.send(f'Python error: {e}')
 
 
-@bot.command(name='eval', hidden=use_hidden)
+@bot.command(name='eval', hidden=True)
 @commands.is_owner()
 @commands.cooldown(3, 15)
 async def _eval(ctx, *, string: str):
@@ -111,7 +110,7 @@ async def _eval(ctx, *, string: str):
 		await ctx.send(f'Python error: {e}')
 
 
-@bot.command(name='exec', hidden=use_hidden)
+@bot.command(name='exec', hidden=True)
 @commands.is_owner()
 @commands.cooldown(3, 15)
 async def _exec(ctx, *, string: str):
@@ -153,14 +152,14 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
 		await user.send(message)
 
 
-@bot.command(hidden=use_hidden)
+@bot.command(hidden=True)
 @commands.cooldown(3, 15)
 async def reverse(ctx, *, message: str):
 	'''Reverses a message'''
 	await ctx.send(message[::-1])
 
 
-@bot.command(hidden=use_hidden)
+@bot.command(hidden=True)
 @commands.cooldown(3, 15)
 async def rot13(ctx, *, message: str):
 	'''Rotates each letter 13 letters through the alphabet'''
@@ -178,7 +177,7 @@ async def rot13(ctx, *, message: str):
 	await ctx.send(new_string)
 
 
-@bot.command(hidden=use_hidden)
+@bot.command(hidden=True)
 @commands.is_owner()
 @commands.cooldown(3, 15)
 async def leave(ctx):
