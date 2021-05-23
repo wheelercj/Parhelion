@@ -3,29 +3,32 @@ import asyncio
 import datetime
 import pickle
 import traceback
+import discord
 from discord.ext import commands
 
 from commands import *
 
 
 class Reminder:
-	def __init__(self, chosen_time: str, start_time: datetime.datetime, end_time: datetime.datetime, message: str, author: str, channel: int):
+	def __init__(self, chosen_time: str, start_time: datetime.datetime, end_time: datetime.datetime, message: str, author_mention: str, author_id: int, channel: int):
 		self.chosen_time = chosen_time
 		self.start_time = start_time
 		self.end_time = end_time
 		self.message = message
-		self.author = author
+		self.author_mention = author_mention
+		self.author_id = author_id
 		self.channel = channel
 
 	def __repr__(self):
-		return f'Reminder("{self.chosen_time}", {self.start_time}, {self.end_time}, "{self.message}", "{self.author}", {self.channel})'
+		return f'Reminder("{self.chosen_time}", {self.start_time}, {self.end_time}, "{self.message}", "{self.author_mention}", {self.author_id}, {self.channel})'
 
 	def __eq__(self, other):
 		return self.chosen_time == other.chosen_time \
 			and self.start_time == other.start_time \
 			and self.end_time == other.end_time \
 			and self.message == other.message \
-			and self.author == other.author \
+			and self.author_mention == other.author_mention \
+			and self.author_id == other.author_id \
 			and self.channel == other.channel
 
 	def __ne__(self, other):
@@ -33,7 +36,8 @@ class Reminder:
 			or self.start_time != other.start_time \
 			or self.end_time != other.end_time \
 			or self.message != other.message \
-			or self.author != other.author \
+			or self.author_mention != other.author_mention \
+			or self.author_id != other.author_id \
 			or self.channel != other.channel
 
 
@@ -71,15 +75,35 @@ class Reminders(commands.Cog):
 
 
 
-	@commands.command(name='list-reminders', aliases=['list-r'])
+	@commands.command(name='list-r', aliases=['list-reminders'])
 	@commands.cooldown(3, 15)
 	async def list_reminders(self, ctx):
-		pass
+		'''List all of your reminders'''
+		reminders = self.load_reminders()
+
+		if reminders is None:
+			await ctx.send('You have no saved reminders.')
+		else:
+			author_reminders = []
+			for r in reminders:
+				if r.author_id == ctx.author.id:
+					author_reminders.append(r)
+
+			if not len(author_reminders):
+				await ctx.send('You have no saved reminders.')
+			else:
+				r_str = 'Here are your in-progress reminders:'
+				for i, r in enumerate(author_reminders):
+					end_time = f'{r.end_time.hour}:{r.end_time.minute} UTC on {r.end_time.year}/{r.end_time.month}/{r.end_time.day}'
+					r_str += f'\n\n{i+1}. "{r.message}"\nduration: {r.chosen_time}\nend time: {end_time}'
+				embed = discord.Embed(description=r_str)
+				await ctx.send(embed=embed)
 
 
-	@commands.command(name='delete-reminder', aliases=['del-r'])
+	@commands.command(name='del-r', aliases=['del-reminder', 'delete-reminder'])
 	@commands.cooldown(3, 15)
 	async def del_r(self, ctx, *, message: str):
+		'''Delete one of your reminders'''
 		pass
 
 
@@ -139,10 +163,11 @@ class Reminders(commands.Cog):
 		'''Save one reminder to the saved reminders file.'''
 		start_time = datetime.datetime.now()
 		end_time = start_time + datetime.timedelta(0, seconds)
-		author = str(ctx.author.mention)
+		author_mention = str(ctx.author.mention)
+		author_id = ctx.author.id
 		channel = ctx.channel.id
 
-		reminder = Reminder(chosen_time, start_time, end_time, message, author, channel)
+		reminder = Reminder(chosen_time, start_time, end_time, message, author_mention, author_id, channel)
 		with open(self.reminders_file, 'ab') as file:
 			pickle.dump(reminder, file)
 		
@@ -177,16 +202,16 @@ class Reminders(commands.Cog):
 			remaining_seconds = remaining_time.total_seconds()
 			if remaining_seconds > 0:
 				await asyncio.sleep(remaining_seconds)
-				await channel.send(f'{reminder.author}, here is your {reminder.chosen_time} reminder: {reminder.message}', tts=self.use_tts)
+				await channel.send(f'{reminder.author_mention}, here is your {reminder.chosen_time} reminder: {reminder.message}', tts=self.use_tts)
 			else:
-				await channel.send(f'{reminder.author}, an error delayed your reminder: {reminder.message}', tts=self.use_tts)
+				await channel.send(f'{reminder.author_mention}, an error delayed your reminder: {reminder.message}', tts=self.use_tts)
 				await channel.send(f'The reminder had been set for {end_time.year}-{end_time.month}-{end_time.day} at {end_time.hour}:{end_time.minute} UTC')
 
 			await self.delete_reminder(reminder)
 		except Exception as e:
-			await channel.send(f'{reminder.author.mention}, your reminder was cancelled because of an error: {e}')
-			if await ctx.bot.is_owner(ctx.author):
-				await self.send_traceback(ctx, e)
+			await channel.send(f'{reminder.author_mention}, your reminder was cancelled because of an error: {e}')
+			if await self.bot.is_owner(reminder.author_id):
+				await self.send_traceback(channel, e)
 
 
 	async def delete_reminder(self, reminder):
