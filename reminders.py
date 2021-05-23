@@ -70,25 +70,38 @@ class Reminders(commands.Cog):
 					await self.send_traceback(ctx, e)
 
 
+
+	@commands.command(name='list-reminders', aliases=['list-r'])
+	@commands.cooldown(3, 15)
+	async def list_reminders(self, ctx):
+		pass
+
+
+	@commands.command(name='delete-reminder', aliases=['del-r'])
+	@commands.cooldown(3, 15)
+	async def del_r(self, ctx, *, message: str):
+		pass
+
+
+	@commands.command(name='del-all-r', hidden=True)
+	@commands.is_owner()
+	@commands.cooldown(3, 15)
+	async def delete_all_reminders(self, ctx):
+		'''Deletes everything in the reminders file
+		
+		For recovering from errors that make the file unparseable.
+		'''
+		with open(self.reminders_file, 'w') as _:
+			pass
+		await ctx.send('Everything in the reminders file has been deleted.')
+
+
 	async def send_traceback(self, ctx, e):
 		etype = type(e)
 		trace = e.__traceback__
 		lines = traceback.format_exception(etype, e, trace)
 		traceback_text = ''.join(lines)
 		await ctx.send(f'```\n{traceback_text}\n```')
-
-
-	@commands.command(hidden=True, name='del-r.txt')
-	@commands.is_owner()
-	@commands.cooldown(3, 15)
-	async def delete_reminders_txt(self, ctx):
-		'''Deletes everything in reminders.txt
-		
-		For recovering from errors that make the file unparseable.
-		'''
-		with open(self.reminders_file, 'w') as _:
-			pass
-		await ctx.send('Everything in reminders.txt has been deleted.')
 
 		
 	def parse_time(self, Time: str) -> float:
