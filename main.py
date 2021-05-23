@@ -7,7 +7,7 @@ import inspect
 import traceback
 
 # Internal imports
-from reminders import *
+from reminders import Reminders
 from music import *
 from rand import *
 from docs import *
@@ -31,10 +31,11 @@ my_user_id = int(os.environ['MY_USER_ID'])
 async def on_connect():
 	try:
 		print('Loading . . . ')
-		reminders = load_reminders()
+		rem = Reminders(bot)
+		reminders = rem.load_reminders()
 		if reminders is not None:
 			for r in reminders:
-				await cotinue_reminder(r, bot)
+				await rem.cotinue_reminder(r)
 	except Exception as e:
 		print(f'on_connect error: {e}')
 		raise e
