@@ -85,7 +85,7 @@ class Reminders(commands.Cog):
 		else:
 			r_str = 'Here are your in-progress reminders:'
 			for i, r in enumerate(author_reminders):
-				remaining = r.end_time - datetime.datetime.now()
+				remaining = r.end_time - datetime.datetime.now(datetime.timezone.utc)
 				r_str += f'\n\n{i+1}. "{r.message}"\nduration: {r.chosen_time}\ntime remaining: {str(remaining)}'
 			embed = discord.Embed(description=r_str)
 			await ctx.send(embed=embed)
@@ -175,7 +175,7 @@ class Reminders(commands.Cog):
 
 	async def save_reminder(self, ctx, chosen_time: str, seconds: int, message: str):
 		'''Saves one reminder to the saved reminders file'''
-		start_time = datetime.datetime.now()
+		start_time = datetime.datetime.now(datetime.timezone.utc)
 		end_time = start_time + datetime.timedelta(0, seconds)
 		author_mention = str(ctx.author.mention)
 		author_id = ctx.author.id
@@ -210,7 +210,7 @@ class Reminders(commands.Cog):
 		
 		channel = self.bot.get_channel(reminder.channel)
 		try:
-			current_time = datetime.datetime.now()
+			current_time = datetime.datetime.now(datetime.timezone.utc)
 			end_time = reminder.end_time
 			remaining_time = end_time - current_time
 			remaining_seconds = remaining_time.total_seconds()
