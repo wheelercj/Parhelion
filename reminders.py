@@ -1,3 +1,4 @@
+# External imports
 import re
 import asyncio
 import datetime
@@ -6,7 +7,8 @@ import traceback
 import discord
 from discord.ext import commands
 
-from commands import *
+# Internal imports
+from other import dev_mail
 
 
 class Reminder:
@@ -244,4 +246,5 @@ class Reminders(commands.Cog):
 			await dev_mail(self.bot, f'Error: failed to delete reminder: {reminder}\nbecause of error: {e}')
 
 
-bot.add_cog(Reminders(bot))
+def setup(bot):
+	bot.add_cog(Reminders(bot))

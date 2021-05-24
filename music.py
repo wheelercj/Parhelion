@@ -29,7 +29,6 @@ import discord
 import youtube_dl
 from discord.ext import commands
 import discord.voice_client
-from commands import *
 
 
 # Suppress noise about console usage from errors
@@ -169,4 +168,5 @@ class Music(commands.Cog):
 			ctx.voice_client.stop()
 
 
-bot.add_cog(Music(bot))
+def setup(bot):
+	bot.add_cog(Music(bot))

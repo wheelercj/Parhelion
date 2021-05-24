@@ -1,13 +1,8 @@
-# External imports
 import os
 import platform
 import inspect
 import discord
 from discord.ext import commands
-
-
-bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
-bot.previous_command_ctxs = []
 
 
 async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
@@ -29,7 +24,7 @@ class Other(commands.Cog):
 	async def hhelp(self, ctx):
 		'''Shows help for all the hidden commands'''
 		hidden_commands = []
-		for cmd in bot.commands:
+		for cmd in self.bot.commands:
 			if cmd.hidden:
 				hidden_commands.append(cmd)
 
@@ -61,7 +56,7 @@ class Other(commands.Cog):
 	@commands.cooldown(3, 15)
 	async def ping(self, ctx):
 		'''Pings the server'''
-		await ctx.send(f'Pong! It took {round(bot.latency, 2)} ms.')
+		await ctx.send(f'Pong! It took {round(self.bot.latency, 2)} ms.')
 
 
 	@commands.command(aliases=['info', 'stats', 'invite'])
@@ -74,7 +69,7 @@ class Other(commands.Cog):
 				Created by Chris Wheeler
 				with Python {platform.python_version()} and [discord.py](https://discordpy.readthedocs.io/en/latest/)
 
-				Currently in {len(bot.guilds)} servers.
+				Currently in {len(self.bot.guilds)} servers.
 				Invite link [here](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352)
 				Source code [here](https://replit.com/@wheelercj/simple-Discord-bot)
 			'''
@@ -88,7 +83,7 @@ class Other(commands.Cog):
 	async def _inspect(self, ctx, *, command: str):
 		'''Shows the source code of a command'''
 		try:
-			cmds = {cmd.name: cmd for cmd in bot.commands}
+			cmds = {cmd.name: cmd for cmd in self.bot.commands}
 			if command not in cmds.keys():
 				raise NameError(f'Command {command} not found.')
 			source = str(inspect.getsource(cmds[command].callback))
@@ -147,4 +142,5 @@ class Other(commands.Cog):
 		await ctx.send(new_string)
 
 
-bot.add_cog(Other(bot))
+def setup(bot):
+	bot.add_cog(Other(bot))

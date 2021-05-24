@@ -2,16 +2,14 @@
 import os
 import sys
 import discord
+from discord.ext import commands
 import logging
 import traceback
 
 # Internal imports
 from reminders import Reminders
-from owner import Owner
-from music import *
-from rand import *
-from docs import *
 from keep_alive import keep_alive
+from other import dev_mail
 
 
 # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
@@ -24,7 +22,23 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 
 
+extensions = [
+	'other',
+	'docs',
+	'owner',
+	'music',
+	'rand',
+	'reminders',
+]
+
+bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
+bot.previous_command_ctxs = []
 my_user_id = int(os.environ['MY_USER_ID'])
+
+
+if __name__ == '__main__':
+    for extension in extensions:
+        bot.load_extension(extension)
 
 
 @bot.event
@@ -34,8 +48,11 @@ async def on_connect():
 		rem = Reminders(bot)
 		reminders = await rem.load_reminders()
 		if reminders is not None:
-			for r in reminders:
-				await rem.cotinue_reminder(r)
+			if type(reminders) == Reminders:
+				for r in reminders:
+					await rem.cotinue_reminder(r)
+			else:
+				await rem.cotinue_reminder(reminders)
 	except Exception as e:
 		print(f'on_connect error: {e}')
 		raise e
@@ -105,4 +122,4 @@ async def on_guild_join(guild):
 
 keep_alive()
 token = os.environ.get('DISCORD_BOT_SECRET_TOKEN')
-bot.run(token)
+bot.run(token, bot=True, reconnect=True)

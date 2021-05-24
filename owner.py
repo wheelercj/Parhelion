@@ -1,10 +1,6 @@
-import discord
 from discord.ext import commands
 import textwrap
 import asyncio
-
-from math import *
-from commands import *
 
 
 class Owner(commands.Cog):
@@ -93,4 +89,5 @@ class Owner(commands.Cog):
 		await ctx.send('Everything in the reminders file has been deleted.')
 
 
-bot.add_cog(Owner(bot))
+def setup(bot):
+	bot.add_cog(Owner(bot))

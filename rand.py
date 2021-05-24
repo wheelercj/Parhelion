@@ -1,7 +1,7 @@
 import discord
+from discord.ext import commands
 import random
 import linecache
-from commands import *
 
 
 class Random(commands.Cog):
@@ -76,4 +76,5 @@ class Random(commands.Cog):
 		await ctx.send(''.join(choices_made))
 
 
-bot.add_cog(Random(bot))
+def setup(bot):
+	bot.add_cog(Random(bot))
