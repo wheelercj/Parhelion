@@ -5,10 +5,9 @@
 * Set global cooldowns on people.
 
 ## other
-* Add more info to the web page that shows up when people run the bot on the spotlight page. Is it possible to have the program copy the contents of the readme and put them into the site?
+* Add more info to the web page that shows up when people run the bot on the spotlight page.
 * Use the [forismatic API](https://forismatic.com/en/api/) for the quote command?
-* Add to the doc command: if KeyError, try to guess which docs might have been meant and suggest them.
 
 ## improve reminders
-* Use [discord.py tasks](https://discordpy.readthedocs.io/en/latest/ext/tasks/index.html?highlight=task) to run the reminders?
-* Use the [replit database](https://docs.replit.com/misc/database) to store the reminders instead of reminders.txt?
+* Only sleep for the closest reminder, and start sleeping for the next one when that one ends. Sort the reminders list by end time. When a new reminder is created, compare it to the current closest reminder to see which one is closer, and switch if necessary. Whenever a reminder is deleted from the file, check whether it's the closest reminder.
+* Use a database. The [replit database](https://docs.replit.com/misc/database), temporarily?
