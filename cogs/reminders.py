@@ -1,4 +1,4 @@
-# External imports
+import os
 import re
 import asyncio
 import datetime
@@ -7,8 +7,25 @@ import traceback
 import discord
 from discord.ext import commands
 
-# Internal imports
-from other import dev_mail
+
+reminders_file = 'cogs/reminders.txt'
+
+
+async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
+	user = await bot.fetch_user(int(os.environ['MY_USER_ID']))
+	if use_embed:
+		embed = discord.Embed(title=embed_title, description=message)
+		await user.send(embed=embed)
+	else:
+		await user.send(message)
+
+
+async def send_traceback(ctx, e):
+	etype = type(e)
+	trace = e.__traceback__
+	lines = traceback.format_exception(etype, e, trace)
+	traceback_text = ''.join(lines)
+	await ctx.send(f'```\n{traceback_text}\n```')
 
 
 class Reminder:
@@ -43,11 +60,95 @@ class Reminder:
 			or self.channel != other.channel
 
 
+async def load_reminders(reminders_file):
+	'''Loads and returns all reminders from the saved reminders file'''
+	reminders = []
+	with open(reminders_file, 'rb') as file:
+		while True:
+			try:
+				reminders.append(pickle.load(file))
+			except EOFError:
+				break
+
+	if len(reminders):
+		if type(reminders[0]) is Reminder:
+			return reminders
+		else:
+			return reminders[0]
+
+
+async def load_author_reminders(ctx):
+	'''Returns the lists of reminders and ctx.author\'s reminders
+	
+	Returns None for either/both of those that there are none of.
+	'''
+	reminders = await load_reminders(reminders_file)
+	if reminders is None:
+		return None, None
+	else:
+		author_reminders = []
+		for r in reminders:
+			if r.author_id == ctx.author.id:
+				author_reminders.append(r)
+
+		if author_reminders is None:
+			return reminders, None
+		else:
+			return reminders, author_reminders
+
+
+async def cotinue_reminder(bot, reminder):
+	'''Continues a reminder that had been stopped by a server restart'''
+	
+	channel = bot.get_channel(reminder.channel)
+	try:
+		current_time = datetime.datetime.now(datetime.timezone.utc)
+		end_time = reminder.end_time
+		remaining_time = end_time - current_time
+		remaining_seconds = remaining_time.total_seconds()
+		if remaining_seconds > 0:
+			await asyncio.sleep(remaining_seconds)
+			await channel.send(f'{reminder.author_mention}, here is your {reminder.chosen_time} reminder: {reminder.message}', tts=True)
+		else:
+			await channel.send(f'{reminder.author_mention}, an error delayed your reminder: {reminder.message}', tts=True)
+			await channel.send(f'The reminder had been set for {end_time.year}-{end_time.month}-{end_time.day} at {end_time.hour}:{end_time.minute} UTC')
+
+		await delete_reminder(bot, reminder)
+	except Exception as e:
+		await channel.send(f'{reminder.author_mention}, your reminder was cancelled because of an error: {e}')
+		if await bot.is_owner(reminder.author_id):
+			await send_traceback(channel, e)
+			
+
+async def delete_reminder(bot, reminder):
+	'''Removes one reminder from the file of saved reminders'''
+	reminders = await load_reminders(reminders_file)
+	try:
+		reminders.remove(reminder)
+		with open(reminders_file, 'wb') as file:
+			for r in reminders:
+				pickle.dump(r, file)
+	except Exception as e:
+		await dev_mail(bot, f'Error: failed to delete reminder: {reminder}\nbecause of error: {e}')
+
+
 class Reminders(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
-		self.reminders_file = 'reminders.txt'
 		self.use_tts = False  # Text-to-speech for the reminder messages.
+
+
+	async def on_ready(self):
+		try:
+			reminders = await load_reminders('cogs/reminders.txt')
+			if reminders is not None:
+				if type(reminders) == Reminder:
+					await cotinue_reminder(self.bot, reminders)
+				else:
+					for r in reminders:
+						await cotinue_reminder(self.bot, r)
+		except Exception as e:
+			raise e
 
 
 	@commands.command(aliases=['reminder', 'remindme'])
@@ -68,23 +169,23 @@ class Reminders(commands.Cog):
 
 			await asyncio.sleep(seconds)
 			await ctx.send(f'{ctx.author.mention}, here is your {chosen_time} reminder: {message}', tts=self.use_tts)
-			await self.delete_reminder(reminder)
+			await delete_reminder(self.bot, reminder)
 		except Exception as e:
 			if e == 'invalid load key, \'\\xef\'':
 				await ctx.send(f'Reminder error: {e}.')
-				with open(self.reminders_file, 'w') as _:
+				with open(reminders_file, 'w') as _:
 					pass
 			else:
 				await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
 				if await ctx.bot.is_owner(ctx.author):
-					await self.send_traceback(ctx, e)
+					await send_traceback(ctx, e)
 
 
 	@commands.command(name='list-r', aliases=['list-reminders'])
 	@commands.cooldown(3, 15)
 	async def list_reminders(self, ctx):
 		'''Shows all of your reminders'''
-		reminders, author_reminders = await self.load_author_reminders(ctx)
+		reminders, author_reminders = await load_author_reminders(ctx)
 
 		if author_reminders is None:
 			await ctx.send('You have no saved reminders.')
@@ -106,7 +207,7 @@ class Reminders(commands.Cog):
 		from the program. A deleted reminder will then only be cancelled if the
 		bot is restarted.
 		'''
-		reminders, author_reminders = await self.load_author_reminders(ctx)
+		reminders, author_reminders = await load_author_reminders(ctx)
 		
 		if author_reminders is None:
 			await ctx.send('You have no saved reminders.')
@@ -116,36 +217,8 @@ class Reminders(commands.Cog):
 			else:
 				reminders.remove(author_reminders[index-1])
 				await ctx.send(f'Reminder deleted: "{author_reminders[index-1].message}"')
-				with open(self.reminders_file, 'wb') as file:
+				with open(reminders_file, 'wb') as file:
 					pickle.dump(reminders, file)
-
-
-	async def load_author_reminders(self, ctx):
-		'''Returns the lists of reminders and ctx.author\'s reminders
-		
-		Returns None for either/both of those that there are none of.
-		'''
-		reminders = await self.load_reminders()
-		if reminders is None:
-			return None, None
-		else:
-			author_reminders = []
-			for r in reminders:
-				if r.author_id == ctx.author.id:
-					author_reminders.append(r)
-
-			if author_reminders is None:
-				return reminders, None
-			else:
-				return reminders, author_reminders
-
-
-	async def send_traceback(self, ctx, e):
-		etype = type(e)
-		trace = e.__traceback__
-		lines = traceback.format_exception(etype, e, trace)
-		traceback_text = ''.join(lines)
-		await ctx.send(f'```\n{traceback_text}\n```')
 
 		
 	def parse_time(self, Time: str) -> float:
@@ -188,62 +261,10 @@ class Reminders(commands.Cog):
 		channel = ctx.channel.id
 
 		reminder = Reminder(chosen_time, start_time, end_time, message, author_mention, author_id, channel)
-		with open(self.reminders_file, 'ab') as file:
+		with open(reminders_file, 'ab') as file:
 			pickle.dump(reminder, file)
 		
 		return reminder
-
-
-	async def load_reminders(self):
-		'''Loads and return all reminders from the saved reminders file'''
-		reminders = []
-		with open(self.reminders_file, 'rb') as file:
-			while True:
-				try:
-					reminders.append(pickle.load(file))
-				except EOFError:
-					break
-
-		if len(reminders):
-			if type(reminders[0]) is Reminder:
-				return reminders
-			else:
-				return reminders[0]
-
-
-	async def cotinue_reminder(self, reminder):
-		'''Continues a reminder that had been stopped by a server restart'''
-		
-		channel = self.bot.get_channel(reminder.channel)
-		try:
-			current_time = datetime.datetime.now(datetime.timezone.utc)
-			end_time = reminder.end_time
-			remaining_time = end_time - current_time
-			remaining_seconds = remaining_time.total_seconds()
-			if remaining_seconds > 0:
-				await asyncio.sleep(remaining_seconds)
-				await channel.send(f'{reminder.author_mention}, here is your {reminder.chosen_time} reminder: {reminder.message}', tts=self.use_tts)
-			else:
-				await channel.send(f'{reminder.author_mention}, an error delayed your reminder: {reminder.message}', tts=self.use_tts)
-				await channel.send(f'The reminder had been set for {end_time.year}-{end_time.month}-{end_time.day} at {end_time.hour}:{end_time.minute} UTC')
-
-			await self.delete_reminder(reminder)
-		except Exception as e:
-			await channel.send(f'{reminder.author_mention}, your reminder was cancelled because of an error: {e}')
-			if await self.bot.is_owner(reminder.author_id):
-				await self.send_traceback(channel, e)
-
-
-	async def delete_reminder(self, reminder):
-		'''Removes one reminder from the file of saved reminders'''
-		reminders = await self.load_reminders()
-		try:
-			reminders.remove(reminder)
-			with open(self.reminders_file, 'wb') as file:
-				for r in reminders:
-					pickle.dump(r, file)
-		except Exception as e:
-			await dev_mail(self.bot, f'Error: failed to delete reminder: {reminder}\nbecause of error: {e}')
 
 
 def setup(bot):

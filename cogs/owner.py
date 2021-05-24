@@ -1,12 +1,11 @@
 from discord.ext import commands
 import textwrap
 import asyncio
-
+from cogs.reminders import reminders_file
 
 class Owner(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
-		self.reminders_file = 'reminders.txt'
 
 
 	@commands.command(hidden=True)
@@ -84,7 +83,7 @@ class Owner(commands.Cog):
 		
 		For recovering from errors that make the file unparseable.
 		'''
-		with open(self.reminders_file, 'w') as _:
+		with open(reminders_file, 'w') as _:
 			pass
 		await ctx.send('Everything in the reminders file has been deleted.')
 

@@ -7,9 +7,8 @@ import logging
 import traceback
 
 # Internal imports
-from reminders import Reminders
+from cogs.reminders import dev_mail
 from keep_alive import keep_alive
-from other import dev_mail
 
 
 # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
@@ -23,13 +22,14 @@ logger.addHandler(handler)
 
 
 extensions = [
-	'other',
-	'docs',
-	'owner',
-	'music',
-	'rand',
-	'reminders',
+	'cogs.other',
+	'cogs.docs',
+	'cogs.owner',
+	'cogs.music',
+	'cogs.rand',
+	'cogs.reminders',
 ]
+
 
 bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
 bot.previous_command_ctxs = []
@@ -43,19 +43,7 @@ if __name__ == '__main__':
 
 @bot.event
 async def on_connect():
-	try:
-		print('Loading . . . ')
-		rem = Reminders(bot)
-		reminders = await rem.load_reminders()
-		if reminders is not None:
-			if type(reminders) == Reminders:
-				for r in reminders:
-					await rem.cotinue_reminder(r)
-			else:
-				await rem.cotinue_reminder(reminders)
-	except Exception as e:
-		print(f'on_connect error: {e}')
-		raise e
+	print('Loading . . . ')
 
 
 @bot.event
@@ -64,6 +52,11 @@ async def on_ready():
 	print(f'Discord v{discord.__version__}')
 	print(f'{bot.user.name}#{bot.user.discriminator} ready!')
 	print('------------------------------------')
+
+
+@bot.event
+async def on_resumed():
+	print('In the on_resumed function.')
 
 
 @bot.event
@@ -102,7 +95,7 @@ async def on_command(ctx):
 @bot.event
 async def on_command_error(ctx, error):
 	if hasattr(ctx.command, 'on_error'):
-            return
+		return
 
 	if isinstance(error, commands.CommandOnCooldown):
 		await ctx.send(error)
@@ -118,7 +111,7 @@ async def on_guild_join(guild):
 	message = f'I\'ve joined a new server called "{guild}"!' \
 			f'\nI am now in {len(bot.guilds)} servers.'
 	await dev_mail(bot, message, use_embed=False)
-	
+
 
 keep_alive()
 token = os.environ.get('DISCORD_BOT_SECRET_TOKEN')

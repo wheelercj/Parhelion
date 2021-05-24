@@ -1,17 +1,7 @@
-import os
 import platform
 import inspect
 import discord
 from discord.ext import commands
-
-
-async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
-	user = await bot.fetch_user(int(os.environ['MY_USER_ID']))
-	if use_embed:
-		embed = discord.Embed(title=embed_title, description=message)
-		await user.send(embed=embed)
-	else:
-		await user.send(message)
 
 
 class Other(commands.Cog):
