@@ -2,11 +2,6 @@
 import os
 import platform
 import discord
-import textwrap
-import asyncio
-from math import *
-
-# Internal imports
 from discord.ext import commands
 
 
@@ -97,52 +92,6 @@ async def calc(ctx, *, string: str):
 		await ctx.send(f'Python error: {e}')
 
 
-@bot.command(name='eval', hidden=True)
-@commands.is_owner()
-@commands.cooldown(3, 15)
-async def _eval(ctx, *, string: str):
-	'''Evaluates a Python expression
-	
-	This command is very powerful. Be careful!'''
-	try:
-		await ctx.send(eval(string))
-	except Exception as e:
-		await ctx.send(f'Python error: {e}')
-
-
-@bot.command(name='exec', hidden=True)
-@commands.is_owner()
-@commands.cooldown(3, 15)
-async def _exec(ctx, *, string: str):
-	'''Executes a Python statement
-	
-	This command is very powerful. Be careful!'''
-	string = remove_backticks(string)
-	env = {
-		'ctx': ctx,
-		'bot': bot,
-		'asyncio': asyncio,
-	}
-
-	try:
-		code = f'async def func():\n    try:\n{textwrap.indent(string, "        ")}\n    except Exception as e:\n        await ctx.send("Python error: %s" % e)\nasyncio.get_running_loop().create_task(func())'
-		exec(code, env)
-	except Exception as e:
-		await ctx.send(f'Python error: {e}')
-
-
-def remove_backticks(string: str):
-	'''Removes backticks around a code block, if they are there'''
-	if string.startswith('```'):
-		string = string[3:]
-		if string.startswith('py\n'):
-			string = string[3:]
-		if string.endswith('```'):
-			string = string[:-3]
-
-	return string
-
-
 async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
 	user = await bot.fetch_user(my_user_id)
 	if use_embed:
@@ -175,28 +124,3 @@ async def rot13(ctx, *, message: str):
 			new_string += char
 
 	await ctx.send(new_string)
-
-
-@bot.command(hidden=True)
-@commands.is_owner()
-@commands.cooldown(3, 15)
-async def leave(ctx):
-	'''Makes the bot leave the server'''
-	await ctx.send(f'Now leaving the server. Goodbye!')
-	await ctx.guild.leave()
-
-
-@bot.command(name='r', hidden=True)
-@commands.is_owner()
-@commands.cooldown(3, 15)
-async def repeat_command(ctx):
-	'''Repeats the last command you used'''
-	previous = ctx.bot.previous_command_ctxs
-	for c in previous[::-1]:
-		if c.author.id == ctx.author.id:
-			if c.command.name == 'r':
-				raise ValueError
-			await c.reinvoke()
-			return
-	
-	await ctx.send('No previous command saved.')

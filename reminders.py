@@ -114,19 +114,6 @@ class Reminders(commands.Cog):
 					pickle.dump(reminders, file)
 
 
-	@commands.command(name='del-all-r', hidden=True)
-	@commands.is_owner()
-	@commands.cooldown(3, 15)
-	async def delete_all_reminders(self, ctx):
-		'''Deletes everything in the reminders file
-		
-		For recovering from errors that make the file unparseable.
-		'''
-		with open(self.reminders_file, 'w') as _:
-			pass
-		await ctx.send('Everything in the reminders file has been deleted.')
-
-
 	async def load_author_reminders(self, ctx):
 		'''Returns the lists of reminders and ctx.author\'s reminders
 		
