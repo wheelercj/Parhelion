@@ -3,7 +3,6 @@ import os
 import sys
 import discord
 import logging
-import inspect
 import traceback
 
 # Internal imports
@@ -102,23 +101,7 @@ async def on_guild_join(guild):
 	message = f'I\'ve joined a new server called "{guild}"!' \
 			f'\nI am now in {len(bot.guilds)} servers.'
 	await dev_mail(bot, message, use_embed=False)
-
-
-@bot.command(name='inspect', aliases=['source', 'src'])
-@commands.cooldown(3, 15)
-async def _inspect(ctx, *, command: str):
-	'''Shows the source code of a command'''
-	try:
-		cmds = {cmd.name: cmd for cmd in bot.commands}
-		if command not in cmds.keys():
-			raise NameError(f'Command {command} not found.')
-		source = str(inspect.getsource(cmds[command].callback))
-		await ctx.send(f'```py\n{source}```')
-	except NameError as e:
-		await ctx.send(e)
-	except KeyError as e:
-		await ctx.send(e)
-
+	
 
 keep_alive()
 token = os.environ.get('DISCORD_BOT_SECRET_TOKEN')
