@@ -54,10 +54,14 @@ class Reminders(commands.Cog):
 		'''Sends a reminder, e.g. ;remind 1h30m iron socks
 		
 		Currently, these reminders are saved in a publicly accessible file.
+		The maximum time allowed is 2,147,483 seconds (24.85 days).
+		See https://bugs.python.org/issue20493 for details.
 		'''
-		await ctx.send(f'Reminder set! In {chosen_time}, I will remind you: {message}')
 		try:
 			seconds = self.parse_time(chosen_time)
+			if seconds > 2147483:
+				raise ValueError('The maximum time possible is 24.85 days.')
+			await ctx.send(f'Reminder set! In {chosen_time}, I will remind you: {message}')
 			reminder = await self.save_reminder(ctx, chosen_time, seconds, message)
 
 			await asyncio.sleep(seconds)
