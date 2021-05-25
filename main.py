@@ -55,11 +55,6 @@ async def on_ready():
 
 
 @bot.event
-async def on_resumed():
-	print('In the on_resumed function.')
-
-
-@bot.event
 async def on_message(message: str):
 	if message.author != bot.user:
 		await answer_mention(message, bot)
