@@ -85,7 +85,7 @@ class Music(commands.Cog):
 
 		
 	@commands.command()
-	@commands.cooldown(3, 15)
+	@commands.cooldown(2, 15)
 	async def join(self, ctx, *, channel: discord.VoiceChannel):
 		'''Joins a voice channel'''
 
@@ -125,7 +125,7 @@ class Music(commands.Cog):
 
 		
 	@commands.command()
-	@commands.cooldown(3, 15)
+	@commands.cooldown(2, 15)
 	async def stream(self, ctx, *, url):
 		'''Streams audio from a url'''
 
@@ -137,7 +137,7 @@ class Music(commands.Cog):
 
 		
 	@commands.command()
-	@commands.cooldown(3, 15)
+	@commands.cooldown(2, 15)
 	async def volume(self, ctx, volume: int):
 		'''Changes the player's volume'''
 

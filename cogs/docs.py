@@ -15,7 +15,7 @@ class Docs(commands.Cog):
 
 
 	@commands.command(aliases=['listdocs'], hidden=True)
-	@commands.cooldown(3, 15)
+	@commands.cooldown(2, 15)
 	async def docs(self, ctx):
 		'''Shows the names of all docs'''
 		doc_names = ''
@@ -26,7 +26,7 @@ class Docs(commands.Cog):
 
 
 	@commands.command(hidden=True)
-	@commands.cooldown(3, 15)
+	@commands.cooldown(2, 15)
 	async def doc(self, ctx, *, name: str):
 		'''Shows info about a topic'''
 		try:

@@ -10,7 +10,7 @@ class Other(commands.Cog):
 
 
 	@commands.command(hidden=True)
-	@commands.cooldown(3, 15)
+	@commands.cooldown(2, 15)
 	async def hhelp(self, ctx):
 		'''Shows help for all the hidden commands'''
 		hidden_commands = []
@@ -36,21 +36,21 @@ class Other(commands.Cog):
 
 
 	@commands.command(hidden=True)
-	@commands.cooldown(3, 15)
+	@commands.cooldown(2, 15)
 	async def echo(self, ctx, *, message: str):
 		'''Repeats a message'''
 		await ctx.send(message)
 
 
 	@commands.command(hidden=True)
-	@commands.cooldown(3, 15)
+	@commands.cooldown(2, 15)
 	async def ping(self, ctx):
 		'''Pings the server'''
 		await ctx.send(f'Pong! It took {round(self.bot.latency, 2)} ms.')
 
 
 	@commands.command(aliases=['info', 'stats', 'invite'])
-	@commands.cooldown(3, 15)
+	@commands.cooldown(2, 15)
 	async def about(self, ctx):
 		'''Shows general info about this bot'''
 		embed = discord.Embed(
@@ -69,7 +69,7 @@ class Other(commands.Cog):
 
 
 	@commands.command(name='inspect', aliases=['source', 'src'])
-	@commands.cooldown(3, 15)
+	@commands.cooldown(2, 15)
 	async def _inspect(self, ctx, *, command: str):
 		'''Shows the source code of a command'''
 		try:
@@ -85,7 +85,7 @@ class Other(commands.Cog):
 
 
 	@commands.command()
-	@commands.cooldown(3, 15)
+	@commands.cooldown(2, 15)
 	async def calc(self, ctx, *, string: str):
 		'''Evaluates a math expression
 		
@@ -108,14 +108,14 @@ class Other(commands.Cog):
 
 
 	@commands.command(hidden=True)
-	@commands.cooldown(3, 15)
+	@commands.cooldown(2, 15)
 	async def reverse(self, ctx, *, message: str):
 		'''Reverses a message'''
 		await ctx.send(message[::-1])
 
 
 	@commands.command(hidden=True)
-	@commands.cooldown(3, 15)
+	@commands.cooldown(2, 15)
 	async def rot13(self, ctx, *, message: str):
 		'''Rotates each letter 13 letters through the alphabet'''
 		message = message.lower()
