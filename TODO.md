@@ -9,7 +9,7 @@
 1. Read about [gateway rate limits](https://discord.com/developers/docs/topics/gateway#rate-limiting).
 1. custom error message for choose command
 1. custom error message for del-r command
-1. custom help menu
+1. [custom help menu](https://discord.com/channels/336642139381301249/381965515721146390/846537189163925504)
 
 ## other
 * Add more info to the web page that shows up when people run the bot on the spotlight page.
