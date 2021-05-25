@@ -6,6 +6,7 @@ import pickle
 import traceback
 import discord
 from discord.ext import commands
+from discord.ext.commands.cooldowns import BucketType
 
 
 reminders_file = 'cogs/reminders.txt'
@@ -152,7 +153,7 @@ class Reminders(commands.Cog):
 
 
 	@commands.command(aliases=['reminder', 'remindme'])
-	@commands.cooldown(2, 15)
+	@commands.cooldown(1, 60, BucketType.user)
 	async def remind(self, ctx, chosen_time: str, *, message: str):
 		'''Sends a reminder, e.g. ;remind 1h30m iron socks
 		
@@ -182,7 +183,7 @@ class Reminders(commands.Cog):
 
 
 	@commands.command(name='list-r', aliases=['list-reminders'])
-	@commands.cooldown(2, 15)
+	@commands.cooldown(1, 60, BucketType.user)
 	async def list_reminders(self, ctx):
 		'''Shows all of your reminders'''
 		reminders, author_reminders = await load_author_reminders(ctx)
@@ -199,7 +200,7 @@ class Reminders(commands.Cog):
 
 
 	@commands.command(name='del-r', aliases=['del-reminder', 'delete-reminder'])
-	@commands.cooldown(2, 15)
+	@commands.cooldown(1, 60, BucketType.user)
 	async def del_r(self, ctx, *, index: int):
 		'''Deletes a reminder by its index in list-r
 		

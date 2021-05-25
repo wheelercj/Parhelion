@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.ext.commands.cooldowns import BucketType
 
 
 class Docs(commands.Cog):
@@ -15,7 +16,7 @@ class Docs(commands.Cog):
 
 
 	@commands.command(aliases=['listdocs'], hidden=True)
-	@commands.cooldown(2, 15)
+	@commands.cooldown(1, 60, BucketType.user)
 	async def docs(self, ctx):
 		'''Shows the names of all docs'''
 		doc_names = ''
@@ -26,7 +27,7 @@ class Docs(commands.Cog):
 
 
 	@commands.command(hidden=True)
-	@commands.cooldown(2, 15)
+	@commands.cooldown(1, 60, BucketType.user)
 	async def doc(self, ctx, *, name: str):
 		'''Shows info about a topic'''
 		try:

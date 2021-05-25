@@ -2,6 +2,8 @@ from discord.ext import commands
 import textwrap
 import asyncio
 from cogs.reminders import reminders_file
+from discord.ext.commands.cooldowns import BucketType
+
 
 class Owner(commands.Cog):
 	def __init__(self, bot):
@@ -10,7 +12,7 @@ class Owner(commands.Cog):
 
 	@commands.command(hidden=True)
 	@commands.is_owner()
-	@commands.cooldown(2, 15)
+	@commands.cooldown(1, 60, BucketType.user)
 	async def leave(self, ctx):
 		'''Makes the bot leave the server'''
 		await ctx.send(f'Now leaving the server. Goodbye!')
@@ -19,7 +21,7 @@ class Owner(commands.Cog):
 
 	@commands.command(name='r', hidden=True)
 	@commands.is_owner()
-	@commands.cooldown(2, 15)
+	@commands.cooldown(1, 60, BucketType.user)
 	async def repeat_command(self, ctx):
 		'''Repeats the last command you used'''
 		previous = ctx.bot.previous_command_ctxs
@@ -35,7 +37,7 @@ class Owner(commands.Cog):
 
 	@commands.command(name='eval', hidden=True)
 	@commands.is_owner()
-	@commands.cooldown(2, 15)
+	@commands.cooldown(1, 60, BucketType.user)
 	async def _eval(self, ctx, *, expression: str):
 		'''Evaluates a Python expression'''
 		try:
@@ -46,7 +48,7 @@ class Owner(commands.Cog):
 
 	@commands.command(name='exec', hidden=True)
 	@commands.is_owner()
-	@commands.cooldown(2, 15)
+	@commands.cooldown(1, 60, BucketType.user)
 	async def _exec(self, ctx, *, statement: str):
 		'''Executes a Python statement'''
 		statement = self.remove_backticks(statement)
@@ -77,7 +79,7 @@ class Owner(commands.Cog):
 
 	@commands.command(name='del-all-r', hidden=True)
 	@commands.is_owner()
-	@commands.cooldown(2, 15)
+	@commands.cooldown(1, 60, BucketType.user)
 	async def delete_all_reminders(self, ctx):
 		'''Deletes everything in the reminders file
 		
