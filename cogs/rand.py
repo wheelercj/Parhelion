@@ -42,10 +42,11 @@ class Random(commands.Cog):
 		last_quote_line = 298
 		delta = 3
 
+		quotes_file = 'cogs/quotes.txt'
 		quote_count = (last_quote_line - first_quote_line) / delta
 		rand_line = random.randint(0, quote_count) * delta + first_quote_line
-		quote = linecache.getline('quotes.txt', rand_line)
-		author = linecache.getline('quotes.txt', rand_line + 1)
+		quote = linecache.getline(quotes_file, rand_line)
+		author = linecache.getline(quotes_file, rand_line + 1)
 
 		embed = discord.Embed(description=f'{quote}\n{author}')
 		await ctx.send(embed=embed)
