@@ -16,7 +16,7 @@ class Docs(commands.Cog):
 
 
 	@commands.command(aliases=['listdocs'], hidden=True)
-	@commands.cooldown(1, 60, BucketType.user)
+	@commands.cooldown(1, 15, BucketType.user)
 	async def docs(self, ctx):
 		'''Shows the names of all docs'''
 		doc_names = ''
@@ -27,7 +27,7 @@ class Docs(commands.Cog):
 
 
 	@commands.command(hidden=True)
-	@commands.cooldown(1, 60, BucketType.user)
+	@commands.cooldown(1, 15, BucketType.user)
 	async def doc(self, ctx, *, name: str):
 		'''Shows info about a topic'''
 		try:

@@ -11,7 +11,7 @@ class Random(commands.Cog):
 
 
 	@commands.command(aliases=['random'])
-	@commands.cooldown(1, 60, BucketType.user)
+	@commands.cooldown(1, 15, BucketType.user)
 	async def rand(self, ctx, low: int = 1, high: int = 6):
 		'''Gives a random number (default bounds: 1 and 6)'''
 		low = int(low)
@@ -23,7 +23,7 @@ class Random(commands.Cog):
 
 
 	@commands.command(name='flip-coin', aliases=['flip'])
-	@commands.cooldown(1, 60, BucketType.user)
+	@commands.cooldown(1, 15, BucketType.user)
 	async def flip_coin(self, ctx):
 		'''Flips a coin'''
 		n = random.randint(1, 2)
@@ -34,7 +34,7 @@ class Random(commands.Cog):
 
 
 	@commands.command()
-	@commands.cooldown(1, 60, BucketType.user)
+	@commands.cooldown(1, 15, BucketType.user)
 	async def quote(self, ctx):
 		'''Shows a random famous quote'''
 		# These three variables depend on the format of quotes.txt.
@@ -54,7 +54,7 @@ class Random(commands.Cog):
 	# Source of the roll and choose commands: https://github.com/Rapptz/discord.py/blob/8517f1e085df27acd5191d0d0cb2363242be0c29/examples/basic_bot.py#L30
 	# License: https://github.com/Rapptz/discord.py/blob/v1.7.1/LICENSE
 	@commands.command()
-	@commands.cooldown(1, 60, BucketType.user)
+	@commands.cooldown(1, 15, BucketType.user)
 	async def roll(self, ctx, dice: str):
 		'''Rolls dice in NdN format'''
 		try:
@@ -68,7 +68,7 @@ class Random(commands.Cog):
 
 
 	@commands.command()
-	@commands.cooldown(1, 60, BucketType.user)
+	@commands.cooldown(1, 15, BucketType.user)
 	async def choose(self, ctx, choice_count: int, *choices: str):
 		'''Chooses randomly between multiple choices'''
 		choices_made = []
