@@ -8,8 +8,8 @@ A simple Discord bot that can play music, solve math questions, and send reminde
 There are two ways you can add this bot to Discord servers where you have "manage server" permissions:
 
 1. By adding my instance of the bot to your server by clicking [this link](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352).
-2. By making a fork of this repl and creating your own instance of the bot. You will need to create a Discord bot account ([see this guide](https://www.freecodecamp.org/news/create-a-discord-bot-with-python/)), and then set a Repl.it environment variable called `DISCORD_BOT_SECRET_TOKEN` as explained [here](https://docs.replit.com/repls/secrets-environment-variables)
-(no changes to the code or an env file are necessary; this is just in Repl.it's menu). To keep the bot running continuously without Repl.it's premium "always on" option, you can use a free UptimeRobot account as explained in the first guide linked above.
+2. By making a fork of this repl and creating your own instance of the bot. You will need to create a Discord bot account ([see this guide](https://www.freecodecamp.org/news/create-a-discord-bot-with-python/)), and then set a Replit environment variable called `DISCORD_BOT_SECRET_TOKEN` as explained [here](https://docs.replit.com/repls/secrets-environment-variables)
+(no changes to the code or an env file are necessary; this is just in Replit's menu). To keep the bot running continuously without Replit's premium "always on" option, you can use a free UptimeRobot account as explained in the first guide linked above. Replit isn't designed to host bots, so you will want to change hosts soon if you continue using this.
 
 After adding this bot, you can see a full list of commands by entering `;help`.
 
