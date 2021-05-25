@@ -27,7 +27,7 @@ Here are most of this bot's commands. This image will not always be kept up-to-d
 ![help demo](images/help_demo.png)
 
 ## optional environment variables
-If you make a fork of this bot, the only environment variable you will need to set is `DISCORD_BOT_SECRET_TOKEN`, as explained above. However, there is an optional environment variable you can set: `MY_USER_ID`. This lets you use the `r` command (which repeats your latest command), and the `dev_mail` async function, which will send you high-priority messages from the bot only to alert you of situations like when the bot joins a new server, or cannot recover from certain errors without your help.
+If you make a fork of this bot, the only environment variable you will need to set is `DISCORD_BOT_SECRET_TOKEN`, as explained above. However, there is an optional environment variable you can set: `MY_USER_ID`. This lets you use the `r` command which repeats your latest command.
 
 &nbsp;
 

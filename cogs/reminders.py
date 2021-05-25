@@ -61,6 +61,21 @@ class Reminder:
 			or self.channel != other.channel
 
 
+async def save_reminder(ctx, chosen_time: str, seconds: int, message: str):
+	'''Saves one reminder to the saved reminders file'''
+	start_time = datetime.datetime.now(datetime.timezone.utc)
+	end_time = start_time + datetime.timedelta(0, seconds)
+	author_mention = str(ctx.author.mention)
+	author_id = ctx.author.id
+	channel = ctx.channel.id
+
+	reminder = Reminder(chosen_time, start_time, end_time, message, author_mention, author_id, channel)
+	with open(reminders_file, 'ab') as file:
+		pickle.dump(reminder, file)
+	
+	return reminder
+
+
 async def load_reminders(reminders_file):
 	'''Loads and returns all reminders from the saved reminders file'''
 	reminders = []
@@ -130,7 +145,8 @@ async def delete_reminder(bot, reminder):
 			for r in reminders:
 				pickle.dump(r, file)
 	except Exception as e:
-		await dev_mail(bot, f'Error: failed to delete reminder: {reminder}\nbecause of error: {e}')
+		print('Ignore the warning below if the reminder had been deleted with the del-r command.')
+		print(f'Warning: {e}')
 
 
 class Reminders(commands.Cog):
@@ -166,7 +182,7 @@ class Reminders(commands.Cog):
 			if seconds > 2147483:
 				raise ValueError('The maximum time possible is 24.85 days.')
 			await ctx.send(f'Reminder set! In {chosen_time}, I will remind you: {message}')
-			reminder = await self.save_reminder(ctx, chosen_time, seconds, message)
+			reminder = await save_reminder(ctx, chosen_time, seconds, message)
 
 			await asyncio.sleep(seconds)
 			await ctx.send(f'{ctx.author.mention}, here is your {chosen_time} reminder: {message}', tts=self.use_tts)
@@ -219,7 +235,8 @@ class Reminders(commands.Cog):
 				reminders.remove(author_reminders[index-1])
 				await ctx.send(f'Reminder deleted: "{author_reminders[index-1].message}"')
 				with open(reminders_file, 'wb') as file:
-					pickle.dump(reminders, file)
+					for r in reminders:
+						pickle.dump(r, file)
 
 		
 	def parse_time(self, Time: str) -> float:
@@ -251,21 +268,6 @@ class Reminders(commands.Cog):
 					seconds += float(value)
 				else:
 					raise SyntaxError
-
-
-	async def save_reminder(self, ctx, chosen_time: str, seconds: int, message: str):
-		'''Saves one reminder to the saved reminders file'''
-		start_time = datetime.datetime.now(datetime.timezone.utc)
-		end_time = start_time + datetime.timedelta(0, seconds)
-		author_mention = str(ctx.author.mention)
-		author_id = ctx.author.id
-		channel = ctx.channel.id
-
-		reminder = Reminder(chosen_time, start_time, end_time, message, author_mention, author_id, channel)
-		with open(reminders_file, 'ab') as file:
-			pickle.dump(reminder, file)
-		
-		return reminder
 
 
 def setup(bot):
