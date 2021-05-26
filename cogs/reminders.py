@@ -229,6 +229,13 @@ class Reminders(commands.Cog):
 						pickle.dump(r, file)
 
 		
+	@del_r.error
+	async def del_r_error(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
+			if error.param.name == 'index':
+				await ctx.send('Error: missing argument. Use the reminder\'s index number shown in the list-r command.')
+
+
 	def parse_time(self, Time: str) -> float:
 		'''Converts a str of one or multiple units of time to a float of seconds
 		
