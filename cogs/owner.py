@@ -35,6 +35,46 @@ class Owner(commands.Cog):
 		await ctx.send('No previous command saved.')
 
 
+	@commands.command(name='reload', hidden=True)
+	@commands.is_owner()
+	@commands.cooldown(1, 15, BucketType.user)
+	async def reload_extension(self, ctx, *, extension: str):
+		'''Reloads an extension, e.g: ;reload cogs.music'''
+		try:
+			self.bot.unload_extension(extension)
+			self.bot.load_extension(extension)
+		except Exception as e:
+			await ctx.send(f'Error: {type(e).__name__}: {e}')
+		else:
+			await ctx.send('Extension successfully reloaded.')
+
+
+	@commands.command(name='load', hidden=True)
+	@commands.is_owner()
+	@commands.cooldown(1, 15, BucketType.user)
+	async def load_extension(self, ctx, *, extension: str):
+		'''Loads an extension, e.g. ;load cogs.music'''
+		try:
+			self.bot.load_extension(extension)
+		except Exception as e:
+			await ctx.send(f'Error: {type(e).__name__}: {e}')
+		else:
+			await ctx.send('Extension successfully loaded.')
+
+
+	@commands.command(name='unload', hidden=True)
+	@commands.is_owner()
+	@commands.cooldown(1, 15, BucketType.user)
+	async def unload_extension(self, ctx, *, extension: str):
+		'''Unloads an extension, e.g. ;unload cogs.music'''
+		try:
+			self.bot.unload_extension(extension)
+		except Exception as e:
+			await ctx.send(f'Error: {type(e).__name__}: {e}')
+		else:
+			await ctx.send('Extension successfully unloaded.')
+
+
 	@commands.command(name='eval', hidden=True)
 	@commands.is_owner()
 	@commands.cooldown(1, 15, BucketType.user)
