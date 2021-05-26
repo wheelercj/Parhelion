@@ -1,6 +1,5 @@
 # TODO
 
-1. fix the stream command
 1. set [global cooldowns](https://discord.com/channels/336642139381301249/559455534965850142/843100881431429141) on individual people ([with walk_commands?](https://discord.com/channels/336642139381301249/381963689470984203/829737892087332904))
 1. custom error message for choose command
 1. custom error message for del-r command
