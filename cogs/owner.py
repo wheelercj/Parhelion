@@ -39,7 +39,11 @@ class Owner(commands.Cog):
 	@commands.is_owner()
 	@commands.cooldown(1, 15, BucketType.user)
 	async def _eval(self, ctx, *, expression: str):
-		'''Evaluates a Python expression'''
+		'''Evaluates a Python expression
+		
+		Returns result to Discord automatically.
+		Has access to bot via self.
+		'''
 		try:
 			await ctx.send(eval(expression))
 		except Exception as e:
@@ -50,7 +54,11 @@ class Owner(commands.Cog):
 	@commands.is_owner()
 	@commands.cooldown(1, 15, BucketType.user)
 	async def _exec(self, ctx, *, statement: str):
-		'''Executes a Python statement'''
+		'''Executes a Python statement
+		
+		Requires the use of `await ctx.send` for output.
+		Has direct access to bot.
+		'''
 		statement = self.remove_backticks(statement)
 		env = {
 			'ctx': ctx,
