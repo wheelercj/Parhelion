@@ -22,10 +22,10 @@ logger.addHandler(handler)
 
 
 extensions = [
-	'cogs.other',
 	'cogs.docs',
-	'cogs.owner',
 	'cogs.music',
+	'cogs.other',
+	'cogs.owner',
 	'cogs.rand',
 	'cogs.reminders',
 ]
