@@ -78,5 +78,12 @@ class Random(commands.Cog):
 		await ctx.send(''.join(choices_made))
 
 
+	@choose.error
+	async def choose_error(self, ctx, error):
+		if isinstance(error, commands.errors.BadArgument):
+			if f'{error}' == 'Converting to "int" failed for parameter "choice_count".':
+				await ctx.send(f'Error: the first argument should be the number of choices you want to be made.')
+
+
 def setup(bot):
 	bot.add_cog(Random(bot))
