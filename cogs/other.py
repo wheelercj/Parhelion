@@ -1,5 +1,6 @@
 import platform
 import inspect
+from datetime import datetime, timezone
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
@@ -54,19 +55,24 @@ class Other(commands.Cog):
     @commands.cooldown(1, 15, BucketType.user)
     async def about(self, ctx):
         '''Shows general info about this bot'''
-        embed = discord.Embed(
-            title='About me',
-            description= f'''
-                Created by Chris Wheeler
-                with Python {platform.python_version()} and [discord.py](https://discordpy.readthedocs.io/en/latest/)
-
-                Currently in {len(self.bot.guilds)} servers.
-                Invite link [here](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352)
-                Source code [here](https://replit.com/@wheelercj/simple-Discord-bot)
-            '''
-        )
+        embed = discord.Embed(title='Parhelion#3922')
+        
+        embed.add_field(name='servers', value=str(len(self.bot.guilds)))
+        embed.add_field(name='uptime', value=await self.uptime(ctx))
+        embed.add_field(name='owner', value='Chris Wheeler')
+        embed.add_field(name='invite', value='[link](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352)')
+        embed.add_field(name='repository', value='[link](https://replit.com/@wheelercj/simple-Discord-bot)')
+        embed.add_field(name='made with', value=f'Python v{platform.python_version()} and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}.')
         
         await ctx.send(embed=embed)
+
+
+    async def uptime(self, ctx) -> str:
+        _uptime = datetime.now(timezone.utc) - self.bot.launch_time
+        hours, remainder = divmod(int(_uptime.total_seconds()), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        days, hours = divmod(hours, 24)
+        return f'{days}d, {hours}h, {minutes}m, {seconds}s'
 
 
     @commands.command(name='inspect', aliases=['source', 'src'])

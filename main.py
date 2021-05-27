@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 import logging
 import traceback
+from datetime import datetime, timezone
 
 # Internal imports
 from keep_alive import keep_alive
@@ -21,6 +22,7 @@ logger.addHandler(handler)
 
 
 bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
+bot.launch_time = datetime.now(timezone.utc)
 bot.previous_command_ctxs = []
 my_user_id = int(os.environ['MY_USER_ID'])
 
