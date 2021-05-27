@@ -1,7 +1,6 @@
 from discord.ext import commands
 import textwrap
 import asyncio
-from cogs.reminders import reminders_file
 from discord.ext.commands.cooldowns import BucketType
 
 
@@ -125,19 +124,6 @@ class Owner(commands.Cog):
                 statement = statement[:-3]
 
         return statement
-
-
-    @commands.command(name='del-all-r', hidden=True)
-    @commands.is_owner()
-    @commands.cooldown(1, 15, BucketType.user)
-    async def delete_all_reminders(self, ctx):
-        '''Deletes everything in the reminders file
-        
-        For recovering from errors that make the file unparseable.
-        '''
-        with open(reminders_file, 'w') as _:
-            pass
-        await ctx.send('Everything in the reminders file has been deleted.')
 
 
 def setup(bot):

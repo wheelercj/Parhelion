@@ -1,3 +1,5 @@
+from replit import db
+
 # External imports
 import os
 import sys
