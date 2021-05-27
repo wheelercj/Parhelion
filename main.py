@@ -1,5 +1,3 @@
-from replit import db
-
 # External imports
 import os
 import sys
@@ -22,6 +20,11 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 
 
+bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
+bot.previous_command_ctxs = []
+my_user_id = int(os.environ['MY_USER_ID'])
+
+
 extensions = [
     'cogs.docs',
     'cogs.music',
@@ -30,11 +33,6 @@ extensions = [
     'cogs.rand',
     'cogs.reminders',
 ]
-
-
-bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
-bot.previous_command_ctxs = []
-my_user_id = int(os.environ['MY_USER_ID'])
 
 
 if __name__ == '__main__':
@@ -73,8 +71,8 @@ async def on_message(message: str):
 
 async def answer_mention(message: str, bot):
     '''Respond when mentioned'''
-    # For some reason, bot.user.mention is always missing the exclamation
-    # mark that's in the unrendered version of mentions.
+    # For some reason, bot.user.mention is always missing the
+    # exclamation mark that's in the unrendered version of mentions.
     mention = bot.user.mention[:2] + '!' + bot.user.mention[2:]
     if mention in message.content:
         nickname = message.author.nick
