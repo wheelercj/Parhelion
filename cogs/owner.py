@@ -21,19 +21,22 @@ class Owner(commands.Cog):
     @commands.command(name='r', hidden=True)
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
-    async def repeat_command(self, ctx, n : int = 1):
+    async def repeat_command(self, ctx, n : int = 1, skip: int = 0):
         '''Repeats the last command you used'''
         previous = ctx.bot.previous_command_ctxs
         if not len(previous):
             await ctx.send('No previous commands saved.')
         else:
-            for i in range(n, 0, -1):
-                c = previous[-i]
-                if c.author.id != ctx.author.id:
-                    raise ValueError
-                else:
-                    await c.reinvoke()
-                    await asyncio.sleep(n * 1.5)
+            for i in range(n + skip, skip, -1):
+                try:
+                    c = previous[-i]
+                    if c.author.id != ctx.author.id:
+                        raise ValueError
+                    else:
+                        await c.reinvoke()
+                        await asyncio.sleep(n * 2.5)
+                except IndexError:
+                    pass
 
 
     @commands.command(name='reload', hidden=True)
