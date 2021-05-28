@@ -97,7 +97,8 @@ class Owner(commands.Cog):
     async def reload_all_extensions(self, ctx):
         '''Reloads all currently loaded extensions'''
         message = ''
-        for extension in self.bot.extensions.keys():
+        extensions = list(self.bot.extensions.keys())
+        for extension in extensions.copy():
             try:
                 self.bot.unload_extension(extension)
                 self.bot.load_extension(extension)
