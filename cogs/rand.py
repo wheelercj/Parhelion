@@ -80,9 +80,12 @@ class Random(commands.Cog):
 
     @choose.error
     async def choose_error(self, ctx, error):
-        if isinstance(error, commands.errors.BadArgument):
-            if f'{error}' == 'Converting to "int" failed for parameter "choice_count".':
-                await ctx.send(f'Error: the first argument should be the number of choices you want to be made.')
+        if isinstance(error, commands.errors.BadArgument) \
+        or isinstance(error, commands.errors.CommandInvokeError) \
+        or isinstance(error, commands.errors.MissingRequiredArgument):
+            await ctx.send(f'Error: the first argument must be the number of choices you want to be made. Following arguments must be the choices to choose from.')
+        else:
+            await ctx.send(error)
 
 
 def setup(bot):
