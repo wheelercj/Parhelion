@@ -181,6 +181,8 @@ class Reminders(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             if error.param.name == 'index':
                 await ctx.send('Error: missing argument. Use the reminder\'s index number shown in the list-r command.')
+        else:
+            await ctx.send(error)
 
 
     def parse_time(self, Time: str) -> float:
