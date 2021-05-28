@@ -79,6 +79,22 @@ class Owner(commands.Cog):
             await ctx.send('Extension successfully unloaded.')
 
 
+    @commands.command(name='reloadall', hidden=True)
+    @commands.is_owner()
+    @commands.cooldown(1, 15, BucketType.user)
+    async def reload_all_extensions(self, ctx):
+        '''Reloads all extensions'''
+        extensions = self.bot.extensions.keys()
+        for extension in extensions:
+            try:
+                self.bot.unload_extension(extension)
+                self.bot.load_extension(extension)
+            except Exception as e:
+                await ctx.send(f'Error: {type(e).__name__}: {e}')
+            else:
+                await ctx.send(f'Extension {extension} successfully reloaded.')
+
+
     @commands.command(name='eval', hidden=True)
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
