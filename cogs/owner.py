@@ -53,6 +53,18 @@ class Owner(commands.Cog):
             await ctx.send('Extension successfully reloaded.')
 
 
+    @reload_extension.error
+    async def reload_extension_error(self, ctx, error):
+        message = ''
+        if isinstance(error, commands.errors.MissingRequiredArgument):
+            message += str(error) + '\nExtensions: '
+            message += ', '.join(self.bot.extensions.keys())
+
+            await ctx.send(message)
+        else:
+            await ctx.send(error)
+
+
     @commands.command(name='load', hidden=True)
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
