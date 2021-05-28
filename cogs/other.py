@@ -57,12 +57,12 @@ class Other(commands.Cog):
         '''Shows general info about this bot'''
         embed = discord.Embed(title='Parhelion#3922')
         
-        embed.add_field(name='servers', value=str(len(self.bot.guilds)))
-        embed.add_field(name='uptime', value=await self.uptime(ctx))
-        embed.add_field(name='owner', value='Chris Wheeler')
-        embed.add_field(name='invite', value='[link](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352)')
-        embed.add_field(name='repository', value='[link](https://replit.com/@wheelercj/simple-Discord-bot)')
-        embed.add_field(name='made with', value=f'Python v{platform.python_version()} and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}.')
+        embed.add_field(name='servers\u2800', value=str(len(self.bot.guilds)))
+        embed.add_field(name='\u2800uptime', value=f'\u2800{await self.uptime(ctx)}\u2800')
+        embed.add_field(name='\u2800owner', value='\u2800Chris Wheeler')
+        embed.add_field(name='bot invite\u2800', value='[link](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352)')
+        embed.add_field(name='\u2800repository\u2800', value='\u2800[link](https://replit.com/@wheelercj/simple-Discord-bot)')
+        embed.add_field(name='\u2800made with', value=f'\u2800Python v{platform.python_version()} and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}.')
         
         await ctx.send(embed=embed)
 
