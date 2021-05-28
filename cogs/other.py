@@ -51,7 +51,7 @@ class Other(commands.Cog):
         await ctx.send(f'Pong! It took {round(self.bot.latency, 2)} ms.')
 
 
-    @commands.command(aliases=['info', 'stats', 'invite'])
+    @commands.command(aliases=['info', 'stats', 'invite', 'uptime', 'servers'])
     @commands.cooldown(1, 15, BucketType.user)
     async def about(self, ctx):
         '''Shows general info about this bot'''
