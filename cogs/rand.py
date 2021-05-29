@@ -1,8 +1,9 @@
 import discord
 from discord.ext import commands
-import random
-import linecache
 from discord.ext.commands.cooldowns import BucketType
+import random
+import requests
+import json
 
 
 class Random(commands.Cog):
@@ -37,18 +38,15 @@ class Random(commands.Cog):
     @commands.cooldown(1, 15, BucketType.user)
     async def quote(self, ctx):
         '''Shows a random famous quote'''
-        # These three variables depend on the format of quotes.txt.
-        first_quote_line = 4
-        last_quote_line = 298
-        delta = 3
-
-        quotes_file = 'cogs/quotes.txt'
-        quote_count = (last_quote_line - first_quote_line) / delta
-        rand_line = random.randint(0, quote_count) * delta + first_quote_line
-        quote = linecache.getline(quotes_file, rand_line)
-        author = linecache.getline(quotes_file, rand_line + 1)
-
-        embed = discord.Embed(description=f'{quote}\n{author}')
+        args = {
+            'lang':'en',
+            'method':'getQuote',
+            'format':'json'
+        }
+        response = requests.get('http://api.forismatic.com/api/1.0/', args)
+        json_text = json.loads(response.text)
+        quote, author = json_text['quoteText'], json_text['quoteAuthor']
+        embed = discord.Embed(description=f'"{quote}"\n — {author}')
         await ctx.send(embed=embed)
 
 
