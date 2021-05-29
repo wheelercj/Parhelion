@@ -160,5 +160,12 @@ class Owner(commands.Cog):
         return statement
 
 
+    @commands.command(name='shut-down', aliases=['close', 'quit', 'exit'], hidden=True)
+    @commands.is_owner()
+    async def _close(self, ctx):
+        '''Shuts down the bot'''
+        await self.bot.close()
+
+
 def setup(bot):
     bot.add_cog(Owner(bot))
