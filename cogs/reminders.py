@@ -46,6 +46,13 @@ class Reminder:
             or self.channel != other.channel
 
 
+def eval_str(string):
+    parsed = ast.parse(string, mode='eval')
+    fixed = ast.fix_missing_locations(parsed)
+    compiled = compile(fixed, '<string>', 'eval')
+    return eval(compiled)
+
+
 async def save_reminder(ctx, chosen_time: str, seconds: int, message: str) -> Reminder:
     '''Saves one reminder to the database'''
     start_time = datetime.datetime.now(datetime.timezone.utc)
@@ -94,11 +101,6 @@ class Reminders(commands.Cog):
         self.bot = bot
 
 
-    async def on_connect(self):
-        for key in db.keys():
-            await continue_reminder(self.bot, ast.literal_eval(db[key]))
-
-
     @commands.command(aliases=['reminder', 'remindme'])
     @commands.cooldown(1, 15, BucketType.user)
     async def remind(self, ctx, chosen_time: str, *, message: str):
@@ -123,13 +125,6 @@ class Reminders(commands.Cog):
                 await send_traceback(ctx, e)
 
 
-    def eval_str(self, string):
-        parsed = ast.parse(string, mode='eval')
-        fixed = ast.fix_missing_locations(parsed)
-        compiled = compile(fixed, '<string>', 'eval')
-        return eval(compiled)
-
-
     @commands.command(name='list-r', aliases=['list-reminders'])
     @commands.cooldown(1, 15, BucketType.user)
     async def list_reminders(self, ctx):
@@ -142,7 +137,7 @@ class Reminders(commands.Cog):
         else:
             r_list = 'Here are your in-progress reminders:'
             for i, key in enumerate(r_keys):
-                reminder = self.eval_str(db[key])
+                reminder = eval_str(db[key])
                 end_time = datetime.datetime.fromisoformat(reminder.end_time)
                 remaining = end_time - datetime.datetime.now(datetime.timezone.utc)
 
@@ -171,7 +166,7 @@ class Reminders(commands.Cog):
             except KeyError:
                 await ctx.send('Reminder not found.')
             else:
-                reminder = self.eval_str(db[key])
+                reminder = eval_str(db[key])
                 await ctx.send(f'Reminder deleted: "{reminder.message}"')
                 del db[key]
 

@@ -1,4 +1,5 @@
 # External imports
+from replit import db
 import os
 import sys
 import discord
@@ -9,6 +10,7 @@ from datetime import datetime, timezone
 
 # Internal imports
 from keep_alive import keep_alive
+from cogs.reminders import continue_reminder, eval_str, Reminder
 
 
 # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
@@ -54,6 +56,8 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
 @bot.event
 async def on_connect():
     print('Loading . . . ')
+    for key in db.keys():
+        await continue_reminder(bot, eval(db[key]))
 
 
 @bot.event
