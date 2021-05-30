@@ -106,9 +106,10 @@ class Reminders(commands.Cog):
     async def remind(self, ctx, chosen_time: str, *, message: str):
         '''Sends a reminder, e.g. ;remind 1h30m iron socks
         
-        The maximum time allowed is 2,147,483 seconds (24.85 days).
+        The maximum time allowed is 24.85 days.
         See https://bugs.python.org/issue20493 for details.
         '''
+        message = message.replace('"', '\\"')
         try:
             seconds = self.parse_time(chosen_time)
             if seconds > 2147483:
@@ -137,11 +138,16 @@ class Reminders(commands.Cog):
         else:
             r_list = 'Here are your in-progress reminders:'
             for i, key in enumerate(r_keys):
-                reminder = eval_str(db[key])
-                end_time = datetime.datetime.fromisoformat(reminder.end_time)
-                remaining = end_time - datetime.datetime.now(datetime.timezone.utc)
+                try:
+                    reminder = eval_str(db[key])
+                    end_time = datetime.datetime.fromisoformat(reminder.end_time)
+                    remaining = end_time - datetime.datetime.now(datetime.timezone.utc)
 
-                r_list += f'\n\n{i+1}. "{reminder.message}"\nduration: {reminder.chosen_time}\ntime remaining: {str(remaining)}'
+                    r_list += f'\n\n{i+1}. "{reminder.message}"\nduration: {reminder.chosen_time}\ntime remaining: {str(remaining)}'
+                except SyntaxError as e:
+                    del db[key]
+                    await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
+
             embed = discord.Embed(description=r_list)
             await ctx.send(embed=embed)
 
