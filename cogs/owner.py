@@ -96,7 +96,7 @@ class Owner(commands.Cog):
             await ctx.send('Extension successfully unloaded.')
 
 
-    @commands.command(name='reloadall', hidden=True)
+    @commands.command(name='reload-all', hidden=True)
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def reload_all_extensions(self, ctx):
