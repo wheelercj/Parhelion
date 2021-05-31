@@ -1,7 +1,6 @@
 # External imports
 from replit import db
 import re
-import ast
 import asyncio
 import datetime
 import discord
@@ -41,11 +40,24 @@ class Reminder:
             or self.channel != other.channel
 
 
-def eval_str(string):
-    parsed = ast.parse(string, mode='eval')
-    fixed = ast.fix_missing_locations(parsed)
-    compiled = compile(fixed, '<string>', 'eval')
-    return eval(compiled)
+def eval_reminder(string: str) -> Reminder:
+    if not string.startswith('Reminder(') \
+            or not string.endswith(')'):
+        raise ValueError
+
+    string = string[9:-1]
+    args = string.split(', ')
+
+    if len(args) != 5:
+        raise ValueError
+
+    chosen_time: str = args[0][1:-1]
+    end_time: str = args[1][1:-1]
+    message: str = args[2][1:-1]
+    author_id: int = args[3]
+    channel_id: int = args[4]
+
+    return Reminder(chosen_time, end_time, message, author_id, channel_id)
 
 
 async def save_reminder(ctx, chosen_time: str, seconds: int, message: str) -> Reminder:
@@ -63,9 +75,9 @@ async def save_reminder(ctx, chosen_time: str, seconds: int, message: str) -> Re
     return reminder
 
 
-async def continue_reminder(bot, reminder):
+async def continue_reminder(bot, reminder_str: str):
     '''Continues a reminder that had been stopped by a server restart'''
-    
+    reminder = eval_reminder(reminder_str)
     channel = bot.get_channel(reminder.channel)
     try:
         if channel is None:
@@ -101,12 +113,13 @@ class Reminders(commands.Cog):
     @commands.command(aliases=['reminder', 'remindme'])
     @commands.cooldown(1, 15, BucketType.user)
     async def remind(self, ctx, chosen_time: str, *, message: str):
-        '''Sends a reminder, e.g. ;remind 1h30m iron socks
+        '''Sends you a reminder, e.g. ;remind 1h30m iron socks
         
         The maximum time allowed is 24.85 days.
         See https://bugs.python.org/issue20493 for details.
         '''
-        message = message.replace('"', '\\"')
+        # Remove double quotes, commas, and curly braces for security.
+        message = message.replace('"', '').replace(',', '').replace('{', '').replace('}', '')
         try:
             seconds = self.parse_time(chosen_time)
             if seconds > 2147483:
@@ -136,7 +149,7 @@ class Reminders(commands.Cog):
             r_list = 'Here are your in-progress reminders:'
             for i, key in enumerate(r_keys):
                 try:
-                    reminder = eval_str(db[key])
+                    reminder = eval_reminder(db[key])
                     end_time = datetime.datetime.fromisoformat(reminder.end_time)
                     remaining = end_time - datetime.datetime.now(datetime.timezone.utc)
 
@@ -169,7 +182,7 @@ class Reminders(commands.Cog):
             except KeyError:
                 await ctx.send('Reminder not found.')
             else:
-                reminder = eval_str(db[key])
+                reminder = eval_reminder(db[key])
                 await ctx.send(f'Reminder deleted: "{reminder.message}"')
                 del db[key]
 
