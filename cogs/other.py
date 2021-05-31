@@ -74,22 +74,23 @@ class Other(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.command(name='dev-about', hidden=True)
-    async def dev_about(self, ctx):
-        '''Shows implementation info about this bot'''
-        embed = discord.Embed(title='Parhelion#3922')
-        
-        embed.add_field(name='reminders\u2800', value=str(len(db)))
-        
-        await ctx.send(embed=embed)
-
-
     async def uptime(self, ctx) -> str:
         _uptime = datetime.now(timezone.utc) - self.bot.launch_time
         hours, remainder = divmod(int(_uptime.total_seconds()), 3600)
         minutes, seconds = divmod(remainder, 60)
         days, hours = divmod(hours, 24)
         return f'{days}d, {hours}h, {minutes}m, {seconds}s'
+
+
+    @commands.command(name='dev-about', hidden=True)
+    @commands.cooldown(1, 15, BucketType.user)
+    async def dev_about(self, ctx):
+        '''Shows implementation info about this bot'''
+        embed = discord.Embed(title='Parhelion#3922', description='Use the `about` command if you want to see general info.')
+        
+        embed.add_field(name='reminders\u2800', value=str(len(db)))
+        
+        await ctx.send(embed=embed)
 
 
     @commands.command(name='inspect', aliases=['source', 'src'])
