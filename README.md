@@ -7,7 +7,7 @@ A simple Discord bot that can play music, solve math questions, and send reminde
 ## how to try this bot
 There are two ways you can add this bot to Discord servers where you have "manage server" permissions:
 
-1. By adding my instance of the bot to your server by clicking [this link](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352).
+1. By adding my instance of the bot to your server by clicking [this link](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328).
 2. By making a fork of this repl and creating your own instance of the bot (see instructions below).
 
 After adding this bot, you can see all the commands by entering `;help` and `;hhelp`.

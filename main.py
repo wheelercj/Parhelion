@@ -23,7 +23,9 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 
 
-bot = commands.Bot(command_prefix=(';', 'par ', 'Par '))
+intents = discord.Intents.default()
+intents.members = True
+bot = commands.Bot(command_prefix=(';', 'par ', 'Par '), intents=intents)
 bot.launch_time = datetime.now(timezone.utc)
 bot.previous_command_ctxs = []
 my_user_id = int(os.environ['MY_USER_ID'])
@@ -56,6 +58,7 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
 @bot.event
 async def on_connect():
     print('Loading . . . ')
+    await bot.wait_until_ready()
     for key in db.keys():
         await continue_reminder(bot, db[key])
 

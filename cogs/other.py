@@ -67,7 +67,7 @@ class Other(commands.Cog):
         embed.add_field(name='servers\u2800', value=str(len(self.bot.guilds)))
         embed.add_field(name='\u2800uptime', value=f'\u2800{await self.uptime(ctx)}\u2800')
         embed.add_field(name='\u2800owner', value='\u2800Chris Wheeler')
-        embed.add_field(name='bot invite\u2800', value='[link](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352)')
+        embed.add_field(name='bot invite\u2800', value='[link](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328)')
         embed.add_field(name='\u2800repository\u2800', value='\u2800[link](https://replit.com/@wheelercj/simple-Discord-bot)')
         embed.add_field(name='\u2800made with', value=f'\u2800Python v{platform.python_version()} and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}.')
         

@@ -2,7 +2,7 @@
 from replit import db
 import re
 import asyncio
-import datetime
+from datetime import datetime, timezone, timedelta
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
@@ -15,32 +15,35 @@ use_tts = False  # Text-to-speech for the reminder messages.
 
 
 class Reminder:
-    def __init__(self, chosen_time: str, end_time: str, message: str, author_id: int, channel: int):
+    def __init__(self, chosen_time: str, end_time: str, message: str, author_id: int, guild_id: int, channel_id: int):
         self.chosen_time = chosen_time
         self.end_time = end_time
         self.message = message
         self.author_id = author_id
-        self.channel = channel
+        self.guild_id = guild_id
+        self.channel_id = channel_id
 
     def __repr__(self):
-        return f'Reminder("{self.chosen_time}", "{self.end_time}", "{self.message}", {self.author_id}, {self.channel})'
+        return f'Reminder("{self.chosen_time}", "{self.end_time}", "{self.message}", {self.author_id}, {self.guild_id}, {self.channel_id})'
 
     def __eq__(self, other):
         return self.chosen_time == other.chosen_time \
             and self.end_time == other.end_time \
             and self.message == other.message \
             and self.author_id == other.author_id \
-            and self.channel == other.channel
+            and self.guild_id == other.guild_id \
+            and self.channel_id == other.channel_id
 
     def __ne__(self, other):
         return self.chosen_time != other.chosen_time \
             or self.end_time != other.end_time \
             or self.message != other.message \
             or self.author_id != other.author_id \
-            or self.channel != other.channel
+            or self.guild_id != other.guild_id \
+            or self.channel_id != other.channel_id
 
 
-def eval_reminder(string: str) -> Reminder:
+async def eval_reminder(string: str) -> Reminder:
     if not string.startswith('Reminder(') \
             or not string.endswith(')'):
         raise ValueError
@@ -48,44 +51,60 @@ def eval_reminder(string: str) -> Reminder:
     string = string[9:-1]
     args = string.split(', ')
 
-    if len(args) != 5:
-        raise ValueError
+    try:
+        chosen_time: str = args[0][1:-1]
+        end_time: str = args[1][1:-1]
+        message: str = args[2][1:-1]
+        author_id = int(args[3])
+        guild_id = int(args[4])
+        channel_id = int(args[5])
 
-    chosen_time: str = args[0][1:-1]
-    end_time: str = args[1][1:-1]
-    message: str = args[2][1:-1]
-    author_id: int = args[3]
-    channel_id: int = args[4]
+        reminder = Reminder(chosen_time, end_time, message, author_id, guild_id, channel_id)
 
-    return Reminder(chosen_time, end_time, message, author_id, channel_id)
+        if len(args) != 6:
+            await delete_reminder(reminder)
+            raise ValueError('Error! Must delete a reminder.')
+
+        return reminder
+    except IndexError as e:
+        del db[f'reminder {author_id} {end_time}']
+        raise IndexError(f'Error! Must delete reminder: "{message}"\n   because {e}')
+    except Exception as e:
+        raise e
 
 
 async def save_reminder(ctx, chosen_time: str, seconds: int, message: str) -> Reminder:
     '''Saves one reminder to the database'''
-    start_time = datetime.datetime.now(datetime.timezone.utc)
-    end_time = start_time + datetime.timedelta(0, seconds)
+    start_time = datetime.now(timezone.utc)
+    end_time = start_time + timedelta(0, seconds)
     end_time = end_time.isoformat()
     author_id = ctx.author.id
-    channel = ctx.channel.id
+    guild_id = ctx.guild.id
+    channel_id = ctx.channel.id
 
-    reminder = Reminder(chosen_time, end_time, message, author_id, channel)
+    reminder = Reminder(chosen_time, end_time, message, author_id, guild_id, channel_id)
 
-    db[f'{author_id} {end_time}'] = repr(reminder)
+    db[f'reminder {author_id} {end_time}'] = repr(reminder)
 
     return reminder
 
 
 async def continue_reminder(bot, reminder_str: str):
     '''Continues a reminder that had been stopped by a server restart'''
-    reminder = eval_reminder(reminder_str)
-    channel = bot.get_channel(reminder.channel)
+    reminder = await eval_reminder(reminder_str)
+    guild = bot.get_guild(reminder.guild_id)
+
     try:
+        channel = guild.get_channel(reminder.channel_id)
         if channel is None:
-            raise ValueError(f'channel is None, and reminder.channel is {reminder.channel}')  # TODO: this exception is being raised some times when the bot restarts.
-        current_time = datetime.datetime.now(datetime.timezone.utc)
-        end_time = datetime.datetime.fromisoformat(reminder.end_time)
+            await delete_reminder(reminder)
+            raise ValueError('Channel not found. The reminder must be deleted.')
+
+        current_time = datetime.now(timezone.utc)
+        end_time = datetime.fromisoformat(reminder.end_time)
         remaining_time = end_time - current_time
         remaining_seconds = remaining_time.total_seconds()
+
         if remaining_seconds > 0:
             await asyncio.sleep(remaining_seconds)
             await channel.send(f'<@!{reminder.author_id}>, here is your {reminder.chosen_time} reminder: {reminder.message}', tts=use_tts)
@@ -95,14 +114,22 @@ async def continue_reminder(bot, reminder_str: str):
 
         await delete_reminder(reminder)
     except Exception as e:
-        await channel.send(f'<@!{reminder.author_id}>, your reminder was cancelled because of an error: {e}')
-        if await bot.is_owner(reminder.author_id):
-            await send_traceback(channel, e)
+        print(f'Error: {e}')
+        try:
+            await channel.send(f'<@!{reminder.author_id}>, your reminder was cancelled because of an error: {e}')
+            if await bot.is_owner(reminder.author_id):
+                await send_traceback(channel, e)
+        except Exception as e:
+            print(f'Error: {e}')
+        print('Error! Must delete a reminder.')
+        await delete_reminder(reminder)
+        raise e
             
 
 async def delete_reminder(reminder):
     '''Removes one reminder from the database'''
-    del db[f'{reminder.author_id} {reminder.end_time}']
+    print(f'deleting reminder: {reminder}')
+    del db[f'reminder {reminder.author_id} {reminder.end_time}']
 
 
 class Reminders(commands.Cog):
@@ -118,8 +145,8 @@ class Reminders(commands.Cog):
         The maximum time allowed is 24.85 days.
         See https://bugs.python.org/issue20493 for details.
         '''
-        # Remove double quotes, commas, and curly braces for security.
-        message = message.replace('"', '').replace(',', '').replace('{', '').replace('}', '')
+        # Remove quotes, commas, and curly braces for security.
+        message = message.replace('"', '').replace('\'', '').replace(',', '').replace('{', '').replace('}', '')
         try:
             seconds = self.parse_time(chosen_time)
             if seconds > 2147483:
@@ -140,7 +167,7 @@ class Reminders(commands.Cog):
     @commands.cooldown(1, 15, BucketType.user)
     async def list_reminders(self, ctx):
         '''Shows all of your reminders'''
-        r_keys = db.prefix(f'{ctx.author.id}')
+        r_keys = db.prefix(f'reminder {ctx.author.id}')
         r_keys = sorted(r_keys)
 
         if not len(r_keys):
@@ -149,9 +176,9 @@ class Reminders(commands.Cog):
             r_list = 'Here are your in-progress reminders:'
             for i, key in enumerate(r_keys):
                 try:
-                    reminder = eval_reminder(db[key])
-                    end_time = datetime.datetime.fromisoformat(reminder.end_time)
-                    remaining = end_time - datetime.datetime.now(datetime.timezone.utc)
+                    reminder = await eval_reminder(db[key])
+                    end_time = datetime.fromisoformat(reminder.end_time)
+                    remaining = end_time - datetime.now(timezone.utc)
 
                     r_list += f'\n\n{i+1}. "{reminder.message}"\nduration: {reminder.chosen_time}\ntime remaining: {str(remaining)}'
                 except SyntaxError as e:
@@ -171,7 +198,7 @@ class Reminders(commands.Cog):
         not from the program. A deleted reminder will then only be
         cancelled if the bot is restarted.
         '''
-        r_keys = db.prefix(f'{ctx.author.id}')
+        r_keys = db.prefix(f'reminder {ctx.author.id}')
         r_keys = sorted(r_keys)
         
         if not len(r_keys):
@@ -182,7 +209,7 @@ class Reminders(commands.Cog):
             except KeyError:
                 await ctx.send('Reminder not found.')
             else:
-                reminder = eval_reminder(db[key])
+                reminder = await eval_reminder(db[key])
                 await ctx.send(f'Reminder deleted: "{reminder.message}"')
                 del db[key]
 
