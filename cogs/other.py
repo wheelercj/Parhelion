@@ -117,11 +117,14 @@ class Other(commands.Cog):
         Evaluates multiple expressions if they're on separate lines.
         Uses the mathjs API: https://mathjs.org/
         '''
-        expression = remove_backticks(expression)
-        raw_expressions = expression.split('\n')
-        expressions = json.dumps(raw_expressions)
-        expressions_json = '{\n"expr": ' + expressions + '\n}'
         try:
+            expression = remove_backticks(expression)
+            if '**' in expression:
+                raise ValueError('This command uses ^ instead of ** for exponents.')
+            raw_expressions = expression.split('\n')
+            expressions = json.dumps(raw_expressions)
+            expressions_json = '{\n"expr": ' + expressions + '\n}'
+
             response = requests.post('http://api.mathjs.org/v4/',
                 data = expressions_json,
                 headers = {'content-type': 'application/json'},
