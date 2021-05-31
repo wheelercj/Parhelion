@@ -9,6 +9,7 @@ import traceback
 from datetime import datetime, timezone
 
 # Internal imports
+from common import dev_mail
 from keep_alive import keep_alive
 from cogs.reminders import continue_reminder
 
@@ -44,15 +45,6 @@ extensions = [
 if __name__ == '__main__':
     for extension in extensions:
         bot.load_extension(extension)
-
-
-async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
-    user = await bot.fetch_user(int(os.environ['MY_USER_ID']))
-    if use_embed:
-        embed = discord.Embed(title=embed_title, description=message)
-        await user.send(embed=embed)
-    else:
-        await user.send(message)
 
 
 @bot.event

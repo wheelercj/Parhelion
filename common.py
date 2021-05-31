@@ -1,4 +1,6 @@
+import os
 import traceback
+import discord
 
 
 async def send_traceback(ctx, e):
@@ -27,3 +29,12 @@ def remove_backticks(statement: str, languages=['py', 'python']) -> str:
             statement = statement[:-1]
 
     return statement
+
+
+async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
+    user = await bot.fetch_user(int(os.environ['MY_USER_ID']))
+    if use_embed:
+        embed = discord.Embed(title=embed_title, description=message)
+        await user.send(embed=embed)
+    else:
+        await user.send(message)
