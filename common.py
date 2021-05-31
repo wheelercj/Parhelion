@@ -9,16 +9,20 @@ async def send_traceback(ctx, e):
     await ctx.send(f'```\n{traceback_text}\n```')
 
 
-def remove_backticks(statement: str) -> str:
+def remove_backticks(statement: str, languages=['py', 'python']) -> str:
     '''Removes backticks around a code block, if they are there'''
     if statement.startswith('```'):
         statement = statement[3:]
-        if statement.startswith('py\n'):
-            statement = statement[3:]
-        elif statement.startswith('\n'):
+        for language in languages:
+            if statement.startswith(f'{language}\n'):
+                size = len(language) + 1
+                statement = statement[size:]
+                break
+        if statement.startswith('\n'):
             statement = statement[1:]
+
         if statement.endswith('\n```'):
-            statement = statement[:-3]
+            statement = statement[:-4]
         if statement.endswith('\n'):
             statement = statement[:-1]
 
