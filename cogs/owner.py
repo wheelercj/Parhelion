@@ -164,16 +164,5 @@ class Owner(commands.Cog):
         await self.bot.close()
 
 
-    @commands.command(name='dev-about', hidden=True)
-    @commands.is_owner()
-    async def dev_about(self, ctx):
-        '''Shows development info about the bot'''
-        embed = discord.Embed(title='Parhelion#3922')
-        
-        embed.add_field(name='total reminders\u2800', value=str(len(db)))
-        
-        await ctx.send(embed=embed)
-
-
 def setup(bot):
     bot.add_cog(Owner(bot))

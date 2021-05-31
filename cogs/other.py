@@ -1,4 +1,5 @@
 # External imports
+from replit import db
 import platform
 import inspect
 from datetime import datetime, timezone
@@ -69,6 +70,16 @@ class Other(commands.Cog):
         embed.add_field(name='bot invite\u2800', value='[link](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3300352)')
         embed.add_field(name='\u2800repository\u2800', value='\u2800[link](https://replit.com/@wheelercj/simple-Discord-bot)')
         embed.add_field(name='\u2800made with', value=f'\u2800Python v{platform.python_version()} and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}.')
+        
+        await ctx.send(embed=embed)
+
+
+    @commands.command(name='dev-about', hidden=True)
+    async def dev_about(self, ctx):
+        '''Shows implementation info about this bot'''
+        embed = discord.Embed(title='Parhelion#3922')
+        
+        embed.add_field(name='reminders\u2800', value=str(len(db)))
         
         await ctx.send(embed=embed)
 
