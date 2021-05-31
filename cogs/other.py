@@ -1,9 +1,15 @@
+# External imports
 import platform
 import inspect
 from datetime import datetime, timezone
+import requests
+import json
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
+
+# Internal imports
+from common import remove_backticks, send_traceback
 
 
 class Other(commands.Cog):
@@ -91,27 +97,42 @@ class Other(commands.Cog):
             await ctx.send(e)
 
 
-    @commands.command()
+    @commands.command(aliases=['calc', 'solve'])
     @commands.cooldown(1, 15, BucketType.user)
-    async def calc(self, ctx, *, string: str):
+    async def math(self, ctx, *, expression: str):
         '''Evaluates a math expression
         
-        Uses a limited version of Python's eval function.'''
+        Evaluates multiple expressions if they're on separate lines.
+        Uses the mathjs API: https://mathjs.org/
+        '''
+        expression = remove_backticks(expression)
+        raw_expressions = expression.split('\n')
+        expressions = json.dumps(raw_expressions)
+        expressions_json = '{\n"expr": ' + expressions + '\n}'
         try:
-            # The eval function can do just about anything by default, so a
-            # lot of its features have to be removed for security. For more
-            # info, see https://realpython.com/python-eval-function/#minimizing-the-security-issues-of-eval 
-            allowed_names = {}
-            code = compile(string, '<string>', 'eval')
-            for name in code.co_names:
-                if name not in allowed_names:
-                    raise NameError(f'Use of "{name}" is not allowed.')
+            response = requests.post('http://api.mathjs.org/v4/',
+                data = expressions_json,
+                headers = {'content-type': 'application/json'},
+                timeout = 10
+            )
+            if not response and response.status_code != 400:
+                raise ValueError(f'API request failed with status code {response.status_code}.')
 
-            await ctx.send(eval(code, {"__builtins__": {}}, allowed_names))
-        except NameError as e:
-            await ctx.send(e)
+            json_text = response.json()
+
+            if response.status_code == 400:
+                raise ValueError(json_text['error'])
+
+            result = ''
+            for i, expr in enumerate(raw_expressions):
+                result += '\n`' + expr + '` = `' + json_text['result'][i] + '`'
+
+            embed = discord.Embed(description=result)
+            await ctx.send(embed=embed)
         except Exception as e:
-            await ctx.send(f'Python error: {e}')
+            await ctx.send(e)
+            if await self.bot.is_owner(ctx.author):
+                await send_traceback(ctx, e)
 
 
     @commands.command(hidden=True)
