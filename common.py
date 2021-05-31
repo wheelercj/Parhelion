@@ -1,5 +1,6 @@
 import traceback
 
+
 async def send_traceback(ctx, e):
     etype = type(e)
     trace = e.__traceback__
@@ -8,7 +9,7 @@ async def send_traceback(ctx, e):
     await ctx.send(f'```\n{traceback_text}\n```')
 
 
-def remove_backticks(statement: str):
+def remove_backticks(statement: str) -> str:
     '''Removes backticks around a code block, if they are there'''
     if statement.startswith('```'):
         statement = statement[3:]
