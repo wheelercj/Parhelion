@@ -121,7 +121,7 @@ class Owner(commands.Cog):
     async def _eval(self, ctx, *, expression: str):
         '''Evaluates a Python expression
         
-        Returns result to Discord automatically.
+        Returns result to Discord.
         Has access to bot via self.
         '''
         # This command must never be made available to anyone besides
@@ -132,13 +132,13 @@ class Owner(commands.Cog):
             await ctx.send(f'Python error: {e}')
 
 
-    @commands.command(name='exec', hidden=True)
+    @commands.command(name='exec', aliases=['py', 'python'], hidden=True)
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def _exec(self, ctx, *, statement: str):
         '''Executes a Python statement
         
-        Requires the use of `await ctx.send` for output.
+        Requires use of `await ctx.send` for output.
         Has direct access to bot.
         '''
         # This command must never be made available to anyone besides
