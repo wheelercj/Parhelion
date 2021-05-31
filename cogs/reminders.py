@@ -1,23 +1,18 @@
+# External imports
 from replit import db
 import re
 import ast
 import asyncio
 import datetime
-import traceback
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
+# Internal imports
+from common import send_traceback
+
 
 use_tts = False  # Text-to-speech for the reminder messages.
-
-
-async def send_traceback(ctx, e):
-    etype = type(e)
-    trace = e.__traceback__
-    lines = traceback.format_exception(etype, e, trace)
-    traceback_text = ''.join(lines)
-    await ctx.send(f'```\n{traceback_text}\n```')
 
 
 class Reminder:
@@ -73,6 +68,8 @@ async def continue_reminder(bot, reminder):
     
     channel = bot.get_channel(reminder.channel)
     try:
+        if channel is None:
+            raise ValueError(f'channel is None, and reminder.channel is {reminder.channel}')  # TODO: this exception is being raised some times when the bot restarts.
         current_time = datetime.datetime.now(datetime.timezone.utc)
         end_time = datetime.datetime.fromisoformat(reminder.end_time)
         remaining_time = end_time - current_time

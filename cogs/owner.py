@@ -1,3 +1,4 @@
+# External imports
 from replit import db
 import discord
 from discord.ext import commands
@@ -5,6 +6,8 @@ import textwrap
 import asyncio
 from discord.ext.commands.cooldowns import BucketType
 
+# Internal imports
+from common import remove_backticks
 
 class Owner(commands.Cog):
     def __init__(self, bot):
@@ -138,7 +141,7 @@ class Owner(commands.Cog):
         Has direct access to bot.
         '''
         # This command must never be available to anyone besides # the bot owner. For more info, see https://realpython.com/python-eval-function/#minimizing-the-security-issues-of-eval
-        statement = self.remove_backticks(statement)
+        statement = remove_backticks(statement)
         env = {
             'ctx': ctx,
             'bot': self.bot,
@@ -150,18 +153,6 @@ class Owner(commands.Cog):
             exec(code, env)
         except Exception as e:
             await ctx.send(f'Python error: {e}')
-
-
-    def remove_backticks(self, statement: str):
-        '''Removes backticks around a code block, if they are there'''
-        if statement.startswith('```'):
-            statement = statement[3:]
-            if statement.startswith('py\n'):
-                statement = statement[3:]
-            if statement.endswith('```'):
-                statement = statement[:-3]
-
-        return statement
 
 
     @commands.command(name='shut-down', aliases=['close', 'quit', 'exit'], hidden=True)
