@@ -69,9 +69,9 @@ class Other(commands.Cog):
         embed.add_field(name='\u2800owner\u2800', value='\u2800Chris Wheeler\u2800\n\u2800')
         embed.add_field(name='\u2800uptime', value=f'\u2800{await self.uptime(ctx)}\n\u2800')
 
-        embed.add_field(name='stats\u2800', value=f'servers: {len(self.bot.guilds)}\u2800\nusers: {len(self.bot.users)}\u2800\ncommands: {len(self.bot.commands)}\u2800\nreminders: {len(db)}\u2800\n\u2800')
+        embed.add_field(name='stats\u2800', value=f'servers: {len(self.bot.guilds)}\u2800\nusers: {len(self.bot.users)}\u2800\ncommands: {len(self.bot.commands)}\u2800\n\u2800')
         embed.add_field(name='\u2800links\u2800', value='\u2800[bot invite](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328)\u2800\n\u2800[repository](https://replit.com/@wheelercj/simple-Discord-bot)\u2800\n\u2800')
-        embed.add_field(name='\u2800made with', value=f'\u2800\u2022 Python v{platform.python_version()}\n\u2800\u2022 [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\n\u2800\u2022 the [forismatic](https://forismatic.com/en/) API\n\u2800\u2022 the [mathjs](https://mathjs.org/) API\n\u2800')
+        embed.add_field(name='\u2800made with', value=f'\u2800Python v{platform.python_version()}\n\u2800and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\n\u2800')
 
         await ctx.send(embed=embed)
 
@@ -84,9 +84,24 @@ class Other(commands.Cog):
         return f'{days}d, {hours}h, {minutes}m, {seconds}s'
 
 
+    @commands.command(name='dev-about', aliases=['implementation'])
+    @commands.cooldown(1, 15, BucketType.user)
+    async def dev_about(self, ctx):
+        '''Shows implementation info about this bot'''
+        embed = discord.Embed(title='Parhelion#3922',
+            description='Here\'s my implementation info.\nUse the `about` command for general info.')
+
+        embed.add_field(name='stats\u2800', value=f'reminders: {len(db)}\u2800\n\u2800')
+        embed.add_field(name='\u2800links\u2800', value='\u2800[repository](https://replit.com/@wheelercj/simple-Discord-bot)\u2800\n\u2800')
+        embed.add_field(name='\u2800made with', value=f'\u2800\u2022 Python v{platform.python_version()}\n\u2800\u2022 [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\n\u2800\u2022 the [forismatic](https://forismatic.com/en/) API\n\u2800\u2022 the [mathjs](https://mathjs.org/) API\n\u2800')
+
+        await ctx.send(embed=embed)
+
+
     @commands.command(name='server-info', aliases=['serverinfo'])
     @commands.cooldown(1, 15, BucketType.user)
-    async def serverinfo(self, ctx):
+    async def server_info(self, ctx):
+        '''Shows info about the current server'''
         embed = discord.Embed()
         embed.add_field(name='server info\n\u2800',
             value=f'**name:** {ctx.guild.name}\n'
