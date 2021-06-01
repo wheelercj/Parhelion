@@ -116,7 +116,7 @@ class Other(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.command(name='inspect', aliases=['source', 'src'])
+    @commands.command(name='inspect', aliases=['source', 'src', 'getsource'])
     @commands.cooldown(1, 15, BucketType.user)
     async def _inspect(self, ctx, *, command: str):
         '''Shows the source code of a command'''
