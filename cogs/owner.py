@@ -113,7 +113,7 @@ class Owner(commands.Cog):
         await ctx.send(message)
 
 
-    @commands.command(name='eval', hidden=True)
+    @commands.command(name='eval', aliases=['evaluate'], hidden=True)
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def _eval(self, ctx, *, expression: str):
@@ -131,7 +131,7 @@ class Owner(commands.Cog):
             await ctx.send(f'Python error: {e}')
 
 
-    @commands.command(name='exec', aliases=['py', 'python'], hidden=True)
+    @commands.command(name='exec', aliases=['py', 'python', 'execute'], hidden=True)
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def _exec(self, ctx, *, statement: str):
