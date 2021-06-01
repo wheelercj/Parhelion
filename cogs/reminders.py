@@ -142,15 +142,14 @@ class Reminders(commands.Cog):
     async def remind(self, ctx, chosen_time: str, *, message: str):
         '''Sends you a reminder, e.g. ;remind 1h30m iron socks
         
-        The maximum time allowed is 24.85 days.
-        See https://bugs.python.org/issue20493 for details.
+        The maximum time allowed is 24.85 days (see https://bugs.python.org/issue20493 for details).
         '''
         # Remove quotes, commas, and curly braces for security.
         message = message.replace('"', '').replace('\'', '').replace(',', '').replace('{', '').replace('}', '')
         try:
             seconds = self.parse_time(chosen_time)
             if seconds > 2147483:
-                raise ValueError('The maximum time possible is 24.85 days.')
+                raise ValueError('The maximum time possible is 24.85d')
             await ctx.send(f'Reminder set! In {chosen_time}, I will remind you: {message}')
             reminder = await save_reminder(ctx, chosen_time, seconds, message)
 
@@ -192,7 +191,7 @@ class Reminders(commands.Cog):
     @commands.command(name='del-r', aliases=['del-reminder', 'delete-reminder'])
     @commands.cooldown(1, 15, BucketType.user)
     async def del_r(self, ctx, index: int):
-        '''Deletes a reminder by its index shown with list-r
+        '''Deletes a reminder by its index
         
         Currently, this only deletes a reminder from the database,
         not from the program. A deleted reminder will then only be
@@ -217,8 +216,9 @@ class Reminders(commands.Cog):
     @del_r.error
     async def del_r_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            if error.param.name == 'index':
-                await ctx.send('Error: missing argument. Use the reminder\'s index number shown in the list-r command.')
+            await ctx.send('Error: missing argument. Use the reminder\'s index number shown in the list-r command.')
+        elif isinstance(error, commands.BadArgument):
+            await ctx.send('Error: use the reminder\'s index number shown in the list-r command.')
         else:
             await ctx.send(error)
 
