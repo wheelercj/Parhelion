@@ -27,9 +27,11 @@ logger.addHandler(handler)
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix=(';', 'par ', 'Par '), intents=intents)
+
+# Custom bot variables.
 bot.launch_time = datetime.now(timezone.utc)
 bot.previous_command_ctxs = []
-my_user_id = int(os.environ['MY_USER_ID'])
+bot.command_use_count = 0
 
 
 extensions = [
@@ -85,14 +87,16 @@ async def answer_mention(message: str, bot):
 
 @bot.event
 async def on_command(ctx):
+    bot.command_use_count += 1
+
     log_message = f'author: {ctx.author.display_name}; guild: {ctx.guild}; command: {ctx.message.content}'
     logger.log(COMMANDS, log_message)
 
-    # Save commands for easy reuse.
-    if ctx.author.id == my_user_id:
+    # Save owner's commands for easy reuse.
+    if ctx.author.id == int(os.environ['MY_USER_ID']):
         if ctx.command.name != 'r':
             bot.previous_command_ctxs.append(ctx)
-            if len(bot.previous_command_ctxs) > 10:
+            if len(bot.previous_command_ctxs) > 5:
                 bot.previous_command_ctxs = bot.previous_command_ctxs[1:]
 
 

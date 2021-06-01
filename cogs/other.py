@@ -72,7 +72,7 @@ class Other(commands.Cog):
         embed.add_field(name='stats\u2800', value=f'servers: {len(self.bot.guilds)}\u2800\nusers: {len(self.bot.users)}\u2800\ncommands: {len(self.bot.commands)}\u2800\nreminders: {len(db)}\u2800')
         embed.add_field(name='\u2800links\u2800', value='\u2800[bot invite](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328)\u2800\n\u2800[repository](https://replit.com/@wheelercj/simple-Discord-bot)\u2800')
         embed.add_field(name='\u2800made with', value=f'\u2800\u2022 Python v{platform.python_version()}\n\u2800\u2022 [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\n\u2800\u2022 the [forismatic](https://forismatic.com/en/) API\n\u2800\u2022 the [mathjs](https://mathjs.org/) API')
-        
+
         await ctx.send(embed=embed)
 
 
