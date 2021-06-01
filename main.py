@@ -31,7 +31,6 @@ bot = commands.Bot(command_prefix=(';', 'par ', 'Par '), intents=intents)
 # Custom bot variables.
 bot.launch_time = datetime.now(timezone.utc)
 bot.previous_command_ctxs = []
-bot.command_use_count = 0
 
 
 extensions = [
@@ -87,8 +86,6 @@ async def answer_mention(message: str, bot):
 
 @bot.event
 async def on_command(ctx):
-    bot.command_use_count += 1
-
     log_message = f'author: {ctx.author.display_name}; guild: {ctx.guild}; command: {ctx.message.content}'
     logger.log(COMMANDS, log_message)
 
