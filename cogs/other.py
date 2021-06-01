@@ -84,6 +84,23 @@ class Other(commands.Cog):
         return f'{days}d, {hours}h, {minutes}m, {seconds}s'
 
 
+    @commands.command(name='server-info', aliases=['serverinfo'])
+    @commands.cooldown(1, 15, BucketType.user)
+    async def serverinfo(self, ctx):
+        embed = discord.Embed()
+        embed.add_field(name='server info\n\u2800',
+            value=f'**name:** {ctx.guild.name}\n'
+                + f'**ID:** {ctx.guild.id}\n'
+                + f'**description:** {ctx.guild.description}\n'
+                + f'**owner:** {ctx.guild.owner}\n'
+                + f'**roles:** {len(ctx.guild.roles)}\n'
+                + f'**members:** {len(ctx.guild.members)}'
+        )
+        embed.set_thumbnail(url=ctx.guild.icon_url)
+
+        await ctx.send(embed=embed)
+
+
     @commands.command(name='inspect', aliases=['source', 'src'])
     @commands.cooldown(1, 15, BucketType.user)
     async def _inspect(self, ctx, *, command: str):
