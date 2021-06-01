@@ -122,8 +122,9 @@ class Owner(commands.Cog):
         Returns result to Discord.
         Has access to bot via self.
         '''
-        # This command must never be made available to anyone besides
-        # this bot's developers.
+        # This command must never be made available to anyone
+        # besides this bot's developers because Python's eval
+        # function is not safe.
         try:
             await ctx.send(eval(expression))
         except Exception as e:
@@ -139,8 +140,9 @@ class Owner(commands.Cog):
         Requires use of `await ctx.send` for output.
         Has direct access to bot.
         '''
-        # This command must never be made available to anyone besides
-        # this bot's developers.
+        # This command must never be made available to anyone
+        # besides this bot's developers because Python's exec
+        # function is not safe.
         statement = remove_backticks(statement)
         env = {
             'ctx': ctx,
