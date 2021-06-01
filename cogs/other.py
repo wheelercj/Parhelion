@@ -143,7 +143,7 @@ class Other(commands.Cog):
         try:
             expression = remove_backticks(expression)
             if '**' in expression:
-                raise ValueError('This command uses ^ instead of ** for exponents.')
+                raise ValueError('This command uses ^ rather than ** for exponents.')
             raw_expressions = expression.split('\n')
             expressions = json.dumps(raw_expressions)
             expressions_json = '{\n"expr": ' + expressions + '\n}'
