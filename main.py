@@ -9,7 +9,7 @@ import traceback
 from datetime import datetime, timezone
 
 # Internal imports
-from common import dev_mail
+from common import dev_mail, get_prefixes_str, BOT_MENTION
 from keep_alive import keep_alive
 from cogs.reminders import continue_reminder
 
@@ -26,7 +26,7 @@ logger.addHandler(handler)
 
 intents = discord.Intents.default()
 intents.members = True
-bot = commands.Bot(command_prefix=(';', 'par ', 'Par '), intents=intents)
+bot = commands.Bot(command_prefix=(';', 'par ', 'Par ', BOT_MENTION), intents=intents)
 
 # Custom bot variables.
 bot.launch_time = datetime.now(timezone.utc)
@@ -72,16 +72,26 @@ async def on_message(message: str):
 
 
 async def answer_mention(message: str, bot):
-    '''Respond when mentioned'''
-    # For some reason, bot.user.mention is always missing the
-    # exclamation mark that's in the unrendered version of mentions.
-    mention = bot.user.mention[:2] + '!' + bot.user.mention[2:]
-    if mention in message.content:
+    '''If mentioned, respond and show command prefixes'''
+    if BOT_MENTION[:-1:] == message.content:
+        # Get the message author's name.
         nickname = message.author.nick
         if nickname is not None:
-            await message.channel.send(f'Hello {nickname.split()[0]}!')
+            name = nickname.split()[0]
         else:
-            await message.channel.send(f'Hello {message.author.name.split()[0]}!')
+            name = message.author.name.split()[0]
+            
+        # Get the command prefixes.
+        prefixes_str = await get_prefixes_str(bot)
+        if len(bot.command_prefix) > 1:
+            prefixes_message = 'prefixes are ' + prefixes_str
+        elif len(bot.command_prefix) == 1:
+            prefixes_message = 'prefix is ' + prefixes_str
+        else:
+            bot.command_prefix = (BOT_MENTION + ' ')
+            prefixes_message = f'prefix is `@Parhelion `'
+        
+        await message.channel.send(f'Hello {name}! My command {prefixes_message}')
 
 
 @bot.event

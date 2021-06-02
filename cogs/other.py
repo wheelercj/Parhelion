@@ -10,7 +10,7 @@ from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
 # Internal imports
-from common import remove_backticks, send_traceback
+from common import remove_backticks, send_traceback, get_prefixes_str
 
 
 class Other(commands.Cog):
@@ -63,7 +63,7 @@ class Other(commands.Cog):
     async def about(self, ctx):
         '''Shows general info about this bot'''
         embed = discord.Embed(title='Parhelion#3922')
-        prefixes = ', '.join((f'`{x}`' for x in self.bot.command_prefix))
+        prefixes = await get_prefixes_str(self.bot)
         
         embed.add_field(name='prefixes\u2800', value=prefixes + '\u2800\n\u2800')
         embed.add_field(name='\u2800owner\u2800', value='\u2800Chris Wheeler\u2800\n\u2800')

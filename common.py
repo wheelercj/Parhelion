@@ -3,6 +3,10 @@ import traceback
 import discord
 
 
+BOT_ID = '836071320328077332'
+BOT_MENTION = f'<@!{BOT_ID}> '
+
+
 async def send_traceback(ctx, e):
     etype = type(e)
     trace = e.__traceback__
@@ -38,3 +42,13 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
         await user.send(embed=embed)
     else:
         await user.send(message)
+
+
+async def get_prefixes_str(bot) -> str:
+    raw_prefixes = list(bot.command_prefix)
+    for i, prefix in enumerate(raw_prefixes):
+        if prefix == BOT_MENTION:
+            raw_prefixes[i] = '`@Parhelion `'
+    prefixes = [f'`{x}`' for x in raw_prefixes]
+    
+    return ', '.join(prefixes)
