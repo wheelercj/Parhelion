@@ -7,6 +7,7 @@ from discord.ext.commands.cooldowns import BucketType
 # Internal imports
 from common import remove_backticks
 
+
 class Owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
