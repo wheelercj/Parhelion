@@ -42,6 +42,16 @@ class Owner(commands.Cog):
                     pass
 
 
+    @commands.command(name='list-exts', aliases=['list-ext', 'list-extensions'], hidden=True)
+    @commands.is_owner()
+    @commands.cooldown(1, 15, BucketType.user)
+    async def list_extensions(self, ctx):
+        '''Lists all currently loaded extensions'''
+        message = 'Currently loaded extensions:\n' \
+            + '\n'.join(self.bot.extensions.keys())
+        await ctx.send(message)
+
+
     @commands.command(name='reload', hidden=True)
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
