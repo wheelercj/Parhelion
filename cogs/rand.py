@@ -23,7 +23,7 @@ class Random(commands.Cog):
             await ctx.send(str(random.randint(high, low)))
 
 
-    @commands.command(name='flip-coin', aliases=['flip'])
+    @commands.command(name='flip-coin', aliases=['flip', 'coin-flip'])
     @commands.cooldown(1, 15, BucketType.user)
     async def flip_coin(self, ctx):
         '''Flips a coin'''
@@ -48,22 +48,6 @@ class Random(commands.Cog):
         quote, author = json_text['quoteText'], json_text['quoteAuthor']
         embed = discord.Embed(description=f'"{quote}"\n — {author}')
         await ctx.send(embed=embed)
-
-
-    # Source of the roll and choose commands: https://github.com/Rapptz/discord.py/blob/8517f1e085df27acd5191d0d0cb2363242be0c29/examples/basic_bot.py#L30
-    # License: https://github.com/Rapptz/discord.py/blob/v1.7.1/LICENSE
-    @commands.command()
-    @commands.cooldown(1, 15, BucketType.user)
-    async def roll(self, ctx, dice: str):
-        '''Rolls dice in NdN format'''
-        try:
-            rolls, limit = map(int, dice.split('d'))
-        except Exception:
-            await ctx.send('Error: format has to be in NdN.')
-            return
-
-        result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
-        await ctx.send(result)
 
 
     @commands.command()
