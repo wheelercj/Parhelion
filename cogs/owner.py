@@ -57,13 +57,17 @@ class Owner(commands.Cog):
     @commands.cooldown(1, 15, BucketType.user)
     async def reload_extension(self, ctx, *, extension: str):
         '''Reloads an extension, e.g: ;reload cogs.music'''
-        try:
-            self.bot.unload_extension(extension)
-            self.bot.load_extension(extension)
-        except Exception as e:
-            await ctx.send(f'Error: {type(e).__name__}: {e}')
-        else:
-            await ctx.send('Extension successfully reloaded.')
+        extensions = extension.split()
+        message = ''
+        for ext in extensions:
+            try:
+                self.bot.unload_extension(ext)
+                self.bot.load_extension(ext)
+                message += f'\nExtension {ext} successfully reloaded.'
+            except Exception as e:
+                message += f'\nError: {type(e).__name__}: {e}'
+
+        await ctx.send(message)
 
 
     @reload_extension.error
@@ -83,12 +87,16 @@ class Owner(commands.Cog):
     @commands.cooldown(1, 15, BucketType.user)
     async def load_extension(self, ctx, *, extension: str):
         '''Loads an extension, e.g. ;load cogs.music'''
-        try:
-            self.bot.load_extension(extension)
-        except Exception as e:
-            await ctx.send(f'Error: {type(e).__name__}: {e}')
-        else:
-            await ctx.send('Extension successfully loaded.')
+        extensions = extension.split()
+        message = ''
+        for ext in extensions:
+            try:
+                self.bot.load_extension(ext)
+                message += f'\nExtension {ext} successfully loaded.'
+            except Exception as e:
+                message += f'\nError: {type(e).__name__}: {e}'
+
+        await ctx.send(message)
 
 
     @commands.command(name='unload', hidden=True)
@@ -96,12 +104,16 @@ class Owner(commands.Cog):
     @commands.cooldown(1, 15, BucketType.user)
     async def unload_extension(self, ctx, *, extension: str):
         '''Unloads an extension, e.g. ;unload cogs.music'''
-        try:
-            self.bot.unload_extension(extension)
-        except Exception as e:
-            await ctx.send(f'Error: {type(e).__name__}: {e}')
-        else:
-            await ctx.send('Extension successfully unloaded.')
+        extensions = extension.split()
+        message = ''
+        for ext in extensions:
+            try:
+                self.bot.unload_extension(ext)
+                message += f'\nExtension {ext} successfully unloaded.'
+            except Exception as e:
+                message += f'\nError: {type(e).__name__}: {e}'
+
+        await ctx.send(message)
 
 
     @commands.command(name='reload-all', hidden=True)
@@ -111,14 +123,13 @@ class Owner(commands.Cog):
         '''Reloads all currently loaded extensions'''
         message = ''
         extensions = list(self.bot.extensions.keys())
-        for extension in extensions.copy():
+        for ext in extensions.copy():
             try:
-                self.bot.unload_extension(extension)
-                self.bot.load_extension(extension)
+                self.bot.unload_extension(ext)
+                self.bot.load_extension(ext)
+                message += f'\nExtension {ext} successfully reloaded.'
             except Exception as e:
                 message += f'\nError: {type(e).__name__}: {e}'
-            else:
-                message += f'\nExtension {extension} successfully reloaded.'
             
         await ctx.send(message)
 
