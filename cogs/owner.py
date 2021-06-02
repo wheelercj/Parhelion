@@ -152,7 +152,9 @@ class Owner(commands.Cog):
 
         try:
             code = f'async def func():\n    try:\n{textwrap.indent(statement, "        ")}\n    except Exception as e:\n        await ctx.send("Python error: %s" % e)\nasyncio.get_running_loop().create_task(func())'
+            
             exec(code, env)
+            await ctx.message.add_reaction('✅')
         except Exception as e:
             await ctx.send(f'Python error: {e}')
 
