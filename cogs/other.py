@@ -175,13 +175,6 @@ class Other(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.cooldown(1, 15, BucketType.user)
-    async def reverse(self, ctx, *, message: str):
-        '''Reverses a message'''
-        await ctx.send(message[::-1])
-
-
-    @commands.command(hidden=True)
-    @commands.cooldown(1, 15, BucketType.user)
     async def rot13(self, ctx, *, message: str):
         '''Rotates each letter 13 letters through the alphabet'''
         message = message.lower()
