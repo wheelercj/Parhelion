@@ -11,9 +11,6 @@ from discord.ext.commands.cooldowns import BucketType
 from common import send_traceback
 
 
-use_tts = False  # Text-to-speech for the reminder messages.
-
-
 class Reminder:
     def __init__(self, chosen_time: str, end_time: str, message: str, author_id: int, guild_id: int, channel_id: int):
         self.chosen_time = chosen_time
@@ -107,9 +104,9 @@ async def continue_reminder(bot, reminder_str: str):
 
         if remaining_seconds > 0:
             await asyncio.sleep(remaining_seconds)
-            await channel.send(f'<@!{reminder.author_id}>, here is your {reminder.chosen_time} reminder: {reminder.message}', tts=use_tts)
+            await channel.send(f'<@!{reminder.author_id}>, here is your {reminder.chosen_time} reminder: {reminder.message}')
         else:
-            await channel.send(f'<@!{reminder.author_id}>, an error delayed your reminder: {reminder.message}', tts=use_tts)
+            await channel.send(f'<@!{reminder.author_id}>, an error delayed your reminder: {reminder.message}')
             await channel.send(f'The reminder had been set for {end_time.year}-{end_time.month}-{end_time.day} at {end_time.hour}:{end_time.minute} UTC')
 
         await delete_reminder(reminder)
@@ -154,7 +151,7 @@ class Reminders(commands.Cog):
             reminder = await save_reminder(ctx, chosen_time, seconds, message)
 
             await asyncio.sleep(seconds)
-            await ctx.send(f'{ctx.author.mention}, here is your {chosen_time} reminder: {message}', tts=use_tts)
+            await ctx.send(f'{ctx.author.mention}, here is your {chosen_time} reminder: {message}')
             await delete_reminder(reminder)
         except Exception as e:
             await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
