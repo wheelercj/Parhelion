@@ -77,8 +77,6 @@ async def eval_reminder(string: str) -> Reminder:
         log_message = f'deleting reminder {author_id} {end_time}'
         reminders_logger.log(logging.ERROR, log_message)
         raise IndexError(f'Error! Must delete reminder: "{message}"\n   because {e}')
-    except Exception as e:
-        raise e
 
 
 async def save_reminder(ctx, chosen_time: str, seconds: int, message: str) -> Reminder:
