@@ -59,7 +59,7 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
 async def get_display_prefixes(bot) -> list:
     '''Lists the prefixes as they appear in Discord
     
-    Mentions look different in Discord than in code.
+    The prefixes are sorted from shortest to longest.
     '''
     raw_prefixes: list = bot.command_prefix(bot, '')
 
@@ -72,6 +72,8 @@ async def get_display_prefixes(bot) -> list:
         if re.match(rf'{dev_settings.mention_pattern}', prefix) is None:
             display_prefixes.append(prefix)
 
+    display_prefixes = sorted(display_prefixes, key=len)
+
     return display_prefixes
 
 
@@ -80,16 +82,4 @@ async def get_prefixes_str(bot) -> str:
     display_prefixes = await get_display_prefixes(bot)
     prefixes = [f'`{x}`' for x in display_prefixes]
     return ', '.join(prefixes)
-
-
-async def get_shortest_prefix(bot) -> str:
-    '''Returns the shortest command prefix'''
-    display_prefixes = await get_display_prefixes(bot)
-    
-    shortest = display_prefixes[0]
-    for prefix in display_prefixes:
-        if len(prefix) < len(shortest):
-            shortest = prefix
-
-    return shortest
         
