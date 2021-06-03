@@ -57,7 +57,7 @@ class Owner(commands.Cog):
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def reload_extension(self, ctx, *, extension: str):
-        '''Reloads an extension, e.g: ;reload cogs.music'''
+        '''Reloads an extension'''
         extensions = extension.split()
         message = ''
         for ext in extensions:
@@ -87,7 +87,7 @@ class Owner(commands.Cog):
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def load_extension(self, ctx, *, extension: str):
-        '''Loads an extension, e.g. ;load cogs.music'''
+        '''Loads an extension'''
         extensions = extension.split()
         message = ''
         for ext in extensions:
@@ -104,7 +104,7 @@ class Owner(commands.Cog):
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def unload_extension(self, ctx, *, extension: str):
-        '''Unloads an extension, e.g. ;unload cogs.music'''
+        '''Unloads an extension'''
         extensions = extension.split()
         message = ''
         for ext in extensions:

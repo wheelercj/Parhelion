@@ -10,7 +10,7 @@ from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
 # Internal imports
-from common import remove_backticks, send_traceback, get_prefixes_str
+from common import remove_backticks, send_traceback, get_prefixes_str, dev_settings
 
 
 class Other(commands.Cog):
@@ -39,7 +39,7 @@ class Other(commands.Cog):
             message += f'\n  {cmd.name:<{width}} {cmd.short_doc}'
             if len(cmd.checks):
                 message += ' (bot owner only)'
-        message += '\n\n Type ;help command for more info on a command.'
+        message += f'\n\n Type ;help command for more info on a command.'
 
         await ctx.send(f'```{message}```')
 
@@ -62,15 +62,15 @@ class Other(commands.Cog):
     @commands.cooldown(1, 15, BucketType.user)
     async def about(self, ctx):
         '''Shows general info about this bot'''
-        embed = discord.Embed(title='Parhelion#3922')
+        embed = discord.Embed(title=dev_settings.bot_full_name)
         prefixes = await get_prefixes_str(self.bot)
         
         embed.add_field(name='prefixes\u2800', value=prefixes + '\u2800\n\u2800')
-        embed.add_field(name='\u2800owner\u2800', value='\u2800Chris Wheeler\u2800\n\u2800')
+        embed.add_field(name='\u2800owner\u2800', value=f'\u2800{dev_settings.dev_name}\u2800\n\u2800')
         embed.add_field(name='\u2800uptime', value=f'\u2800{await self.uptime(ctx)}\n\u2800')
 
         embed.add_field(name='stats\u2800', value=f'servers: {len(self.bot.guilds)}\u2800\nusers: {len(self.bot.users)}\u2800\ncommands: {len(self.bot.commands)}\u2800\n\u2800')
-        embed.add_field(name='\u2800links\u2800', value='\u2800[bot invite](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328)\u2800\n\u2800[repository](https://replit.com/@wheelercj/simple-Discord-bot)\u2800\n\u2800')
+        embed.add_field(name='\u2800links\u2800', value=f'\u2800[bot invite]({dev_settings.bot_invite_link})\u2800\n\u2800[repository]({dev_settings.bot_repository_link})\u2800\n\u2800')
         embed.add_field(name='\u2800made with', value=f'\u2800Python v{platform.python_version()}\n\u2800and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\n\u2800')
 
         await ctx.send(embed=embed)
@@ -88,11 +88,11 @@ class Other(commands.Cog):
     @commands.cooldown(1, 15, BucketType.user)
     async def dev_about(self, ctx):
         '''Shows implementation info about this bot'''
-        embed = discord.Embed(title='Parhelion#3922',
+        embed = discord.Embed(title=dev_settings.bot_full_name,
             description='Here\'s my implementation info.\nUse the `about` command for general info.')
 
         embed.add_field(name='stats\u2800', value=f'reminders: {len(db)}\u2800\n\u2800')
-        embed.add_field(name='\u2800links\u2800', value='\u2800[repository](https://replit.com/@wheelercj/simple-Discord-bot)\u2800\n\u2800')
+        embed.add_field(name='\u2800links\u2800', value=f'\u2800[repository]({dev_settings.bot_repository_link})\u2800\n\u2800')
         embed.add_field(name='\u2800made with', value=f'\u2800\u2022 Python v{platform.python_version()}\n\u2800\u2022 [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\n\u2800\u2022 the [forismatic](https://forismatic.com/en/) API\n\u2800\u2022 the [mathjs](https://mathjs.org/) API\n\u2800')
 
         await ctx.send(embed=embed)

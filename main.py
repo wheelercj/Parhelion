@@ -9,7 +9,7 @@ import traceback
 from datetime import datetime, timezone
 
 # Internal imports
-from common import dev_mail, get_prefixes_str, BOT_MENTION
+from common import dev_settings, dev_mail, get_display_prefixes, get_prefixes_str
 from keep_alive import keep_alive
 from cogs.reminders import continue_reminder
 
@@ -23,15 +23,18 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
+def get_commands_prefixes(bot, message):
+  prefixes = dev_settings.bot_prefixes
+  return commands.when_mentioned_or(*prefixes)(bot, message)
 
+# Create the bot.
 intents = discord.Intents.default()
 intents.members = True
-bot = commands.Bot(command_prefix=(';', 'par ', 'Par ', BOT_MENTION), intents=intents)
+bot = commands.Bot(command_prefix=get_commands_prefixes, intents=intents)
 
 # Custom bot variables.
 bot.launch_time = datetime.now(timezone.utc)
 bot.previous_command_ctxs = []
-
 
 extensions = [
     'cogs.docs',
@@ -59,7 +62,7 @@ async def on_connect():
 @bot.event
 async def on_ready():
     print('------------------------------------')
-    print(f'Discord v{discord.__version__}')
+    print(f'discord.py v{discord.__version__}')
     print(f'{bot.user.name}#{bot.user.discriminator} ready!')
     print('------------------------------------')
 
@@ -73,7 +76,7 @@ async def on_message(message: str):
 
 async def answer_mention(message: str, bot):
     '''If mentioned, respond and show command prefixes'''
-    if BOT_MENTION[:-1:] == message.content:
+    if dev_settings.bot_mention[:-1:] == message.content:
         # Get the message author's name.
         nickname = message.author.nick
         if nickname is not None:
@@ -82,14 +85,14 @@ async def answer_mention(message: str, bot):
             name = message.author.name.split()[0]
             
         # Get the command prefixes.
+        display_prefixes = await get_display_prefixes(bot)
         prefixes_str = await get_prefixes_str(bot)
-        if len(bot.command_prefix) > 1:
+        if len(display_prefixes) > 1:
             prefixes_message = 'prefixes are ' + prefixes_str
-        elif len(bot.command_prefix) == 1:
+        elif len(display_prefixes) == 1:
             prefixes_message = 'prefix is ' + prefixes_str
         else:
-            bot.command_prefix = (BOT_MENTION + ' ')
-            prefixes_message = f'prefix is `@Parhelion `'
+            prefixes_message = f'prefix is `@{dev_settings.bot_name} `'
         
         await message.channel.send(f'Hello {name}! My command {prefixes_message}')
 
@@ -100,7 +103,7 @@ async def on_command(ctx):
     logger.log(COMMANDS, log_message)
 
     # Save owner's commands for easy reuse.
-    if ctx.author.id == int(os.environ['MY_USER_ID']):
+    if ctx.author.id == dev_settings.dev_discord_id:
         if ctx.command.name != 'r':
             bot.previous_command_ctxs.append(ctx)
             if len(bot.previous_command_ctxs) > 5:
