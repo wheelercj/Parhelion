@@ -145,8 +145,8 @@ class Other(commands.Cog):
     async def math(self, ctx, *, expression: str):
         '''Evaluates a math expression
         
-        Evaluates multiple expressions if they're on separate lines.
-        Uses the mathjs API: https://mathjs.org/
+        Evaluates multiple expressions if they're on separate lines, and supports code blocks.
+        Uses the math.js API: https://mathjs.org/docs/expressions/syntax.html
         '''
         try:
             expression = remove_backticks(expression)
