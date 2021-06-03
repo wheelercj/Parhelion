@@ -59,9 +59,14 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
 async def get_display_prefixes(bot) -> list:
     '''Lists the prefixes as they appear in Discord
     
-    Mention prefixes look different in Discord than in code.
+    Mentions look different in Discord than in code.
     '''
     raw_prefixes: list = bot.command_prefix(bot, '')
+
+    # The unrendered mention pattern looks different here
+    # than when a user types it in Discord, so remove both
+    # unrendered mention prefixes, and add one with the
+    # "correct" appearance.
     display_prefixes = [f'@{dev_settings.bot_name} ']
     for i, prefix in enumerate(raw_prefixes):
         if re.match(rf'{dev_settings.mention_pattern}', prefix) is None:
@@ -71,12 +76,14 @@ async def get_display_prefixes(bot) -> list:
 
 
 async def get_prefixes_str(bot) -> str:
+    '''Returns a string with all prefixes, comma separated'''
     display_prefixes = await get_display_prefixes(bot)
     prefixes = [f'`{x}`' for x in display_prefixes]
     return ', '.join(prefixes)
 
 
 async def get_shortest_prefix(bot) -> str:
+    '''Returns the shortest command prefix'''
     display_prefixes = await get_display_prefixes(bot)
     
     shortest = display_prefixes[0]
