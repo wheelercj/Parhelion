@@ -18,6 +18,14 @@ class Other(commands.Cog):
         self.bot = bot
 
 
+    @commands.command(name='prefixes')
+    @commands.cooldown(1, 15, BucketType.user)
+    async def prefix(self, ctx):
+        '''Lists the bot\'s current prefixes'''
+        prefixes = get_prefixes_str(self.bot)
+        await ctx.send(f'My current prefixes are {prefixes}')
+
+
     @commands.command(hidden=True)
     @commands.cooldown(1, 15, BucketType.user)
     async def hhelp(self, ctx):
