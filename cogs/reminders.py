@@ -151,8 +151,11 @@ class Reminders(commands.Cog):
         
         The maximum time allowed is 24.85 days (see https://bugs.python.org/issue20493 for details).
         '''
-        # Remove quotes, commas, and curly braces for security.
-        message = message.replace('"', '').replace('\'', '').replace(',', '').replace('{', '').replace('}', '')
+        # Remove some chars for security and simplicity.
+        to_remove = ['"', '\'', ',', '\\', '{', '}']
+        for char in to_remove:
+            message.replace(char, '')
+
         try:
             seconds = self.parse_time(chosen_time)
             if seconds > 2147483:
