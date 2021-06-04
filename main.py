@@ -94,9 +94,10 @@ async def answer_mention(message: str, bot):
         elif len(display_prefixes) == 1:
             prefixes_message = 'prefix is ' + prefixes_str
         else:
-            prefixes_message = f'prefix is `@{dev_settings.bot_name} `'
+            display_prefixes = [f'@{dev_settings.bot_name} ']
+            prefixes_message = f'prefix is `{dev_settings.bot_name}`'
         
-        await message.channel.send(f'Hello {name}! My command {prefixes_message}')
+        await message.channel.send(f'Hello {name}! My command {prefixes_message}. Use {display_prefixes[0]}help to get help with commands.')
 
 
 @bot.event
