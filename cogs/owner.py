@@ -153,7 +153,7 @@ class Owner(commands.Cog):
             await ctx.send(f'Python error: {e}')
 
 
-    @commands.command(name='py', aliases=['python', 'exec', 'execute'], hidden=True)
+    @commands.command(name='py', aliases=['python', 'exec', 'exe', 'execute'], hidden=True)
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def _exec(self, ctx, *, statement: str):
