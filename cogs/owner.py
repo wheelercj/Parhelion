@@ -22,7 +22,7 @@ class Owner(commands.Cog):
         await ctx.guild.leave()
 
 
-    @commands.command(name='repeat', aliases=['r', 'repeat-command'], hidden=True)
+    @commands.command(name='repeat', aliases=['r', 'reinvoke'], hidden=True)
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def repeat_command(self, ctx, n : int = 1, skip: int = 0):

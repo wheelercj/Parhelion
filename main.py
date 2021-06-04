@@ -104,9 +104,10 @@ async def on_command(ctx):
     log_message = f'author: {ctx.author.display_name}; guild: {ctx.guild}; command: {ctx.message.content}'
     logger.log(COMMANDS, log_message)
 
-    # Save owner's commands for easy reuse.
+    # Save the owner's commands for easy reuse.
     if ctx.author.id == dev_settings.dev_discord_id:
-        if ctx.command.name != 'r':
+        if 'reinvoke' not in ctx.command.aliases \
+                and 'reinvoke' != ctx.command.name:
             bot.previous_command_ctxs.append(ctx)
             if len(bot.previous_command_ctxs) > 5:
                 bot.previous_command_ctxs = bot.previous_command_ctxs[1:]
