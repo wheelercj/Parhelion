@@ -99,8 +99,10 @@ class Music(commands.Cog):
     @join.error
     async def join_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
-            await ctx.send(f'Channel not found.')
-        
+            await ctx.send(f'Voice channel not found.')
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(f'Missing argument: voice channel name.')
+
 
     # I don't want to allow downloading of audio files to repl.it, so this command can never be used anyways.   
     # @commands.command()
