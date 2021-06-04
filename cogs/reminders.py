@@ -128,8 +128,8 @@ async def continue_reminder(bot, reminder_str: str):
         raise e
 
 
-async def sort_reminder_keys():
-    '''Sorts the reminder keys by end time'''
+async def sorted_reminder_keys() -> list:
+    '''Returns the reminder keys sorted by end time'''
     keys = db.keys()
     reminder_keys = []
     for key in keys:
@@ -142,9 +142,12 @@ async def sort_reminder_keys():
 
 async def continue_reminders(bot):
     '''Restarts all saved reminders, one at a time'''
-    reminder_keys = await sort_reminder_keys()
+    reminder_keys = await sorted_reminder_keys()
     for key in reminder_keys:
         await continue_reminder(bot, db[key])
+        # continue_reminder processes only one reminder at a time,
+        # which is one of the reasons the reminder keys should
+        # be sorted by end time.
 
 
 async def delete_reminder(reminder, log_level: int = None):
