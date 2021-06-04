@@ -1,5 +1,4 @@
 # External imports
-from replit import db
 import os
 import sys
 import discord
@@ -11,7 +10,7 @@ from datetime import datetime, timezone
 # Internal imports
 from common import dev_settings, dev_mail, get_display_prefixes, get_prefixes_str
 from keep_alive import keep_alive
-from cogs.reminders import continue_reminder
+from cogs.reminders import continue_reminders
 
 
 # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
@@ -57,8 +56,7 @@ if __name__ == '__main__':
 async def on_connect():
     print('Loading . . . ')
     await bot.wait_until_ready()
-    for key in db.keys():
-        await continue_reminder(bot, db[key])
+    await continue_reminders(bot)
 
 
 @bot.event

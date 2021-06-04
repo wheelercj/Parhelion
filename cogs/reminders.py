@@ -13,7 +13,7 @@ from common import send_traceback
 
 
 reminders_logger = logging.getLogger('reminders')
-reminders_logger.setLevel(logging.DEBUG)
+reminders_logger.setLevel(logging.ERROR)
 reminders_handler = logging.FileHandler(filename='reminders.log', encoding='utf-8')
 reminders_handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(lineno)s: %(message)s'))
 if not reminders_logger.hasHandlers():
@@ -50,6 +50,7 @@ class Reminder:
 
 
 async def eval_reminder(string: str) -> Reminder:
+    '''Turns a reminder str into a Reminder object'''
     if not string.startswith('Reminder(') \
             or not string.endswith(')'):
         raise ValueError
@@ -113,18 +114,38 @@ async def continue_reminder(bot, reminder_str: str):
         if remaining_seconds > 0:
             await asyncio.sleep(remaining_seconds)
             await channel.send(f'<@!{reminder.author_id}>, here is your {reminder.chosen_time} reminder: {reminder.message}')
+            await delete_reminder(reminder, logging.INFO)
         else:
             await channel.send(f'<@!{reminder.author_id}>, an error delayed your reminder: {reminder.message}')
             await channel.send(f'The reminder had been set for {end_time.year}-{end_time.month}-{end_time.day} at {end_time.hour}:{end_time.minute} UTC')
+            await delete_reminder(reminder, logging.ERROR)
 
-        await delete_reminder(reminder, logging.INFO)
     except Exception as e:
         await channel.send(f'<@!{reminder.author_id}>, your reminder was cancelled because of an error: {e}')
         if await bot.is_owner(reminder.author_id):
             await send_traceback(channel, e)
         await delete_reminder(reminder, logging.ERROR)
         raise e
-            
+
+
+async def sort_reminder_keys():
+    '''Sorts the reminder keys by end time'''
+    keys = db.keys()
+    reminder_keys = []
+    for key in keys:
+        if key.startswith('reminder'):
+            reminder_keys.append(key)
+
+    reminder_keys = sorted(reminder_keys, key=lambda x: x.split()[2])
+    return reminder_keys
+
+
+async def continue_reminders(bot):
+    '''Restarts all saved reminders, one at a time'''
+    reminder_keys = await sort_reminder_keys()
+    for key in reminder_keys:
+        await continue_reminder(bot, db[key])
+
 
 async def delete_reminder(reminder, log_level: int = None):
     '''Removes one reminder from the database'''
