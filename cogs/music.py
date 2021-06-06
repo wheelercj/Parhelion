@@ -127,7 +127,7 @@ class Music(commands.Cog):
     #   await ctx.send('Now playing: {}'.format(player.title))
 
         
-    @commands.command()
+    @commands.command(aliases=['music', 'play'])
     @commands.cooldown(1, 15, BucketType.user)
     async def stream(self, ctx, *, url):
         '''Streams audio from a url'''
