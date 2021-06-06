@@ -13,7 +13,14 @@ class Owner(commands.Cog):
         self.bot = bot
 
 
-    @commands.command(hidden=True)
+    @commands.command(name='shut-down')
+    @commands.is_owner()
+    async def shut_down(self, ctx):
+        '''Shuts down the bot'''
+        await self.bot.close()
+
+
+    @commands.command()
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def leave(self, ctx):
@@ -22,7 +29,7 @@ class Owner(commands.Cog):
         await ctx.guild.leave()
 
 
-    @commands.command(name='repeat', aliases=['r', 'reinvoke'], hidden=True)
+    @commands.command(name='repeat', aliases=['r', 'reinvoke'])
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def repeat_command(self, ctx, n : int = 1, skip: int = 0):
@@ -43,7 +50,7 @@ class Owner(commands.Cog):
                     pass
 
 
-    @commands.command(name='list-exts', aliases=['list-ext', 'list-extensions'], hidden=True)
+    @commands.command(name='list-exts', aliases=['list-ext', 'list-extensions'])
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def list_extensions(self, ctx):
@@ -53,7 +60,7 @@ class Owner(commands.Cog):
         await ctx.send(message)
 
 
-    @commands.command(name='reload', aliases=['reload-ext', 'reload-exts'], hidden=True)
+    @commands.command(name='reload', aliases=['reload-ext', 'reload-exts'])
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def reload_extension(self, ctx, *, extension: str):
@@ -83,7 +90,7 @@ class Owner(commands.Cog):
             await ctx.send(error)
 
 
-    @commands.command(name='load', aliases=['load-ext', 'load-exts'], hidden=True)
+    @commands.command(name='load', aliases=['load-ext', 'load-exts'])
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def load_extension(self, ctx, *, extension: str):
@@ -100,7 +107,7 @@ class Owner(commands.Cog):
         await ctx.send(message)
 
 
-    @commands.command(name='unload', aliases=['unload-ext', 'unload-exts'], hidden=True)
+    @commands.command(name='unload', aliases=['unload-ext', 'unload-exts'])
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def unload_extension(self, ctx, *, extension: str):
@@ -117,7 +124,7 @@ class Owner(commands.Cog):
         await ctx.send(message)
 
 
-    @commands.command(name='reload-all', aliases=['reload-all-exts'], hidden=True)
+    @commands.command(name='reload-all', aliases=['reload-all-exts'])
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def reload_all_extensions(self, ctx):
@@ -135,7 +142,7 @@ class Owner(commands.Cog):
         await ctx.send(message)
 
 
-    @commands.command(name='eval', aliases=['evaluate'], hidden=True)
+    @commands.command(name='eval', aliases=['evaluate'])
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def _eval(self, ctx, *, expression: str):
@@ -153,7 +160,7 @@ class Owner(commands.Cog):
             await ctx.send(f'Python error: {e}')
 
 
-    @commands.command(name='py', aliases=['python', 'exec', 'exe', 'execute'], hidden=True)
+    @commands.command(name='py', aliases=['python', 'exec', 'exe', 'execute'])
     @commands.is_owner()
     @commands.cooldown(1, 15, BucketType.user)
     async def _exec(self, ctx, *, statement: str):
@@ -179,13 +186,6 @@ class Owner(commands.Cog):
             await ctx.message.add_reaction('✅')
         except Exception as e:
             await ctx.send(f'Python error: {e}')
-
-
-    @commands.command(name='shut-down', hidden=True)
-    @commands.is_owner()
-    async def shut_down(self, ctx):
-        '''Shuts down the bot'''
-        await self.bot.close()
 
 
 def setup(bot):

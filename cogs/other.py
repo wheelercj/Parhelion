@@ -26,40 +26,14 @@ class Other(commands.Cog):
         await ctx.send(f'My current prefixes are {prefixes}')
 
 
-    @commands.command(hidden=True)
-    @commands.cooldown(1, 15, BucketType.user)
-    async def hhelp(self, ctx):
-        '''Shows help for all the hidden commands'''
-        hidden_commands = []
-        for cmd in self.bot.commands:
-            if cmd.hidden:
-                hidden_commands.append(cmd)
-
-        # Alphabetize.
-        hidden_commands = sorted(hidden_commands, key=lambda x: x.name)
-
-        # Get column width.
-        hidden_names = [x.name for x in hidden_commands]
-        width = len(max(hidden_names, key=len))
-
-        message = 'Hidden Commands:'
-        for cmd in hidden_commands:
-            message += f'\n  {cmd.name:<{width}} {cmd.short_doc}'
-            if len(cmd.checks):
-                message += ' (bot owner only)'
-        message += f'\n\n Type ;help command for more info on a command.'
-
-        await ctx.send(f'```{message}```')
-
-
-    @commands.command(hidden=True)
+    @commands.command()
     @commands.cooldown(1, 15, BucketType.user)
     async def echo(self, ctx, *, message: str):
         '''Repeats a message'''
         await ctx.send(message)
 
 
-    @commands.command(hidden=True)
+    @commands.command()
     @commands.cooldown(1, 15, BucketType.user)
     async def ping(self, ctx):
         '''Pings the server'''
@@ -184,7 +158,7 @@ class Other(commands.Cog):
                 await send_traceback(ctx, e)
 
 
-    @commands.command(hidden=True)
+    @commands.command()
     @commands.cooldown(1, 15, BucketType.user)
     async def rot13(self, ctx, *, message: str):
         '''Rotates each letter 13 letters through the alphabet'''
