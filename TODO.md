@@ -1,6 +1,5 @@
 # TODO
 
-1. [custom help menu](https://discord.com/channels/336642139381301249/381965515721146390/846537189163925504)
 1. set [global cooldowns](https://discord.com/channels/336642139381301249/559455534965850142/843100881431429141) on individual people ([with walk_commands?](https://discord.com/channels/336642139381301249/381963689470984203/829737892087332904))
 1. update the README images
 1. move to a different host and set up a new [database](https://discord.com/channels/336642139381301249/381963689470984203/829738623426625536)
