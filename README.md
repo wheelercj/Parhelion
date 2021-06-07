@@ -15,7 +15,8 @@ After adding this bot, you can see all the commands by entering `;help`.
 ## how to create your own instance of this bot
 1. Create a Discord bot account ([see this guide](https://www.freecodecamp.org/news/create-a-discord-bot-with-python/)), except don't create an `.env` file because Replit doesn't use those anymore. Instead, follow [this guide](https://docs.replit.com/repls/secrets-environment-variables) to set a Replit environment variable called `DISCORD_BOT_SECRET_TOKEN`.
 2. Optionally set the variable called `dev_discord_id` near the top of `common.py` with your Discord ID if you want to use the `repeat` command, which repeats your previous command.
-3. To keep the bot running continuously without Replit's premium "always on" option, you can use a free UptimeRobot account as explained in the first guide linked above. Replit isn't designed to host bots, so you will want to change hosts soon if you continue using this.
+3. To keep the bot running continuously without Replit's premium "always on" option, you can use a free UptimeRobot account as explained in the first guide linked above.
+4. Replit isn't designed to host bots, so you will want to change hosts soon if you continue using the bot.
 
 ## guides
 Here are some guides to making Discord bots that I found helpful:
