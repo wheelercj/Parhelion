@@ -8,6 +8,7 @@ from common import remove_backticks
 
 
 class Owner(commands.Cog):
+    '''Commands that can only be used by the bot owner.'''
     def __init__(self, bot):
         self.bot = bot
 
