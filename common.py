@@ -82,4 +82,3 @@ async def get_prefixes_str(bot) -> str:
     display_prefixes = await get_display_prefixes(bot)
     prefixes = [f'`{x}`' for x in display_prefixes]
     return ', '.join(prefixes)
-        
