@@ -6,7 +6,6 @@ import logging
 from datetime import datetime, timezone, timedelta
 import discord
 from discord.ext import commands
-from discord.ext.commands.cooldowns import BucketType
 
 # Internal imports
 from common import send_traceback
@@ -169,7 +168,7 @@ class Reminders(commands.Cog):
 
 
     @commands.command(aliases=['reminder', 'remindme'])
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def remind(self, ctx, chosen_time: str, *, message: str):
         '''Sends you a reminder, e.g. ;remind 1h30m iron socks
         
@@ -197,7 +196,7 @@ class Reminders(commands.Cog):
 
 
     @commands.command(name='list-r', aliases=['list-reminders'])
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def list_reminders(self, ctx):
         '''Shows all of your reminders'''
         r_keys = db.prefix(f'reminder {ctx.author.id}')
@@ -225,7 +224,7 @@ class Reminders(commands.Cog):
 
 
     @commands.command(name='del-r', aliases=['del-reminder', 'delete-reminder'])
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def del_r(self, ctx, index: int):
         '''Deletes a reminder by its index
         
