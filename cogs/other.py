@@ -7,7 +7,6 @@ import requests
 import json
 import discord
 from discord.ext import commands
-from discord.ext.commands.cooldowns import BucketType
 
 # Internal imports
 from common import remove_backticks, send_traceback, get_prefixes_str, dev_settings
@@ -19,7 +18,7 @@ class Other(commands.Cog):
 
 
     @commands.command(aliases=['prefix'])
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def prefixes(self, ctx):
         '''Lists the bot\'s current prefixes'''
         prefixes = get_prefixes_str(self.bot)
@@ -27,21 +26,21 @@ class Other(commands.Cog):
 
 
     @commands.command()
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def echo(self, ctx, *, message: str):
         '''Repeats a message'''
         await ctx.send(message)
 
 
     @commands.command()
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def ping(self, ctx):
         '''Pings the server'''
         await ctx.send(f'Pong! It took {round(self.bot.latency, 2)} ms.')
 
 
     @commands.command(aliases=['info', 'stats', 'invite', 'uptime', 'servers', 'users'])
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def about(self, ctx):
         '''Shows general info about this bot'''
         embed = discord.Embed(title=dev_settings.bot_full_name)
@@ -67,7 +66,7 @@ class Other(commands.Cog):
 
 
     @commands.command(name='dev-about', aliases=['implementation'])
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def dev_about(self, ctx):
         '''Shows implementation info about this bot'''
         embed = discord.Embed(title=dev_settings.bot_full_name,
@@ -81,7 +80,7 @@ class Other(commands.Cog):
 
 
     @commands.command(name='server-info', aliases=['serverinfo'])
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def server_info(self, ctx):
         '''Shows info about the current server'''
         embed = discord.Embed()
@@ -99,7 +98,7 @@ class Other(commands.Cog):
 
 
     @commands.command(name='inspect', aliases=['source', 'src', 'getsource'])
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def _inspect(self, ctx, *, command: str = None):
         '''Shows the source code of a command'''
         if command is None:
@@ -118,7 +117,7 @@ class Other(commands.Cog):
 
 
     @commands.command(aliases=['calc', 'solve'])
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def math(self, ctx, *, expression: str):
         '''Evaluates a math expression
         
@@ -159,7 +158,7 @@ class Other(commands.Cog):
 
 
     @commands.command()
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def rot13(self, ctx, *, message: str):
         '''Rotates each letter 13 letters through the alphabet'''
         message = message.lower()

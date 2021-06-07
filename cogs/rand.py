@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from discord.ext.commands.cooldowns import BucketType
 import random
 import requests
 import json
@@ -12,7 +11,7 @@ class Random(commands.Cog):
 
 
     @commands.command(aliases=['random'])
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def rand(self, ctx, low: int = 1, high: int = 6):
         '''Gives a random number (default bounds: 1 and 6)'''
         low = int(low)
@@ -24,7 +23,7 @@ class Random(commands.Cog):
 
 
     @commands.command(name='flip-coin', aliases=['flip', 'coin-flip'])
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def flip_coin(self, ctx):
         '''Flips a coin'''
         n = random.randint(1, 2)
@@ -35,7 +34,7 @@ class Random(commands.Cog):
 
 
     @commands.command()
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def quote(self, ctx):
         '''Shows a random famous quote'''
         args = {
@@ -51,7 +50,7 @@ class Random(commands.Cog):
 
 
     @commands.command()
-    @commands.cooldown(1, 15, BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def choose(self, ctx, choice_count: int, *choices: str):
         '''Chooses randomly between multiple choices'''
         choices_made = []
