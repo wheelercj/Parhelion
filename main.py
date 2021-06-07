@@ -40,27 +40,9 @@ bot = commands.Bot(
 bot.launch_time = datetime.now(timezone.utc)
 bot.previous_command_ctxs = []
 
-# Change the help command.
-# Guide on subclassing HelpCommand: https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96
-class Embedded_Minimal_Help_Command(commands.MinimalHelpCommand):
-    def __init__(self):
-        super().__init__()
-        self.command_attrs = {
-            'name': 'help',
-            'aliases': ['helps', 'command', 'commands'],
-            'cooldown': commands.Cooldown(1, 15, commands.BucketType.user)
-        }
-
-    async def send_pages(self):
-        destination = self.get_destination()
-        for page in self.paginator.pages:
-            embed = discord.Embed(description=page)
-            await destination.send(embed=embed)
-
-bot.help_command = Embedded_Minimal_Help_Command()
-
 extensions = [
     'cogs.docs',
+    'cogs.help',
     'cogs.music',
     'cogs.other',
     'cogs.owner',
