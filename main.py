@@ -23,10 +23,10 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 
 def get_commands_prefixes(bot, message):
-  prefixes = dev_settings.bot_prefixes
-  # TODO: after changing hosts and setting up a new database,
-  # allow server-side prefix customization here.
-  return commands.when_mentioned_or(*prefixes)(bot, message)
+    prefixes = dev_settings.bot_prefixes
+    # TODO: after changing hosts and setting up a new database,
+    # allow server-side prefix customization here.
+    return commands.when_mentioned_or(*prefixes)(bot, message)
 
 # Create the bot.
 intents = discord.Intents.default()
