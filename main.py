@@ -121,7 +121,10 @@ async def on_command_error(ctx, error):
         return
 
     if isinstance(error, commands.CommandOnCooldown):
-        await ctx.send(error)
+        if error.cooldown.per <= 3:
+            await ctx.send('Command on cooldown.')
+        else:
+            await ctx.send(f'Command on cooldown. Please try again in {error.retry_after:.2f} seconds.')
     elif isinstance(error, commands.UserInputError):
         await ctx.send(error)
     elif isinstance(error, commands.CheckFailure):
