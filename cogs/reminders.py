@@ -167,7 +167,7 @@ class Reminders(commands.Cog):
         self.bot = bot
 
 
-    @commands.command(aliases=['reminder', 'remindme'])
+    @commands.command(aliases=['add-r', 'reminder', 'remindme'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def remind(self, ctx, chosen_time: str, *, message: str):
         '''Sends you a reminder, e.g. ;remind 1h30m iron socks
