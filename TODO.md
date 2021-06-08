@@ -1,6 +1,5 @@
 # TODO
 
-1. update the README images
 1. move to a different host and set up a new [database](https://discord.com/channels/336642139381301249/381963689470984203/829738623426625536)
 
 ## other
