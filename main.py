@@ -128,7 +128,7 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.UserInputError):
         await ctx.send(error)
     elif isinstance(error, commands.CheckFailure):
-        await ctx.send('Sorry, that command can only be used by my owner.')
+        await ctx.send('Only the owner can use this command.')
     else:
         print(f'Ignoring exception in command {ctx.command}:', file=sys.stderr)
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
