@@ -79,7 +79,7 @@ class Other(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.command(name='time', aliases=['clock', 'UTC'])
+    @commands.command(name='time', aliases=['clock', 'UTC', 'utc'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def _time(self, ctx):
         '''Shows the current time in UTC'''
