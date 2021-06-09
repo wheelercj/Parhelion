@@ -229,10 +229,12 @@ class Reminders(commands.Cog):
                     reminder = await eval_reminder(db[key])
                     end_time = datetime.fromisoformat(reminder.end_time)
                     remaining = end_time - datetime.now(timezone.utc)
+                    if str(remaining).startswith('-'):
+                        raise ValueError('Negative time remaining.')
 
                     r_list += f'\n\n{i+1}. "{reminder.message}"\nduration: {reminder.chosen_time}\ntime remaining: {str(remaining)}'
-                except SyntaxError as e:
-                    log_message = f'Syntax error. Deleting {db[key]}'
+                except Exception as e:
+                    log_message = f'Deleting {db[key]} because {e}'
                     reminders_logger.log(logging.ERROR, log_message)
                     del db[key]
                     await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
