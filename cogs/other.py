@@ -165,6 +165,36 @@ class Other(commands.Cog):
                 await send_traceback(ctx, e)
 
 
+    # @commands.command()
+    # @commands.cooldown(1, 15, commands.BucketType.user)
+    # async def subscribe(self, ctx, utc_time, *, command: str):
+    #     '''Automatically run a command once a day
+        
+    #     The given time must be in UTC and HH:mm format. You can use the time command to get the current time in UTC. Each user can only have one
+    #     command subscription; creating another will overwrite the first.
+    #     '''
+    #     hour, minute = utc_time.split(':')
+    #     target_time = datetime.time(hour=int(hour), minute=int(minute))
+        
+    #     async def subscription_loop():
+    #         while True:
+    #             now = datetime.now(timezone.utc)
+    #             date = now.date()
+    #             if now.time() > target_time:
+    #                 date = now.date() + datetime.timedelta(days=1)
+    #             target_datetime = datetime.combine(date, target_time)
+    #             await discord.utils.sleep_until(target_datetime)
+    #             # TODO: invoke the command
+        
+    #     # Tasks fail silently without this.
+    #     def error_callback(task):
+    #         if task.exception():
+    #             task.print_stack()
+        
+    #     task = asyncio.create_task(subscription_loop())
+    #     task.add_done_callback(error_callback)
+
+
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def rot13(self, ctx, *, message: str):
