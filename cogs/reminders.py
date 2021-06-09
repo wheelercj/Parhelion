@@ -68,13 +68,16 @@ async def eval_reminder(string: str) -> Reminder:
         reminder = Reminder(chosen_time, end_time, message, author_id, guild_id, channel_id)
 
         if len(args) != 6:
-            await delete_reminder(reminder, logging.ERROR)
+            await delete_reminder(reminder)
+            log_message = f'Missing required arg(s). Deleting {reminder}'
+            reminders_logger.log(logging.ERROR, log_message)
+            
             raise ValueError('Error! Must delete a reminder.')
-
+        
         return reminder
     except IndexError as e:
         del db[f'reminder {author_id} {end_time}']
-        log_message = f'deleting reminder {author_id} {end_time}'
+        log_message = f'Index error. Deleting {author_id} {end_time}'
         reminders_logger.log(logging.ERROR, log_message)
         raise IndexError(f'Error! Must delete reminder: "{message}"\n   because {e}')
 
@@ -126,17 +129,20 @@ async def continue_reminder(bot, reminder_str: str):
         if remaining_seconds > 0:
             await asyncio.sleep(remaining_seconds)
             await destination.send(f'<@!{reminder.author_id}>, here is your {reminder.chosen_time} reminder: {reminder.message}')
-            await delete_reminder(reminder, logging.INFO)
+            await delete_reminder(reminder)
+            reminders_logger.log(logging.INFO, f'deleting {reminder}')
         else:
             await destination.send(f'<@!{reminder.author_id}>, an error delayed your reminder: {reminder.message}')
             await destination.send(f'The reminder had been set for {end_time.year}-{end_time.month}-{end_time.day} at {end_time.hour}:{end_time.minute} UTC')
-            await delete_reminder(reminder, logging.ERROR)
+            await delete_reminder(reminder)
+            reminders_logger.log(logging.ERROR, f'Delayed delivery. Deleting {reminder}')
 
     except Exception as e:
         await destination.send(f'<@!{reminder.author_id}>, your reminder was cancelled because of an error: {e}')
         if await bot.is_owner(reminder.author_id):
             await send_traceback(destination, e)
-        await delete_reminder(reminder, logging.ERROR)
+        await delete_reminder(reminder)
+        reminders_logger.log(logging.ERROR, f'deleting {reminder} because {e}')
         raise e
 
 
@@ -162,13 +168,8 @@ async def continue_reminders(bot):
         # be sorted by end time.
 
 
-async def delete_reminder(reminder, log_level: int = None):
+async def delete_reminder(reminder):
     '''Removes one reminder from the database'''
-    if log_level is not None:
-        log_message = f'deleting {reminder}'
-        reminders_logger.log(log_level, log_message)
-        # If a reminder is delivered late, log_level will be ERROR.
-        # There are other possible causes of an ERROR log_level.
     try:
         del db[f'reminder {reminder.author_id} {reminder.end_time}']
     except KeyError:
@@ -202,8 +203,10 @@ class Reminders(commands.Cog):
             reminder = await save_reminder(ctx, chosen_time, seconds, message)
 
             await asyncio.sleep(seconds)
+
             await ctx.send(f'{ctx.author.mention}, here is your {chosen_time} reminder: {message}')
-            await delete_reminder(reminder, logging.INFO)
+            await delete_reminder(reminder)
+            reminders_logger.log(logging.INFO, f'deleting {reminder}')        
         except Exception as e:
             await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
             if await ctx.bot.is_owner(ctx.author):
@@ -229,7 +232,7 @@ class Reminders(commands.Cog):
 
                     r_list += f'\n\n{i+1}. "{reminder.message}"\nduration: {reminder.chosen_time}\ntime remaining: {str(remaining)}'
                 except SyntaxError as e:
-                    log_message = f'deleting reminder {db[key]}'
+                    log_message = f'Syntax error. Deleting {db[key]}'
                     reminders_logger.log(logging.ERROR, log_message)
                     del db[key]
                     await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
@@ -257,7 +260,7 @@ class Reminders(commands.Cog):
                 key = r_keys[index-1]
                 reminder = await eval_reminder(db[key])
                 await ctx.send(f'Reminder deleted: "{reminder.message}"')
-                log_message = f'deleting reminder {db[key]}'
+                log_message = f'deleting {db[key]}'
                 reminders_logger.log(logging.INFO, log_message)
                 del db[key]
             except KeyError:
