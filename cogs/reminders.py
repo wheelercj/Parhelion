@@ -85,8 +85,13 @@ async def save_reminder(ctx, chosen_time: str, seconds: int, message: str) -> Re
     end_time = start_time + timedelta(0, seconds)
     end_time = end_time.isoformat()
     author_id = ctx.author.id
-    guild_id = ctx.guild.id
-    channel_id = ctx.channel.id
+    try:
+        guild_id = ctx.guild.id
+        channel_id = ctx.channel.id
+    except AttributeError:
+        # The reminder was DMed.
+        guild_id = 0
+        channel_id = 0
 
     reminder = Reminder(chosen_time, end_time, message, author_id, guild_id, channel_id)
 
@@ -98,12 +103,20 @@ async def save_reminder(ctx, chosen_time: str, seconds: int, message: str) -> Re
 async def continue_reminder(bot, reminder_str: str):
     '''Continues a reminder that had been stopped by a server restart'''
     reminder = await eval_reminder(reminder_str)
-    guild = bot.get_guild(reminder.guild_id)
+    if reminder.guild_id:
+        guild = bot.get_guild(reminder.guild_id)
+    else:
+        # The reminder was DMed.
+        guild = False
 
     try:
-        channel = guild.get_channel(reminder.channel_id)
-        if channel is None:
-            raise ValueError('Channel not found. The reminder must be deleted.')
+        if guild:
+            destination = guild.get_channel(reminder.channel_id)
+            if destination is None:
+                raise ValueError('Channel not found. The reminder must be deleted.')
+        else:
+            # The reminder was DMed.
+            destination = await bot.fetch_user(reminder.author_id)
 
         current_time = datetime.now(timezone.utc)
         end_time = datetime.fromisoformat(reminder.end_time)
@@ -112,17 +125,17 @@ async def continue_reminder(bot, reminder_str: str):
 
         if remaining_seconds > 0:
             await asyncio.sleep(remaining_seconds)
-            await channel.send(f'<@!{reminder.author_id}>, here is your {reminder.chosen_time} reminder: {reminder.message}')
+            await destination.send(f'<@!{reminder.author_id}>, here is your {reminder.chosen_time} reminder: {reminder.message}')
             await delete_reminder(reminder, logging.INFO)
         else:
-            await channel.send(f'<@!{reminder.author_id}>, an error delayed your reminder: {reminder.message}')
-            await channel.send(f'The reminder had been set for {end_time.year}-{end_time.month}-{end_time.day} at {end_time.hour}:{end_time.minute} UTC')
+            await destination.send(f'<@!{reminder.author_id}>, an error delayed your reminder: {reminder.message}')
+            await destination.send(f'The reminder had been set for {end_time.year}-{end_time.month}-{end_time.day} at {end_time.hour}:{end_time.minute} UTC')
             await delete_reminder(reminder, logging.ERROR)
 
     except Exception as e:
-        await channel.send(f'<@!{reminder.author_id}>, your reminder was cancelled because of an error: {e}')
+        await destination.send(f'<@!{reminder.author_id}>, your reminder was cancelled because of an error: {e}')
         if await bot.is_owner(reminder.author_id):
-            await send_traceback(channel, e)
+            await send_traceback(destination, e)
         await delete_reminder(reminder, logging.ERROR)
         raise e
 
@@ -154,6 +167,8 @@ async def delete_reminder(reminder, log_level: int = None):
     if log_level is not None:
         log_message = f'deleting {reminder}'
         reminders_logger.log(log_level, log_message)
+        # If a reminder is delivered late, log_level will be ERROR.
+        # There are other possible causes of an ERROR log_level.
     try:
         del db[f'reminder {reminder.author_id} {reminder.end_time}']
     except KeyError:
