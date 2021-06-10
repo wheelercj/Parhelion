@@ -141,15 +141,29 @@ async def on_guild_join(guild):
     await dev_mail(bot, message, use_embed=False)
 
 
-# # Set a global cooldown.
-# cooldown = commands.CooldownMapping.from_cooldown(1, 2, commands.BucketType.user)
-# @bot.check
-# async def check_cooldown(ctx):
-#     bucket = cooldown.get_bucket(ctx.message)
-#     retry_after = bucket.update_rate_limit()
-#     if retry_after:
-#         raise commands.CommandOnCooldown(bucket, retry_after)
-#     return True
+# Set a global cooldown across all commands.
+global_cooldown = commands.CooldownMapping.from_cooldown(1, 2, commands.BucketType.user)
+
+@bot.check
+async def check_cooldown(ctx):
+    # The help command must not have the global cooldown
+    # because it puts all the other commands on cooldown
+    # which hides all of them.
+    if ctx.command == bot.help_command:
+        return True
+
+    # This check is called once for each of the bot's
+    # commands when the help command is used, so
+    # prevent the cooldown for those too.
+    if ctx.command.name not in ctx.message.content:
+        return True
+
+    bucket = global_cooldown.get_bucket(ctx.message)
+    retry_after = bucket.update_rate_limit()
+    if retry_after:
+        raise commands.CommandOnCooldown(bucket, retry_after)
+
+    return True
 
 
 keep_alive()
