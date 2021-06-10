@@ -141,15 +141,15 @@ async def on_guild_join(guild):
     await dev_mail(bot, message, use_embed=False)
 
 
-# Set a global cooldown.
-cooldown = commands.CooldownMapping.from_cooldown(1, 2, commands.BucketType.user)
-@bot.check
-async def check_cooldown(ctx):
-    bucket = cooldown.get_bucket(ctx.message)
-    retry_after = bucket.update_rate_limit()
-    if retry_after:
-        raise commands.CommandOnCooldown(bucket, retry_after)
-    return True
+# # Set a global cooldown.
+# cooldown = commands.CooldownMapping.from_cooldown(1, 2, commands.BucketType.user)
+# @bot.check
+# async def check_cooldown(ctx):
+#     bucket = cooldown.get_bucket(ctx.message)
+#     retry_after = bucket.update_rate_limit()
+#     if retry_after:
+#         raise commands.CommandOnCooldown(bucket, retry_after)
+#     return True
 
 
 keep_alive()

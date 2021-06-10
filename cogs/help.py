@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+# from main import check_cooldown
+
 
 # Guide on subclassing HelpCommand: https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96
 class Embedded_Minimal_Help_Command(commands.MinimalHelpCommand):
@@ -21,10 +23,16 @@ class Embedded_Minimal_Help_Command(commands.MinimalHelpCommand):
 
 class Help(commands.Cog):
     def __init__(self, bot):
-       self.bot = bot
-       help_command = Embedded_Minimal_Help_Command()
-       help_command.cog = self
-       bot.help_command = help_command
+        self.bot = bot
+        self.old_help_command = bot.help_command
+        bot.help_command = Embedded_Minimal_Help_Command()
+        bot.help_command.cog = self
+        # help_command.remove_check(check_cooldown)
+
+    def cog_unload(self):
+        self.bot.help_command = self.old_help_command
+
+
 
 
 def setup(bot):
