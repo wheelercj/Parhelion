@@ -1,8 +1,7 @@
 import discord
 from discord.ext import commands
 import random
-import requests
-import json
+import aiohttp
 
 
 class Random(commands.Cog):
@@ -37,13 +36,14 @@ class Random(commands.Cog):
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def quote(self, ctx):
         '''Shows a random famous quote'''
-        args = {
+        params = {
             'lang':'en',
             'method':'getQuote',
             'format':'json'
         }
-        response = requests.get('http://api.forismatic.com/api/1.0/', args)
-        json_text = json.loads(response.text)
+        async with aiohttp.ClientSession() as cs:
+            async with cs.get('http://api.forismatic.com/api/1.0/', params=params) as response:
+                json_text = await response.json()
         quote, author = json_text['quoteText'], json_text['quoteAuthor']
         embed = discord.Embed(description=f'"{quote}"\n — {author}')
         await ctx.send(embed=embed)
