@@ -17,6 +17,13 @@ class Owner(commands.Cog):
         return await self.bot.is_owner(ctx.author)
 
 
+    @commands.command()
+    @commands.cooldown(1, 15, commands.BucketType.user)
+    async def echo(self, ctx, *, message: str):
+        '''Repeats a message'''
+        await ctx.send(message)
+
+
     @commands.command(name='shut-down')
     async def shut_down(self, ctx):
         '''Shuts down the bot'''

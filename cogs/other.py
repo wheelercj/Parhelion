@@ -27,13 +27,6 @@ class Other(commands.Cog):
 
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def echo(self, ctx, *, message: str):
-        '''Repeats a message'''
-        await ctx.send(message)
-
-
-    @commands.command()
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def ping(self, ctx):
         '''Pings the server'''
         await ctx.send(f'Pong! It took {round(self.bot.latency, 2)} ms.')
