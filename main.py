@@ -116,7 +116,7 @@ async def on_command(ctx):
     logger.log(COMMANDS, log_message)
 
     # Save the owner's commands for easy reuse.
-    if ctx.author.id == dev_settings.dev_discord_id:
+    if ctx.author.id == bot.owner_id:
         if 'reinvoke' not in ctx.command.aliases \
                 and 'reinvoke' != ctx.command.name:
             bot.previous_command_ctxs.append(ctx)

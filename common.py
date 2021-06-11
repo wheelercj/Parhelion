@@ -6,7 +6,6 @@ import discord
 class Dev_Settings:
     def __init__(self):
         self.dev_name = '(chris)#3047'
-        self.dev_discord_id = 467510651062059019
         self.bot_prefixes = [';', 'par ', 'Par ']
         self.bot_name = 'Parhelion'
         self.bot_full_name = f'{self.bot_name}#3922'
