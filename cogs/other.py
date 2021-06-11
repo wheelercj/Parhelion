@@ -57,7 +57,7 @@ class Other(commands.Cog):
         return f'{days}d, {hours}h, {minutes}m, {seconds}s'
 
 
-    @commands.command(name='dev-about', aliases=['implementation'])
+    @commands.command(name='dev-about', aliases=['implementation'], hidden=True)
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def dev_about(self, ctx):
         '''Shows implementation info about this bot'''
