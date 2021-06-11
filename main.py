@@ -3,6 +3,7 @@ import os
 import sys
 import discord
 from discord.ext import commands
+import aiohttp
 import logging
 import traceback
 from datetime import datetime, timezone
@@ -36,10 +37,6 @@ bot = commands.Bot(
     intents=intents
 )
 
-# Custom bot variables.
-bot.launch_time = datetime.now(timezone.utc)
-bot.previous_command_ctxs = []
-
 extensions = [
     'cogs.docs',
     'cogs.help',
@@ -55,10 +52,17 @@ if __name__ == '__main__':
         bot.load_extension(extension)
 
 
+async def get_session():
+    return aiohttp.ClientSession(loop=bot.loop)
+    
+
 @bot.event
 async def on_connect():
     print('Loading . . . ')
     await bot.wait_until_ready()
+    bot.launch_time = datetime.now(timezone.utc)
+    bot.previous_command_ctxs = []
+    bot.session = await get_session()
     await continue_reminders(bot)
 
 

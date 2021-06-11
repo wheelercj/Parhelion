@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import random
-import aiohttp
 
 
 class Random(commands.Cog):
@@ -41,9 +40,8 @@ class Random(commands.Cog):
             'method':'getQuote',
             'format':'json'
         }
-        async with aiohttp.ClientSession() as cs:
-            async with cs.get('http://api.forismatic.com/api/1.0/', params=params) as response:
-                json_text = await response.json()
+        async with self.bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
+            json_text = await response.json()
         quote, author = json_text['quoteText'], json_text['quoteAuthor']
         embed = discord.Embed(description=f'"{quote}"\n — {author}')
         await ctx.send(embed=embed)
@@ -52,7 +50,7 @@ class Random(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def choose(self, ctx, choice_count: int, *choices: str):
-        '''Chooses randomly between multiple choices'''
+        '''Chooses randomly from multiple choices'''
         choices_made = []
         for _ in range(0, choice_count):
             choices_made.append(random.choice(choices))

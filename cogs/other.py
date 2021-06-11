@@ -3,7 +3,6 @@ from replit import db
 import platform
 import inspect
 from datetime import datetime, timezone
-import aiohttp
 import json
 import discord
 from discord.ext import commands
@@ -133,20 +132,19 @@ class Other(commands.Cog):
             expressions = json.dumps(raw_expressions)
             expressions_json = '{\n"expr": ' + expressions + '\n}'
 
-            async with aiohttp.ClientSession() as cs:
-                async with ctx.typing():
-                    async with cs.post('http://api.mathjs.org/v4/',
-                        data = expressions_json,
-                        headers = {'content-type': 'application/json'},
-                        timeout = 10
-                    ) as response:
-                        if not response and response.status != 400:
-                            raise ValueError(f'API request failed with status code {response.status}.')
+            async with ctx.typing():
+                async with self.bot.session.post('http://api.mathjs.org/v4/',
+                    data = expressions_json,
+                    headers = {'content-type': 'application/json'},
+                    timeout = 10
+                ) as response:
+                    if not response and response.status != 400:
+                        raise ValueError(f'API request failed with status code {response.status}.')
 
-                        json_text = await response.json()
+                    json_text = await response.json()
 
-                        if response.status == 400:
-                            raise ValueError(json_text['error'])
+                    if response.status == 400:
+                        raise ValueError(json_text['error'])
 
             result = ''
             for i, expr in enumerate(raw_expressions):
