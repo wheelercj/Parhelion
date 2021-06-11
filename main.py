@@ -63,6 +63,11 @@ async def on_connect():
 
 
 @bot.event
+async def on_resumed():
+    print('Resumed . . . ')
+
+
+@bot.event
 async def on_ready():
     print('------------------------------------')
     print(f'discord.py v{discord.__version__}')
