@@ -6,6 +6,44 @@ from datetime import datetime, timezone, time, timedelta
 import asyncio
 
 
+async def sorted_daily_quote_keys():
+    '''Return the sorted daily quote task keys'''
+    # TODO: abstract this, move it to common.py, and reuse in cogs/reminders.py.
+    q_keys = []
+    for key in db.keys():
+        if key.startswith('daily_quote'):
+            q_keys.append(key)
+
+    return sorted(q_keys, key=lambda x: x.split()[1])
+
+
+async def send_quote(ctx, bot):
+    params = {
+        'lang':'en',
+        'method':'getQuote',
+        'format':'json'
+    }
+    async with bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
+        json_text = await response.json()
+    quote, author = json_text['quoteText'], json_text['quoteAuthor']
+    embed = discord.Embed(description=f'"{quote}"\n — {author}')
+    await ctx.send(embed=embed)
+
+
+async def continue_daily_quote(bot, q_key):
+    author_id = q_key.split()[1]
+    destination = await bot.fetch_user(author_id)
+    await send_quote(destination, bot)
+
+
+async def continue_daily_quotes(bot):
+    '''Continue daily quote tasks that were stopped by a server restart'''
+    q_keys = await sorted_daily_quote_keys()
+    print(f'q_keys: {q_keys}')
+    for q_key in q_keys:
+        await continue_daily_quote(bot, q_key)
+
+
 class Random(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -34,19 +72,6 @@ class Random(commands.Cog):
             await ctx.send('tails')
 
 
-    async def send_quote(self, ctx, bot):
-        params = {
-            'lang':'en',
-            'method':'getQuote',
-            'format':'json'
-        }
-        async with bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
-            json_text = await response.json()
-        quote, author = json_text['quoteText'], json_text['quoteAuthor']
-        embed = discord.Embed(description=f'"{quote}"\n — {author}')
-        await ctx.send(embed=embed)
-
-
     async def send_daily_quote(self, ctx, target_time):
         def error_callback(task):
             # Tasks fail silently without this function.
@@ -59,13 +84,14 @@ class Random(commands.Cog):
 
     async def subscription_loop(self, ctx, bot, target_time):
         while True:
+            # TODO: should this really be a while loop? What if multiple people try to set up a daily quote?
             now = datetime.now(timezone.utc)
             date = now.date()
             if now.time() > target_time:
                 date = now.date() + timedelta(days=1)
             target_datetime = datetime.combine(date, target_time)
             await discord.utils.sleep_until(target_datetime)
-            await self.send_quote(ctx, bot)
+            await send_quote(ctx, bot)
 
 
     @commands.command()
@@ -79,7 +105,7 @@ class Random(commands.Cog):
         by using the command `quote stop`.
         '''
         if not len(daily_utc_time):
-            await self.send_quote(ctx, self.bot)
+            await send_quote(ctx, self.bot)
         else:
             if daily_utc_time == 'stop':
                 del db[f'daily_quote {ctx.author.id}']

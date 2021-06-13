@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from common import dev_settings, dev_mail, get_display_prefixes, get_prefixes_str
 from keep_alive import keep_alive
 from cogs.reminders import continue_reminders
+from cogs.rand import continue_daily_quotes
 
 
 # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
@@ -63,7 +64,8 @@ async def on_connect():
     bot.launch_time = datetime.now(timezone.utc)
     bot.previous_command_ctxs = []
     bot.session = await get_session()
-    await continue_reminders(bot)
+    await continue_reminders(bot)  # TODO: this is blocking.
+    await continue_daily_quotes(bot)
 
 
 @bot.event
