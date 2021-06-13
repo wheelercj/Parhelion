@@ -1,6 +1,9 @@
+from replit import db
 import discord
 from discord.ext import commands
 import random
+from datetime import datetime, timezone, time, timedelta
+import asyncio
 
 
 class Random(commands.Cog):
@@ -31,20 +34,63 @@ class Random(commands.Cog):
             await ctx.send('tails')
 
 
-    @commands.command()
-    @commands.cooldown(1, 15, commands.BucketType.user)
-    async def quote(self, ctx):
-        '''Shows a random famous quote'''
+    async def send_quote(self, ctx, bot):
         params = {
             'lang':'en',
             'method':'getQuote',
             'format':'json'
         }
-        async with self.bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
+        async with bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
             json_text = await response.json()
         quote, author = json_text['quoteText'], json_text['quoteAuthor']
         embed = discord.Embed(description=f'"{quote}"\n — {author}')
         await ctx.send(embed=embed)
+
+
+    async def send_daily_quote(self, ctx, target_time):
+        def error_callback(task):
+            # Tasks fail silently without this function.
+            if task.exception():
+                task.print_stack()
+        
+        task = asyncio.create_task(self.subscription_loop(ctx, self.bot, target_time))
+        task.add_done_callback(error_callback)
+
+
+    async def subscription_loop(self, ctx, bot, target_time):
+        while True:
+            now = datetime.now(timezone.utc)
+            date = now.date()
+            if now.time() > target_time:
+                date = now.date() + timedelta(days=1)
+            target_datetime = datetime.combine(date, target_time)
+            await discord.utils.sleep_until(target_datetime)
+            await self.send_quote(ctx, bot)
+
+
+    @commands.command()
+    @commands.cooldown(1, 15, commands.BucketType.user)
+    async def quote(self, ctx, daily_utc_time: str = ''):
+        '''Shows a random famous quote
+        
+        If a UTC time is provided in HH:mm format, a quote will be
+        sent each day at that time. You can use the time command
+        to see the current UTC time. You can cancel a daily quote
+        by using the command `quote stop`.
+        '''
+        if not len(daily_utc_time):
+            await self.send_quote(ctx, self.bot)
+        else:
+            if daily_utc_time == 'stop':
+                del db[f'daily_quote {ctx.author.id}']
+                return
+
+            hour, minute = daily_utc_time.split(':')
+            target_time = time(hour=int(hour), minute=int(minute))
+            db[f'daily_quote {ctx.author.id}'] = daily_utc_time
+            await ctx.send(f'Time set! At {daily_utc_time} UTC each day, I will send you a random quote.')
+
+            await self.send_daily_quote(ctx, target_time)
 
 
     @commands.command()
