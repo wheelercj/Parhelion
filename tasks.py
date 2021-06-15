@@ -38,8 +38,8 @@ async def continue_tasks(bot):
     sorted by target time.
     '''
     task_keys = await sorted_task_keys()
-    for key in task_keys:
-        await continue_task(bot, db[key])
+    for task_key in task_keys:
+        await continue_task(bot, task_key)
 
 
 async def continue_task(bot, task_key: str):
