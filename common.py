@@ -11,7 +11,7 @@ class Dev_Settings:
         self.bot_full_name = f'{self.bot_name}#3922'
         self.bot_id = 836071320328077332
         self.bot_mention = f'<@!{self.bot_id}> '
-        self.mention_pattern ='<@!?\d{18}>'
+        self.mention_pattern = rf'<@!?\d{{len(str(self.bot_id))}}>'
         self.bot_invite_link = 'https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328'
         self.bot_repository_link = 'https://replit.com/@wheelercj/simple-Discord-bot'
 
