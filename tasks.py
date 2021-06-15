@@ -43,13 +43,9 @@ async def continue_tasks(bot):
 
 
 async def continue_task(bot, task_key: str):
-    prefix = await create_task_key('reminder')
-    if task_key.startswith(prefix):
+    if db[task_key].task_type == 'reminder':
         await continue_reminder(bot, task_key)
-        return
-
-    prefix = await create_task_key('daily_quote')
-    if task_key.startswith(prefix):
+    elif db[task_key].task_type == 'daily_quote':
         await continue_daily_quote(bot, task_key)
 
 
