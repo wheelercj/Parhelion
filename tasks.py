@@ -11,7 +11,11 @@ from task import Reminder, Daily_Quote
 async def save_task(ctx, task_type: str, target_time: str, duration: str, constructor, *args) -> Any:
     '''Saves one task to the database
 
-    *args is the list of the task's constructor arguments that are not inherited from Task, and must be in the same order as in the task's constructor. (The task constructor must take these uninherited arguments before all the inherited arguments.)
+    *args is the list of the task's constructor arguments that
+    are not inherited from Task, and must be in the same order
+    as in the task's constructor. (The task constructor must
+    take these uninherited arguments before all the inherited
+    arguments.)
     '''
     start_time = datetime.now(timezone.utc)
     target_time = target_time.isoformat()
@@ -83,7 +87,11 @@ async def delete_task(**kwargs):
 
 
 async def eval_task(string: str) -> Any:
-    '''Turns a task str into an object'''
+    '''Turns a task str into an object
+    
+    The task constructor must take any uninherited arguments
+    before all the inherited arguments.
+    '''
     i = string.find('(')
     constructor_name = string[:i]
     args = string[i+1:-1].split(', ')
