@@ -9,7 +9,7 @@ from discord.ext import commands
 
 # Internal imports
 from common import send_traceback
-from task import Reminder, get_destination
+from task import Reminder
 
 
 reminders_logger = logging.getLogger('reminders')
@@ -82,7 +82,7 @@ async def continue_reminder(bot, reminder_str: str):
     reminder = await eval_reminder(reminder_str)
 
     try:
-        destination = await get_destination(bot, reminder)
+        destination = await reminder.get_destination(bot)
 
         current_time = datetime.now(timezone.utc)
         target_time = datetime.fromisoformat(reminder.target_time)

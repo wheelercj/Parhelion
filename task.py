@@ -1,14 +1,3 @@
-async def get_destination(bot, task):
-    # TODO: make this a member of Task.
-    if task.is_dm:
-        destination = await bot.fetch_user(task.author_id)
-    else:
-        guild = bot.get_guild(task.guild_id)
-        destination = guild.get_channel(task.channel_id)
-        if destination is None:
-            raise ValueError('Channel not found.')
-
-
 class Task:
     '''A task to be done at a specific time'''
     def __init__(self, task_type: str, author_id: int, start_time: str, target_time: str, duration: str = '', is_dm: bool = True, guild_id: int = 0, channel_id: int = 0):
@@ -25,6 +14,15 @@ class Task:
         self.is_dm = is_dm
         self.guild_id = guild_id
         self.channel_id = channel_id
+
+    async def get_destination(self, bot):
+        if self.is_dm:
+            destination = await bot.fetch_user(self.author_id)
+        else:
+            guild = bot.get_guild(self.guild_id)
+            destination = guild.get_channel(self.channel_id)
+            if destination is None:
+                raise ValueError('Channel not found.')
 
 
 class Reminder(Task):

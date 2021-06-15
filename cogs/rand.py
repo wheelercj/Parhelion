@@ -8,7 +8,7 @@ import logging
 import asyncio
 
 # Internal imports
-from task import Daily_Quote, get_destination
+from task import Daily_Quote
 
 
 daily_quotes_logger = logging.getLogger('daily_quotes')
@@ -98,7 +98,7 @@ async def send_quote(destination, bot):
 
 async def continue_daily_quote(bot, q_key):
     daily_quote = eval_daily_quote(db[q_key])
-    destination = get_destination(bot, daily_quote)
+    destination = daily_quote.get_destination(bot)
     await send_quote(destination, bot)
 
 
