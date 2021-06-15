@@ -51,7 +51,7 @@ async def eval_reminder(string: str) -> Reminder:
         return reminder
 
     except IndexError as e:
-        del db[f'task:reminder {author_id} {target_time}']
+        await delete_task(task_type='reminder', author_id=author_id, target_time=target_time)
         log_message = f'Index error. Deleting {author_id} {target_time}. Error details: {e}'
         reminders_logger.log(logging.ERROR, log_message)
         raise IndexError(log_message)

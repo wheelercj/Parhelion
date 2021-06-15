@@ -35,12 +35,16 @@ async def continue_task(bot, task_key: str):
 async def delete_task(**kwargs):
     '''Deletes task(s) from the database
 
-    kwargs:
-        task: for deleting one task
-        author_id: for deleting all of a specific user's tasks
-        task_type: for deleting all of a specific user's tasks of a certain type
+    kwargs: task, author_id, task_type, target_time.
+    Either use the task kwarg, or the author_id kwarg, or both
+    author_id and task_type, or all but the task kwarg.
 
-    Either use the task kwarg, or the author_id kwarg, or both author_id and task_type.
+    Use of the task kwarg will delete only that task.
+    Use of author_id will delete all tasks by that user.
+    Use of author_id and task_type will delete all tasks of that
+    type by that user.
+    Use of author_id, task_type, and target_time will delete the
+    one task with that key.
     '''
     try:
         if 'task' in kwargs.keys():
@@ -51,9 +55,14 @@ async def delete_task(**kwargs):
             
             if 'task_type' in kwargs.keys():
                 task_type = kwargs['task_type']
-                task_keys = db.prefix(f'task:{task_type} {author_id}')
-                for task_key in task_keys:
-                    del db[task_key]
+
+                if 'target_time' in kwargs.keys():
+                    target_time = kwargs['target_time']
+                    del db[f'task:{task_type} {author_id} {target_time}']
+                else:
+                    task_keys = db.prefix(f'task:{task_type} {author_id}')
+                    for task_key in task_keys:
+                        del db[task_key]
             else:
                 task_keys = []
                 for task_key in db.prefix('task:'):
