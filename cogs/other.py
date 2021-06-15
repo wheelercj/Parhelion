@@ -64,7 +64,7 @@ class Other(commands.Cog):
         embed = discord.Embed(title=dev_settings.bot_full_name,
             description='Here\'s my implementation info.\nUse the `about` command for general info.')
 
-        embed.add_field(name='stats⠀', value=f'reminders: {len(db)}\u2800\n\u2800')
+        embed.add_field(name='stats⠀', value=f'tasks: {len(db)}\u2800\n\u2800')
         embed.add_field(name='\u2800links\u2800', value=f'\u2800[repository]({dev_settings.bot_repository_link})\u2800\n\u2800')
         embed.add_field(name='\u2800made with', value=f'\u2800• Python v{platform.python_version()}\n\u2800• [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\n\u2800• the [forismatic](https://forismatic.com/en/) API\n\u2800• the [math.js](https://mathjs.org/) API\n\u2800')
 

@@ -11,8 +11,7 @@ from datetime import datetime, timezone
 # Internal imports
 from common import dev_settings, dev_mail, get_display_prefixes, get_prefixes_str
 from keep_alive import keep_alive
-from cogs.reminders import continue_reminders
-from cogs.rand import continue_daily_quotes
+from tasks import continue_tasks
 
 
 # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
@@ -51,10 +50,6 @@ extensions = [
 if __name__ == '__main__':
     for extension in extensions:
         bot.load_extension(extension)
-
-
-async def get_session():
-    return aiohttp.ClientSession(loop=bot.loop)
     
 
 @bot.event
@@ -63,9 +58,8 @@ async def on_connect():
     await bot.wait_until_ready()
     bot.launch_time = datetime.now(timezone.utc)
     bot.previous_command_ctxs = []
-    bot.session = await get_session()
-    await continue_reminders(bot)  # TODO: this is blocking.
-    await continue_daily_quotes(bot)
+    bot.session = aiohttp.ClientSession(loop=bot.loop)
+    await continue_tasks(bot)
 
 
 @bot.event
