@@ -24,9 +24,9 @@ async def continue_tasks(bot):
 async def continue_task(bot, task_key: str):
     task = await eval_task(db[task_key])
     if task.task_type == 'reminder':
-        await continue_reminder(bot, task_key)
+        await continue_reminder(bot, task)
     elif task.task_type == 'daily_quote':
-        await continue_daily_quote(bot, task_key)
+        await continue_daily_quote(bot, task)
 
 
 async def sorted_task_keys():
@@ -36,16 +36,13 @@ async def sorted_task_keys():
     return sorted(task_keys, key=lambda x: x.split()[2])
 
 
-async def continue_daily_quote(bot, q_key):
-    daily_quote = await eval_task(db[q_key])
+async def continue_daily_quote(bot, daily_quote):
     destination = await daily_quote.get_destination(bot)
     await send_quote(destination, bot)
 
 
-async def continue_reminder(bot, reminder_str: str):
+async def continue_reminder(bot, reminder):
     '''Continues a reminder that had been stopped by a server restart'''
-    reminder = await eval_task(reminder_str)
-
     try:
         destination = await reminder.get_destination(bot)
 
