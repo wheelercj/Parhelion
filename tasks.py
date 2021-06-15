@@ -8,7 +8,7 @@ from cogs.rand import continue_daily_quote
 
 
 async def sorted_task_keys():
-    '''Return all task keys, sorted by end time'''
+    '''Return all task keys, sorted by target time'''
     task_keys = db.prefix('task:')
     return sorted(task_keys, key=lambda x: x.split()[2])
 
@@ -18,7 +18,7 @@ async def continue_tasks(bot):
     
     This function processes only one task at a time,
     which is one of the reasons the keys should be
-    sorted by end time.
+    sorted by target time.
     '''
     task_keys = await sorted_task_keys()
     for key in task_keys:
