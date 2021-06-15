@@ -5,8 +5,7 @@ import asyncio
 
 # Internal imports
 from common import send_traceback, create_task_key
-from task import eval_task
-from tasks import delete_task
+from tasks import delete_task, eval_task
 from cogs.rand import send_quote
 
 
@@ -23,7 +22,7 @@ async def continue_tasks(bot):
 
 
 async def continue_task(bot, task_key: str):
-    task = eval_task(db[task_key])
+    task = await eval_task(db[task_key])
     if task.task_type == 'reminder':
         await continue_reminder(bot, task_key)
     elif task.task_type == 'daily_quote':
@@ -38,8 +37,8 @@ async def sorted_task_keys():
 
 
 async def continue_daily_quote(bot, q_key):
-    daily_quote = eval_task(db[q_key])
-    destination = daily_quote.get_destination(bot)
+    daily_quote = await eval_task(db[q_key])
+    destination = await daily_quote.get_destination(bot)
     await send_quote(destination, bot)
 
 

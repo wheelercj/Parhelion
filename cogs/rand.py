@@ -28,7 +28,7 @@ async def save_daily_quote(ctx, target_time: str) -> Daily_Quote:
 async def send_quote(destination, bot):
     '''Send a random quote to destination
     
-    destination can be ctx.
+    destination can be ctx, a channel object, or a user object.
     '''
     params = {
         'lang':'en',

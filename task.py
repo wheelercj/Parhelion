@@ -17,12 +17,10 @@ class Task:
 
     async def get_destination(self, bot):
         if self.is_dm:
-            destination = await bot.fetch_user(self.author_id)
+            return await bot.fetch_user(self.author_id)
         else:
             guild = bot.get_guild(self.guild_id)
-            destination = guild.get_channel(self.channel_id)
-            if destination is None:
-                raise ValueError('Channel not found.')
+            return guild.get_channel(self.channel_id)
 
 
 class Reminder(Task):
