@@ -81,3 +81,18 @@ async def get_prefixes_str(bot) -> str:
     display_prefixes = await get_display_prefixes(bot)
     prefixes = [f'`{x}`' for x in display_prefixes]
     return ', '.join(prefixes)
+
+
+async def create_task_key(task_type: str = '', author_id: int = 0, target_time: str = ''):
+    '''Create a task key string
+    
+    If one or more of the last arguments are missing, a key
+    prefix will be returned.
+    '''
+    if not len(target_time):
+        if not author_id:
+            if not len(task_type):
+                return 'task:'
+            return f'task:{task_type} '
+        return f'task:{task_type} {author_id} '
+    return f'task:{task_type} {author_id} {target_time}'

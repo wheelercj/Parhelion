@@ -1,5 +1,4 @@
 # External imports
-from replit import db
 import discord
 from discord.ext import commands
 import random
@@ -18,41 +17,6 @@ daily_quotes_handler = logging.FileHandler(filename='daily_quotes.log', encoding
 daily_quotes_handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(lineno)s: %(message)s'))
 if not daily_quotes_logger.hasHandlers():
     daily_quotes_logger.addHandler(daily_quotes_handler)
-
-
-async def eval_daily_quote(string: str) -> Daily_Quote:
-    '''Turns a daily quote task str into a Daily_Quote object'''
-    if not string.startswith('Daily_Quote(') \
-            or not string.endswith(')'):
-        raise ValueError
-
-    string = string[12:-1]
-    args = string.split(', ')
-
-    try:
-        author_id = int(args[0])
-        start_time: str = args[1][1:-1]
-        target_time: str = args[2][1:-1]
-        duration: str = args[3][1:-1]
-        is_dm = bool(args[4][1:-1])
-        guild_id = int(args[5])
-        channel_id = int(args[6])
-
-        daily_quote = Daily_Quote(author_id, start_time, target_time, duration, is_dm, guild_id, channel_id)
-
-        if len(args) != 7:
-            await delete_task(author_id=daily_quote.author_id)
-            log_message = f'Incorrect number of args. Deleting {daily_quote}'
-            daily_quotes_logger.log(logging.ERROR, log_message)
-            raise ValueError(log_message)
-        
-        return daily_quote
-
-    except IndexError as e:
-        await delete_task(author_id=author_id)
-        log_message = f'Index error. Deleting {author_id} {target_time}. Error details: {e}'
-        daily_quotes_logger.log(logging.ERROR, log_message)
-        raise IndexError(log_message)
 
 
 async def save_daily_quote(ctx, target_time: str) -> Daily_Quote:
@@ -76,12 +40,6 @@ async def send_quote(destination, bot):
     quote, author = json_text['quoteText'], json_text['quoteAuthor']
     embed = discord.Embed(description=f'"{quote}"\n — {author}')
     await destination.send(embed=embed)
-
-
-async def continue_daily_quote(bot, q_key):
-    daily_quote = eval_daily_quote(db[q_key])
-    destination = daily_quote.get_destination(bot)
-    await send_quote(destination, bot)
 
 
 class Random(commands.Cog):

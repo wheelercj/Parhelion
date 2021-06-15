@@ -4,49 +4,8 @@ from datetime import datetime, timezone
 from typing import Any
 
 # Internal imports
-from cogs.reminders import continue_reminder
-from cogs.rand import continue_daily_quote
-
-
-async def create_task_key(task_type: str = '', author_id: int = 0, target_time: str = ''):
-    '''Create a task key string
-    
-    If one or more of the last arguments are missing, a key
-    prefix will be returned.
-    '''
-    if not len(target_time):
-        if not author_id:
-            if not len(task_type):
-                return 'task:'
-            return f'task:{task_type} '
-        return f'task:{task_type} {author_id} '
-    return f'task:{task_type} {author_id} {target_time}'
-
-
-async def sorted_task_keys():
-    '''Return all task keys, sorted by target time'''
-    prefix = await create_task_key()
-    task_keys = db.prefix(prefix)
-    return sorted(task_keys, key=lambda x: x.split()[2])
-
-
-async def continue_tasks(bot):
-    '''Restarts all saved tasks, one at a time
-    
-    This function processes only one task at a time,
-    which is one of the reasons the keys should be
-    sorted by target time.
-    '''
-    task_keys = await sorted_task_keys()
-    for task_key in task_keys:
-        await continue_task(bot, task_key)
-
-
-async def continue_task(bot, task_key: str):
-    if db[task_key].task_type == 'reminder':
-        await continue_reminder(bot, task_key)
-    elif db[task_key].task_type == 'daily_quote':
-        await continue_daily_quote(bot, task_key)
+from common import create_task_key
+from task import Reminder, Daily_Quote
 
 
 async def save_task(ctx, task_type: str, target_time: str, duration: str, constructor, *args) -> Any:
@@ -121,3 +80,28 @@ async def delete_task(**kwargs):
         # TODO:
         # log_message = f'could not find task to delete: {self}'
         # logger.log(logging.WARNING, log_message)
+
+
+async def eval_task(string: str) -> Any:
+    '''Turns a task str into an object'''
+    i = string.find('(')
+    constructor_name = string[:i]
+    args = string[i+1:-1].split(', ')
+
+    author_id = int(args[-7])
+    start_time: str = args[-6][1:-1]
+    target_time: str = args[-5][1:-1]
+    duration: str = args[-4][1:-1]
+    is_dm = bool(args[-3][1:-1])
+    guild_id = int(args[-2])
+    channel_id = int(args[-1])
+
+    if constructor_name == 'Reminder':
+        message: str = args[0][1:-1]
+        task = Reminder(message, author_id, start_time, target_time, duration, is_dm, guild_id, channel_id)
+    elif constructor_name == 'Daily_Quote':
+        task = Daily_Quote(author_id, start_time, target_time, duration, is_dm, guild_id, channel_id)
+    else:
+        print(f'Error: constructor name not found.')
+    
+    return task

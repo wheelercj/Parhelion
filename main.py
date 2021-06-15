@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 # Internal imports
 from common import dev_settings, dev_mail, get_display_prefixes, get_prefixes_str
 from keep_alive import keep_alive
-from tasks import continue_tasks
+from startup import continue_tasks
 
 
 # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup

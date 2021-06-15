@@ -8,9 +8,9 @@ import discord
 from discord.ext import commands
 
 # Internal imports
-from common import send_traceback
+from common import send_traceback, create_task_key
 from task import Reminder
-from tasks import create_task_key, save_task, delete_task
+from tasks import save_task, delete_task, eval_task
 
 
 reminders_logger = logging.getLogger('reminders')
@@ -21,42 +21,6 @@ if not reminders_logger.hasHandlers():
     reminders_logger.addHandler(reminders_handler)
 
 
-async def eval_reminder(string: str) -> Reminder:
-    '''Turns a reminder str into a Reminder object'''
-    if not string.startswith('Reminder(') \
-            or not string.endswith(')'):
-        raise ValueError
-
-    string = string[9:-1]
-    args = string.split(', ')
-
-    try:
-        message: str = args[0][1:-1]
-        author_id = int(args[1])
-        start_time: str = args[2][1:-1]
-        target_time: str = args[3][1:-1]
-        duration: str = args[4][1:-1]
-        is_dm = bool(args[5][1:-1])
-        guild_id = int(args[6])
-        channel_id = int(args[7])
-
-        reminder = Reminder(message, author_id, start_time, target_time, duration, is_dm, guild_id, channel_id)
-
-        if len(args) != 8:
-            await delete_task(task=reminder)
-            log_message = f'Incorrect number of args. Deleting {reminder}'
-            reminders_logger.log(logging.ERROR, log_message)
-            raise ValueError(log_message)
-        
-        return reminder
-
-    except IndexError as e:
-        await delete_task(task_type='reminder', author_id=author_id, target_time=target_time)
-        log_message = f'Index error. Deleting {author_id} {target_time}. Error details: {e}'
-        reminders_logger.log(logging.ERROR, log_message)
-        raise IndexError(log_message)
-
-
 async def save_reminder(ctx, duration: str, seconds: int, message: str) -> Reminder:
     '''Saves one reminder to the database'''
     start_time = datetime.now(timezone.utc)
@@ -65,38 +29,6 @@ async def save_reminder(ctx, duration: str, seconds: int, message: str) -> Remin
     reminder = await save_task(ctx, 'reminder', target_time, duration, Reminder, message)
     
     return reminder
-
-
-async def continue_reminder(bot, reminder_str: str):
-    '''Continues a reminder that had been stopped by a server restart'''
-    reminder = await eval_reminder(reminder_str)
-
-    try:
-        destination = await reminder.get_destination(bot)
-
-        current_time = datetime.now(timezone.utc)
-        target_time = datetime.fromisoformat(reminder.target_time)
-        remaining_time = target_time - current_time
-        remaining_seconds = remaining_time.total_seconds()
-
-        if remaining_seconds > 0:
-            await asyncio.sleep(remaining_seconds)
-            await destination.send(f'<@!{reminder.author_id}>, here is your {reminder.duration} reminder: {reminder.message}')
-            await delete_task(task=reminder)
-            reminders_logger.log(logging.INFO, f'deleting {reminder}')
-        else:
-            await destination.send(f'<@!{reminder.author_id}>, an error delayed your reminder: {reminder.message}')
-            await destination.send(f'The reminder had been set for {target_time.year}-{target_time.month}-{target_time.day} at {target_time.hour}:{target_time.minute} UTC')
-            await delete_task(task=reminder)
-            reminders_logger.log(logging.ERROR, f'Delayed delivery. Deleting {reminder}')
-
-    except Exception as e:
-        await destination.send(f'<@!{reminder.author_id}>, your reminder was cancelled because of an error: {e}')
-        if await bot.is_owner(reminder.author_id):
-            await send_traceback(destination, e)
-        await delete_task(task=reminder)
-        reminders_logger.log(logging.ERROR, f'deleting {reminder} because {e}')
-        raise e
 
 
 class Reminders(commands.Cog):
@@ -148,7 +80,7 @@ class Reminders(commands.Cog):
             r_list = 'Here are your in-progress reminders:'
             for i, key in enumerate(r_keys):
                 try:
-                    reminder = await eval_reminder(db[key])
+                    reminder = await eval_task(db[key])
                     target_time = datetime.fromisoformat(reminder.target_time)
                     remaining = target_time - datetime.now(timezone.utc)
                     if str(remaining).startswith('-'):
@@ -183,7 +115,7 @@ class Reminders(commands.Cog):
         else:
             try:
                 key = r_keys[index-1]
-                reminder = await eval_reminder(db[key])
+                reminder = await eval_task(db[key])
                 await ctx.send(f'Reminder deleted: "{reminder.message}"')
                 log_message = f'deleting {db[key]}'
                 reminders_logger.log(logging.INFO, log_message)
