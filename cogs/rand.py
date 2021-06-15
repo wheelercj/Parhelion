@@ -9,6 +9,7 @@ import asyncio
 
 # Internal imports
 from task import Daily_Quote
+from tasks import delete_task
 
 
 daily_quotes_logger = logging.getLogger('daily_quotes')
@@ -40,7 +41,7 @@ async def eval_daily_quote(string: str) -> Daily_Quote:
         daily_quote = Daily_Quote(author_id, start_time, target_time, duration, is_dm, guild_id, channel_id)
 
         if len(args) != 7:
-            await delete_daily_quote(daily_quote.author_id)
+            await delete_task(author_id=daily_quote.author_id)
             log_message = f'Incorrect number of args. Deleting {daily_quote}'
             daily_quotes_logger.log(logging.ERROR, log_message)
             raise ValueError(log_message)
@@ -72,11 +73,6 @@ async def save_daily_quote(ctx, target_time: str) -> Daily_Quote:
     
     db[f'task:daily_quote {author_id} {target_time}'] = repr(daily_quote)
     return daily_quote
-
-
-async def delete_daily_quote(author_id: int):
-    q_keys = db.prefix(f'task:daily_quote {author_id}')
-    del db[q_keys[0]]
 
 
 async def send_quote(destination, bot):
@@ -169,7 +165,7 @@ class Random(commands.Cog):
 
         # Allow only one daily quote task per user.
         try:
-            await delete_daily_quote(ctx.author.id)
+            await delete_task(author_id=ctx.author.id)
         except:
             pass
         

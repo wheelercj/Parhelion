@@ -10,6 +10,7 @@ from discord.ext import commands
 # Internal imports
 from common import send_traceback
 from task import Reminder
+from tasks import delete_task
 
 
 reminders_logger = logging.getLogger('reminders')
@@ -42,7 +43,7 @@ async def eval_reminder(string: str) -> Reminder:
         reminder = Reminder(message, author_id, start_time, target_time, duration, is_dm, guild_id, channel_id)
 
         if len(args) != 8:
-            await delete_reminder(reminder)
+            await delete_task(task=reminder)
             log_message = f'Incorrect number of args. Deleting {reminder}'
             reminders_logger.log(logging.ERROR, log_message)
             raise ValueError(log_message)
@@ -92,31 +93,21 @@ async def continue_reminder(bot, reminder_str: str):
         if remaining_seconds > 0:
             await asyncio.sleep(remaining_seconds)
             await destination.send(f'<@!{reminder.author_id}>, here is your {reminder.duration} reminder: {reminder.message}')
-            await delete_reminder(reminder)
+            await delete_task(task=reminder)
             reminders_logger.log(logging.INFO, f'deleting {reminder}')
         else:
             await destination.send(f'<@!{reminder.author_id}>, an error delayed your reminder: {reminder.message}')
             await destination.send(f'The reminder had been set for {target_time.year}-{target_time.month}-{target_time.day} at {target_time.hour}:{target_time.minute} UTC')
-            await delete_reminder(reminder)
+            await delete_task(task=reminder)
             reminders_logger.log(logging.ERROR, f'Delayed delivery. Deleting {reminder}')
 
     except Exception as e:
         await destination.send(f'<@!{reminder.author_id}>, your reminder was cancelled because of an error: {e}')
         if await bot.is_owner(reminder.author_id):
             await send_traceback(destination, e)
-        await delete_reminder(reminder)
+        await delete_task(task=reminder)
         reminders_logger.log(logging.ERROR, f'deleting {reminder} because {e}')
         raise e
-
-
-async def delete_reminder(reminder):
-    '''Removes one reminder from the database'''
-    try:
-        del db[f'task:reminder {reminder.author_id} {reminder.target_time}']
-    except KeyError:
-        # The reminder may have been deleted with the del-r command.
-        log_message = f'could not find to delete: {reminder}'
-        reminders_logger.log(logging.WARNING, log_message)
 
 
 class Reminders(commands.Cog):
@@ -146,7 +137,7 @@ class Reminders(commands.Cog):
             await asyncio.sleep(seconds)
 
             await ctx.send(f'{ctx.author.mention}, here is your {duration} reminder: {message}')
-            await delete_reminder(reminder)
+            await delete_task(task=reminder)
             reminders_logger.log(logging.INFO, f'deleting {reminder}')        
         except Exception as e:
             await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
