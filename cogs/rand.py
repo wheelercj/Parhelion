@@ -9,7 +9,7 @@ import asyncio
 
 # Internal imports
 from task import Daily_Quote
-from tasks import create_task_key, delete_task
+from tasks import save_task, delete_task
 
 
 daily_quotes_logger = logging.getLogger('daily_quotes')
@@ -57,22 +57,7 @@ async def eval_daily_quote(string: str) -> Daily_Quote:
 
 async def save_daily_quote(ctx, target_time: str) -> Daily_Quote:
     '''Saves one daily quote task to the database'''
-    start_time = datetime.now(timezone.utc)
-    target_time = target_time.isoformat()
-    author_id = ctx.author.id
-    try:
-        guild_id = ctx.guild.id
-        channel_id = ctx.channel.id
-        is_dm = False
-    except AttributeError:
-        is_dm = True
-        guild_id = 0
-        channel_id = 0
-
-    daily_quote = Daily_Quote(author_id, start_time, target_time, '', is_dm, guild_id, channel_id)
-    
-    task_key = await create_task_key('daily_quote', author_id, target_time)
-    db[task_key] = repr(daily_quote)
+    daily_quote = await save_task(ctx, 'daily_quote', target_time, '', Daily_Quote)
     return daily_quote
 
 

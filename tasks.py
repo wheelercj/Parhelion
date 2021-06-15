@@ -1,4 +1,9 @@
+# External imports
 from replit import db
+from datetime import datetime, timezone
+from typing import Any
+
+# Internal imports
 from cogs.reminders import continue_reminder
 from cogs.rand import continue_daily_quote
 
@@ -46,6 +51,30 @@ async def continue_task(bot, task_key: str):
     prefix = await create_task_key('daily_quote')
     if task_key.startswith(prefix):
         await continue_daily_quote(bot, task_key)
+
+
+async def save_task(ctx, task_type: str, target_time: str, duration: str, constructor, *args) -> Any:
+    '''Saves one task to the database
+
+    *args is the list of the task's constructor arguments that are not inherited from Task, and must be in the same order as in the task's constructor. (The task constructor must take these uninherited arguments before all the inherited arguments.)
+    '''
+    start_time = datetime.now(timezone.utc)
+    target_time = target_time.isoformat()
+    author_id = ctx.author.id
+    try:
+        guild_id = ctx.guild.id
+        channel_id = ctx.channel.id
+        is_dm = False
+    except AttributeError:
+        is_dm = True
+        guild_id = 0
+        channel_id = 0
+
+    task = constructor(*args, author_id, start_time, target_time, duration, is_dm, guild_id, channel_id)
+    task_key = await create_task_key(task_type, author_id, target_time)
+    
+    db[task_key] = repr(task)
+    return task
 
 
 async def delete_task(**kwargs):

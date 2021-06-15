@@ -10,7 +10,7 @@ from discord.ext import commands
 # Internal imports
 from common import send_traceback
 from task import Reminder
-from tasks import create_task_key, delete_task
+from tasks import create_task_key, save_task, delete_task
 
 
 reminders_logger = logging.getLogger('reminders')
@@ -62,20 +62,8 @@ async def save_reminder(ctx, duration: str, seconds: int, message: str) -> Remin
     start_time = datetime.now(timezone.utc)
     target_time = start_time + timedelta(0, seconds)
     target_time = target_time.isoformat()
-    author_id = ctx.author.id
-    try:
-        guild_id = ctx.guild.id
-        channel_id = ctx.channel.id
-        is_dm = False
-    except AttributeError:
-        is_dm = True
-        guild_id = 0
-        channel_id = 0
-
-    reminder = Reminder(message, author_id, start_time, target_time, duration, is_dm, guild_id, channel_id)
+    reminder = await save_task(ctx, 'reminder', target_time, duration, Reminder, message)
     
-    task_key = await create_task_key('reminder', author_id, target_time)
-    db[task_key] = repr(reminder)
     return reminder
 
 
