@@ -109,18 +109,6 @@ async def continue_reminder(bot, reminder_str: str):
         raise e
 
 
-async def sorted_reminder_keys() -> list:
-    '''Returns the reminder keys sorted by end time'''
-    keys = db.keys()
-    reminder_keys = []
-    for key in keys:
-        if key.startswith('reminder'):
-            reminder_keys.append(key)
-
-    reminder_keys = sorted(reminder_keys, key=lambda x: x.split()[2])
-    return reminder_keys
-
-
 async def delete_reminder(reminder):
     '''Removes one reminder from the database'''
     try:
