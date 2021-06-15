@@ -9,7 +9,7 @@ import asyncio
 
 # Internal imports
 from task import Daily_Quote
-from tasks import delete_task
+from tasks import create_task_key, delete_task
 
 
 daily_quotes_logger = logging.getLogger('daily_quotes')
@@ -71,7 +71,8 @@ async def save_daily_quote(ctx, target_time: str) -> Daily_Quote:
 
     daily_quote = Daily_Quote(author_id, start_time, target_time, '', is_dm, guild_id, channel_id)
     
-    db[f'task:daily_quote {author_id} {target_time}'] = repr(daily_quote)
+    task_key = await create_task_key('daily_quote', author_id, target_time)
+    db[task_key] = repr(daily_quote)
     return daily_quote
 
 

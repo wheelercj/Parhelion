@@ -10,7 +10,7 @@ from discord.ext import commands
 # Internal imports
 from common import send_traceback
 from task import Reminder
-from tasks import delete_task
+from tasks import create_task_key, delete_task
 
 
 reminders_logger = logging.getLogger('reminders')
@@ -74,7 +74,8 @@ async def save_reminder(ctx, duration: str, seconds: int, message: str) -> Remin
 
     reminder = Reminder(message, author_id, start_time, target_time, duration, is_dm, guild_id, channel_id)
     
-    db[f'task:reminder {author_id} {target_time}'] = repr(reminder)
+    task_key = await create_task_key('reminder', author_id, target_time)
+    db[task_key] = repr(reminder)
     return reminder
 
 
@@ -149,7 +150,8 @@ class Reminders(commands.Cog):
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def list_reminders(self, ctx):
         '''Shows all of your reminders'''
-        r_keys = db.prefix(f'task:reminder {ctx.author.id}')
+        task_key_prefix = await create_task_key('reminder', ctx.author.id)
+        r_keys = db.prefix(task_key_prefix)
         r_keys = sorted(r_keys)
 
         if not len(r_keys):
@@ -184,7 +186,8 @@ class Reminders(commands.Cog):
         not from the program. A deleted reminder will then only be
         cancelled if the bot is restarted.
         '''
-        r_keys = db.prefix(f'task:reminder {ctx.author.id}')
+        task_key_prefix = await create_task_key('reminder', ctx.author.id)
+        r_keys = db.prefix(task_key_prefix)
         r_keys = sorted(r_keys)
         
         if not len(r_keys):

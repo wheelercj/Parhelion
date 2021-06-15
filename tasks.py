@@ -3,13 +3,25 @@ from cogs.reminders import continue_reminder
 from cogs.rand import continue_daily_quote
 
 
-# Task key format: f'task:{task_type} {author_id} {target_time}'
-# where target_time is in Python's default ISO format (with no spaces).
+async def create_task_key(task_type: str = '', author_id: int = 0, target_time: str = ''):
+    '''Create a task key string
+    
+    If one or more of the last arguments are missing, a key
+    prefix will be returned.
+    '''
+    if not len(target_time):
+        if not author_id:
+            if not len(task_type):
+                return 'task:'
+            return f'task:{task_type} '
+        return f'task:{task_type} {author_id} '
+    return f'task:{task_type} {author_id} {target_time}'
 
 
 async def sorted_task_keys():
     '''Return all task keys, sorted by target time'''
-    task_keys = db.prefix('task:')
+    prefix = await create_task_key()
+    task_keys = db.prefix(prefix)
     return sorted(task_keys, key=lambda x: x.split()[2])
 
 
@@ -26,9 +38,13 @@ async def continue_tasks(bot):
 
 
 async def continue_task(bot, task_key: str):
-    if task_key.startswith('task:reminder'):
+    prefix = await create_task_key('reminder')
+    if task_key.startswith(prefix):
         await continue_reminder(bot, task_key)
-    elif task_key.startswith('task:daily_quote'):
+        return
+
+    prefix = await create_task_key('daily_quote')
+    if task_key.startswith(prefix):
         await continue_daily_quote(bot, task_key)
 
 
@@ -49,7 +65,8 @@ async def delete_task(**kwargs):
     try:
         if 'task' in kwargs.keys():
             task = kwargs['task']
-            del db[f'task:{task.task_type} {task.author_id} {task.target_time}']
+            task_key = await create_task_key(task.task_type, task.author_id, task.target_time)
+            del db[task_key]
         else:
             author_id = kwargs['author_id']
             
@@ -58,14 +75,17 @@ async def delete_task(**kwargs):
 
                 if 'target_time' in kwargs.keys():
                     target_time = kwargs['target_time']
-                    del db[f'task:{task_type} {author_id} {target_time}']
+                    task_key = await create_task_key(task_type, author_id, target_time)
+                    del db[task_key]
                 else:
-                    task_keys = db.prefix(f'task:{task_type} {author_id}')
+                    prefix = await create_task_key(task_type, author_id)
+                    task_keys = db.prefix(prefix)
                     for task_key in task_keys:
                         del db[task_key]
             else:
                 task_keys = []
-                for task_key in db.prefix('task:'):
+                prefix = await create_task_key()
+                for task_key in db.prefix(prefix):
                     if str(author_id) == task_key.split()[1]:
                         task_keys.append(task_key)
                 for task_key in task_keys:
