@@ -81,7 +81,10 @@ class Random(commands.Cog):
 
 
     async def subscription_loop(self, destination, bot, target_time):
-        '''destination can be ctx'''
+        '''Send a quote once a day at a specific time
+        
+        destination can be ctx, a channel object, or a user object.
+        '''
         while True:
             # TODO: should this really be a while loop? What if multiple people try to set up a daily quote?
             now = datetime.now(timezone.utc)
