@@ -11,15 +11,16 @@ from cogs.rand import send_quote
 
 
 async def continue_tasks(bot):
-    '''Restarts all saved tasks, one at a time
+    '''Runs all saved tasks, one at a time
     
     This function processes only one task at a time,
     which is one of the reasons the keys should be
     sorted by target time.
     '''
     task_keys = await sorted_task_keys()
-    for task_key in task_keys:
-        await continue_task(bot, task_key)
+    while len(task_keys):
+        await continue_task(bot, task_keys[0])
+        task_keys = await sorted_task_keys()
 
 
 async def continue_task(bot, task_key: str):
@@ -47,12 +48,7 @@ async def sorted_task_keys():
 
 async def update_task_target_time(task, constructor, new_target_time: str):
     '''Update the database'''
-    # TODO: tasks updated this way may not restart properly because they will no longer be in the continue_tasks function.
-    # task_key = await task.get_task_key()
-    # args = await task.get_uninherited_args()
-
     new_task_key = await create_task_key(task.task_type, task.author_id, new_target_time)
-    # new_task = constructor(*args, )
     new_task = task
     new_task.target_time = new_target_time
     
