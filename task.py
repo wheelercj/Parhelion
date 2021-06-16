@@ -1,9 +1,5 @@
-from abc import ABCMeta, abstractmethod
-
 class Task(object):
     '''A task to be done at a specific time'''
-    __metaclass__ = ABCMeta
-
     def __init__(self, task_type: str, author_id: int, start_time: str, target_time: str, duration: str = '', is_dm: bool = True, guild_id: int = 0, channel_id: int = 0):
         '''Create a Task
         
@@ -29,10 +25,6 @@ class Task(object):
             guild = bot.get_guild(self.guild_id)
             return guild.get_channel(self.channel_id)
 
-    @abstractmethod
-    async def get_uninherited_args(self) -> list:
-        pass
-
 
 class Reminder(Task):
     def __init__(self, message: str, author_id: int, start_time: str, target_time: str, duration: str = '', is_dm: bool = True, guild_id: int = 0, channel_id: int = 0):
@@ -41,9 +33,6 @@ class Reminder(Task):
 
     def __repr__(self):
         return f'Reminder("{self.message}", {self.author_id}, "{self.start_time}", "{self.target_time}", "{self.duration}", "{self.is_dm}", {self.guild_id}, {self.channel_id})'
-
-    async def get_uninherited_args(self) -> list:
-        return [self.message]
 
     def __eq__(self, other):
         return self.message == other.message \
@@ -72,6 +61,3 @@ class Daily_Quote(Task):
 
     def __repr__(self):
         return f'Daily_Quote({self.author_id}, "{self.start_time}", "{self.target_time}", "{self.duration}", "{self.is_dm}", {self.guild_id}, {self.channel_id})'
-
-    # async def get_uninherited_args(self) -> list:
-    #     return None
