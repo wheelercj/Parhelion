@@ -70,23 +70,22 @@ class Random(commands.Cog):
             await ctx.send('tails')
 
 
-    async def send_daily_quote(self, destination, target_time):
+    async def begin_daily_quote(self, destination, target_time):
         def error_callback(running_task):
             # Tasks fail silently without this function.
             if running_task.exception():
                 running_task.print_stack()
         
-        running_task = asyncio.create_task(self.subscription_loop(destination, self.bot, target_time))
+        running_task = asyncio.create_task(self.daily_quote_loop(destination, self.bot, target_time))
         running_task.add_done_callback(error_callback)
 
 
-    async def subscription_loop(self, destination, bot, target_datetime):
+    async def daily_quote_loop(self, destination, bot, target_datetime):
         '''Send a quote once a day at a specific time
         
         destination can be ctx, a channel object, or a user object.
         '''
         while True:
-            # TODO: should this really be a while loop? What if multiple people try to set up a daily quote?
             now = datetime.now(timezone.utc)
             if now > target_datetime:
                 date = now.date() + timedelta(days=1)
@@ -127,7 +126,7 @@ class Random(commands.Cog):
         await save_daily_quote(ctx, target_time)
         await ctx.send(f'Time set! At {daily_utc_time} UTC each day, I will send you a random quote.')
 
-        await self.send_daily_quote(ctx, target_time)
+        await self.begin_daily_quote(ctx, target_time)
 
 
     @commands.command()
