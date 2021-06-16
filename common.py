@@ -47,7 +47,7 @@ def remove_backticks(statement: str, languages=['py', 'python']) -> str:
 
 
 async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
-    user = await bot.fetch_user(dev_settings.dev_discord_id)
+    user = await bot.fetch_user(bot.owner_id)
     if use_embed:
         embed = discord.Embed(title=embed_title, description=message)
         await user.send(embed=embed)
