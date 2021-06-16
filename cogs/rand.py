@@ -70,7 +70,7 @@ class Random(commands.Cog):
             await ctx.send('tails')
 
 
-    async def begin_daily_quote(self, destination, target_time):
+    async def begin_daily_quote(self, destination, target_time: str):
         def error_callback(running_task):
             # Tasks fail silently without this function.
             if running_task.exception():
@@ -80,19 +80,20 @@ class Random(commands.Cog):
         running_task.add_done_callback(error_callback)
 
 
-    async def daily_quote_loop(self, destination, bot, target_datetime):
+    async def daily_quote_loop(self, destination, bot, target_time: str):
         '''Send a quote once a day at a specific time
         
         destination can be ctx, a channel object, or a user object.
         '''
         while True:
+            target_time = datetime.fromisoformat(target_time)
             now = datetime.now(timezone.utc)
-            if now > target_datetime:
+            if now > target_time:
                 date = now.date() + timedelta(days=1)
             else:
                 date = now.date()
-            target_datetime = datetime.combine(date, target_datetime.time())
-            await discord.utils.sleep_until(target_datetime)
+            target_time = datetime.combine(date, target_time.time())
+            await discord.utils.sleep_until(target_time)
             await send_quote(destination, bot)
 
 
@@ -122,10 +123,11 @@ class Random(commands.Cog):
         hour, minute = daily_utc_time.split(':')
         today = datetime.now(timezone.utc)
         target_time = datetime(today.year, today.month, today.day, int(hour), int(minute), tzinfo=timezone.utc)
+        target_time = target_time.isoformat()
 
         await save_daily_quote(ctx, target_time)
-        await ctx.send(f'Time set! At {daily_utc_time} UTC each day, I will send you a random quote.')
 
+        await ctx.send(f'Time set! At {daily_utc_time} UTC each day, I will send you a random quote.')
         await self.begin_daily_quote(ctx, target_time)
 
 

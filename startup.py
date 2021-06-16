@@ -2,6 +2,7 @@
 from replit import db
 from datetime import datetime, timezone, timedelta
 import asyncio
+import copy
 
 # Internal imports
 from common import send_traceback, create_task_key
@@ -48,10 +49,10 @@ async def sorted_task_keys():
 async def update_task_target_time(task, constructor, new_target_time: str):
     '''Update the database'''
     new_task_key = await create_task_key(task.task_type, task.author_id, new_target_time)
-    new_task = task
+    new_task = copy.deepcopy(task)
     new_task.target_time = new_target_time
     
-    db[new_task_key] = new_task
+    db[new_task_key] = repr(new_task)
     await delete_task(task=task)
 
 
