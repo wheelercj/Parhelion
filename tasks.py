@@ -18,7 +18,6 @@ async def save_task(ctx, task_type: str, target_time: str, duration: str, constr
     arguments.)
     '''
     start_time = datetime.now(timezone.utc)
-    target_time = target_time.isoformat()
     author_id = ctx.author.id
     try:
         guild_id = ctx.guild.id
