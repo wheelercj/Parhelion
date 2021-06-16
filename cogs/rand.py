@@ -2,7 +2,7 @@
 import discord
 from discord.ext import commands
 import random
-from datetime import datetime, timezone, time, timedelta
+from datetime import datetime, timezone, timedelta
 import logging
 import asyncio
 
@@ -71,16 +71,16 @@ class Random(commands.Cog):
 
 
     async def send_daily_quote(self, destination, target_time):
-        def error_callback(task):
+        def error_callback(running_task):
             # Tasks fail silently without this function.
-            if task.exception():
-                task.print_stack()
+            if running_task.exception():
+                running_task.print_stack()
         
-        task = asyncio.create_task(self.subscription_loop(destination, self.bot, target_time))
-        task.add_done_callback(error_callback)
+        running_task = asyncio.create_task(self.subscription_loop(destination, self.bot, target_time))
+        running_task.add_done_callback(error_callback)
 
 
-    async def subscription_loop(self, destination, bot, target_time):
+    async def subscription_loop(self, destination, bot, target_datetime):
         '''Send a quote once a day at a specific time
         
         destination can be ctx, a channel object, or a user object.
@@ -88,10 +88,11 @@ class Random(commands.Cog):
         while True:
             # TODO: should this really be a while loop? What if multiple people try to set up a daily quote?
             now = datetime.now(timezone.utc)
-            date = now.date()
-            if now.time() > target_time:
+            if now > target_datetime:
                 date = now.date() + timedelta(days=1)
-            target_datetime = datetime.combine(date, target_time)
+            else:
+                date = now.date()
+            target_datetime = datetime.combine(date, target_datetime.time())
             await discord.utils.sleep_until(target_datetime)
             await send_quote(destination, bot)
 
@@ -120,7 +121,8 @@ class Random(commands.Cog):
             return
 
         hour, minute = daily_utc_time.split(':')
-        target_time = time(hour=int(hour), minute=int(minute))
+        today = datetime.now(timezone.utc)
+        target_time = datetime(today.year, today.month, today.day, int(hour), int(minute), tzinfo=timezone.utc)
 
         await save_daily_quote(ctx, target_time)
         await ctx.send(f'Time set! At {daily_utc_time} UTC each day, I will send you a random quote.')
