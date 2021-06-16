@@ -32,7 +32,6 @@ async def continue_task(bot, task_key: str):
     remaining_time = target_time - current_time
     remaining_seconds = remaining_time.total_seconds()
 
-    print(f'remaining_seconds: {remaining_seconds}')
     if task.task_type == 'reminder':
         await continue_reminder(bot, task, destination, remaining_seconds)
     elif task.task_type == 'daily_quote':
