@@ -56,7 +56,7 @@ async def update_task_target_time(task, constructor, new_target_time: str):
     await delete_task(task=task)
 
 
-async def get_new_target_day(task) -> str:
+async def target_tomorrow(task) -> str:
     '''Keep the same target time, but change the target day to tomorrow'''
     tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
     old_target_time = datetime.fromisoformat(task.target_time)
@@ -68,13 +68,13 @@ async def get_new_target_day(task) -> str:
 
 
 async def continue_daily_quote(bot, daily_quote, destination, remaining_seconds: int):
-    '''destination can be ctx, a channel object, or a user object.'''
+    '''destination can be ctx, a channel object, or a user object'''
     if remaining_seconds > 0:
         await asyncio.sleep(remaining_seconds)
-        await send_quote(destination, bot)
-    else:
-        new_target_time = await get_new_target_day(daily_quote)
-        await update_task_target_time(daily_quote, Daily_Quote, new_target_time)
+
+    await send_quote(destination, bot)
+    new_target_time = await target_tomorrow(daily_quote)
+    await update_task_target_time(daily_quote, Daily_Quote, new_target_time)
     
 
 async def continue_reminder(bot, reminder, destination, remaining_seconds: int):
