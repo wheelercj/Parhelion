@@ -11,6 +11,9 @@ from task import Reminder, Daily_Quote
 async def save_task(ctx, task_type: str, target_time: str, duration: str, constructor, *args) -> Any:
     '''Saves one task to the database
 
+    duration is for output only and can be empty or in any format
+    without commas.
+
     *args is the list of the task's constructor arguments that
     are not inherited from Task, and must be in the same order
     as in the task's constructor. (The task constructor must
