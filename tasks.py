@@ -102,7 +102,7 @@ async def eval_task(string: str) -> Any:
     start_time: str = args[-6][1:-1]
     target_time: str = args[-5][1:-1]
     duration: str = args[-4][1:-1]
-    is_dm = bool(args[-3][1:-1])
+    is_dm: bool = args[-3][1:-1] == 'True'
     guild_id = int(args[-2])
     channel_id = int(args[-1])
 
