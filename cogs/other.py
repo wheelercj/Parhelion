@@ -35,7 +35,7 @@ class Other(commands.Cog):
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def about(self, ctx):
         '''Shows general info about this bot'''
-        embed = discord.Embed(title=dev_settings.bot_full_name)
+        embed = discord.Embed(title=f'{self.bot.user.name}#{self.bot.user.discriminator}')
         prefixes = await get_prefixes_str(self.bot)
         
         embed.add_field(name='prefixes\u2800', value=prefixes + '\u2800\n\u2800')

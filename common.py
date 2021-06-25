@@ -7,11 +7,9 @@ class Dev_Settings:
     def __init__(self):
         self.dev_name = '(chris)#3047'
         self.bot_prefixes = [';', 'par ', 'Par ']
-        self.bot_name = 'Parhelion'
-        self.bot_full_name = f'{self.bot_name}#3922'
-        self.bot_id = 836071320328077332
-        self.bot_mention = f'<@!{self.bot_id}> '
-        self.mention_regex = rf'<@!?\d{{{len(str(self.bot_id))}}}>'
+        bot_id = 836071320328077332
+        self.bot_mention = f'<@!{bot_id}> '
+        self.mention_regex = rf'<@!?\d{{{len(str(bot_id))}}}>'
         self.bot_invite_link = 'https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328'
         self.bot_repository_link = 'https://github.com/wheelercj/Parhelion'
 
@@ -66,7 +64,7 @@ async def get_display_prefixes(bot) -> list:
     # than when a user types it in Discord, so remove both
     # unrendered mention prefixes, and add one with the
     # "correct" appearance.
-    display_prefixes = [f'@{dev_settings.bot_name} ']
+    display_prefixes = [f'@{bot.user.name} ']
     for prefix in raw_prefixes:
         if re.match(dev_settings.mention_regex, prefix) is None:
             display_prefixes.append(prefix)
