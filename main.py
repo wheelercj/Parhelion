@@ -84,7 +84,7 @@ async def on_message(message: str):
 
 async def answer_mention(message: str, bot):
     '''If mentioned, respond and show command prefixes'''
-    if dev_settings.bot_mention[:-1:] == message.content:
+    if bot.user.mention == message.content.replace('!', '', 1):
         # Get the message author's name.
         nickname = message.author.nick
         if nickname is not None:
