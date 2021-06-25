@@ -11,7 +11,7 @@ class Dev_Settings:
         self.bot_full_name = f'{self.bot_name}#3922'
         self.bot_id = 836071320328077332
         self.bot_mention = f'<@!{self.bot_id}> '
-        self.mention_regex = rf'<@!?\d{{len(str(self.bot_id))}}>'
+        self.mention_regex = rf'<@!?\d{{{len(str(self.bot_id))}}}>'
         self.bot_invite_link = 'https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328'
         self.bot_repository_link = 'https://replit.com/@wheelercj/simple-Discord-bot'
 
@@ -68,7 +68,7 @@ async def get_display_prefixes(bot) -> list:
     # "correct" appearance.
     display_prefixes = [f'@{dev_settings.bot_name} ']
     for prefix in raw_prefixes:
-        if re.match(rf'{dev_settings.mention_regex}', prefix) is None:
+        if re.match(dev_settings.mention_regex, prefix) is None:
             display_prefixes.append(prefix)
 
     display_prefixes = sorted(display_prefixes, key=len)
