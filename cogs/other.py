@@ -116,7 +116,7 @@ class Other(commands.Cog):
                 await ctx.send(e)
 
 
-    @commands.command(aliases=['calc', 'solve'])
+    @commands.command(aliases=['calc', 'solve', 'maths'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def math(self, ctx, *, expression: str):
         '''Evaluates a math expression
