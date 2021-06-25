@@ -7,8 +7,6 @@ class Dev_Settings:
     def __init__(self):
         self.dev_name = '(chris)#3047'
         self.bot_prefixes = [';', 'par ', 'Par ']
-        bot_id = 836071320328077332
-        self.mention_regex = rf'<@!?\d{{{len(str(bot_id))}}}>'
         self.bot_invite_link = 'https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328'
         self.bot_repository_link = 'https://github.com/wheelercj/Parhelion'
 
@@ -65,7 +63,8 @@ async def get_display_prefixes(bot) -> list:
     # "correct" appearance.
     display_prefixes = [f'@{bot.user.name} ']
     for prefix in raw_prefixes:
-        if re.match(dev_settings.mention_regex, prefix) is None:
+        mention_regex = rf'<@!?\d{{{len(str(bot.user.id))}}}>'
+        if re.match(mention_regex, prefix) is None:
             display_prefixes.append(prefix)
 
     display_prefixes = sorted(display_prefixes, key=len)
