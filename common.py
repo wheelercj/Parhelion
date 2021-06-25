@@ -57,14 +57,14 @@ async def get_display_prefixes(bot) -> list:
     '''
     raw_prefixes: list = bot.command_prefix(bot, '')
 
-    # The unrendered mention pattern looks different here
+    # The unrendered mention pattern looks different in code
     # than when a user types it in Discord, so remove both
     # unrendered mention prefixes, and add one with the
     # "correct" appearance.
     display_prefixes = [f'@{bot.user.name} ']
+    mention_regex = re.compile(rf'<@!?\d{{{len(str(bot.user.id))}}}>')
     for prefix in raw_prefixes:
-        mention_regex = rf'<@!?\d{{{len(str(bot.user.id))}}}>'
-        if re.match(mention_regex, prefix) is None:
+        if mention_regex.match(prefix) is None:
             display_prefixes.append(prefix)
 
     display_prefixes = sorted(display_prefixes, key=len)
