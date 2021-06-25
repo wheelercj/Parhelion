@@ -77,14 +77,18 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: str):
-    if message.author != bot.user:
-        await answer_mention(message, bot)
-        await bot.process_commands(message)
+    if message.author.bot:
+        return
+    
+    await answer_mention(message, bot)
+    await bot.process_commands(message)
 
 
 async def answer_mention(message: str, bot):
-    '''If mentioned, respond and show command prefixes'''
-    if dev_settings.bot_mention[:-1:] == message.content:
+    """If the entire message is the bot's mention, respond
+    
+    Show a list of the bot's command prefixes."""
+    if bot.user.mention == message.content.replace('!', '', 1):
         # Get the message author's name.
         nickname = message.author.nick
         if nickname is not None:
@@ -100,10 +104,10 @@ async def answer_mention(message: str, bot):
         elif len(display_prefixes) == 1:
             prefixes_message = 'prefix is ' + prefixes_str
         else:
-            display_prefixes = [f'@{dev_settings.bot_name} ']
-            prefixes_message = f'prefix is `{dev_settings.bot_name}`'
+            display_prefixes = [f'@{bot.user.name} ']
+            prefixes_message = f'prefix is `{bot.user.name}`'
         
-        await message.channel.send(f'Hello {name}! My command {prefixes_message}. Use {display_prefixes[0]}help to get help with commands.')
+        await message.channel.send(f'Hello {name}! My command {prefixes_message}. Use `{display_prefixes[0]}help` to get help with commands.')
 
 
 @bot.event
