@@ -80,33 +80,34 @@ async def on_message(message: str):
     if message.author.bot:
         return
     
-    if bot.user.mentioned_in(message):
-        await answer_mention(message, bot)
-
+    await answer_mention(message, bot)
     await bot.process_commands(message)
 
 
 async def answer_mention(message: str, bot):
-    '''Respond and show command prefixes'''
-    # Get the message author's name.
-    nickname = message.author.nick
-    if nickname is not None:
-        name = nickname.split()[0]
-    else:
-        name = message.author.name.split()[0]
-        
-    # Get the command prefixes.
-    display_prefixes = await get_display_prefixes(bot)
-    prefixes_str = await get_prefixes_str(bot)
-    if len(display_prefixes) > 1:
-        prefixes_message = 'prefixes are ' + prefixes_str
-    elif len(display_prefixes) == 1:
-        prefixes_message = 'prefix is ' + prefixes_str
-    else:
-        display_prefixes = [f'@{bot.user.name} ']
-        prefixes_message = f'prefix is `{bot.user.name}`'
+    """If the entire message is the bot's mention, respond
     
-    await message.channel.send(f'Hello {name}! My command {prefixes_message}. Use `{display_prefixes[0]}help` to get help with commands.')
+    Show a list of the bot's command prefixes."""
+    if bot.user.mention == message.content.replace('!', '', 1):
+        # Get the message author's name.
+        nickname = message.author.nick
+        if nickname is not None:
+            name = nickname.split()[0]
+        else:
+            name = message.author.name.split()[0]
+            
+        # Get the command prefixes.
+        display_prefixes = await get_display_prefixes(bot)
+        prefixes_str = await get_prefixes_str(bot)
+        if len(display_prefixes) > 1:
+            prefixes_message = 'prefixes are ' + prefixes_str
+        elif len(display_prefixes) == 1:
+            prefixes_message = 'prefix is ' + prefixes_str
+        else:
+            display_prefixes = [f'@{bot.user.name} ']
+            prefixes_message = f'prefix is `{bot.user.name}`'
+        
+        await message.channel.send(f'Hello {name}! My command {prefixes_message}. Use `{display_prefixes[0]}help` to get help with commands.')
 
 
 @bot.event
