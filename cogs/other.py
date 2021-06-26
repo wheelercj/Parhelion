@@ -144,17 +144,17 @@ class Other(commands.Cog):
                 await send_traceback(ctx, e)
 
 
-    @commands.command()
+    @commands.command(aliases=['rotate', 'shift', 'cipher'])
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def rot13(self, ctx, *, message: str):
-        '''Rotates each letter 13 letters through the alphabet'''
+    async def rot(self, ctx, n: int, *, message: str):
+        '''Rotates each letter n letters through the alphabet'''
         message = message.lower()
         new_string = ''
         alphabet = 'abcdefghijklmnopqrstuvwxyz'
         for char in message:
             index = alphabet.find(char)
             if index != -1:
-                new_index = (index + 13) % 26
+                new_index = (index + n) % 26
                 new_string += alphabet[new_index]
             else:
                 new_string += char
