@@ -116,13 +116,8 @@ class Bot(commands.Bot):
         Show a list of the bot's command prefixes.
         """
         if self.user.mention == message.content.replace('!', '', 1):
-            # Get the message author's name.
-            nickname = message.author.nick
-            if nickname is not None:
-                name = nickname.split()[0]
-            else:
-                name = message.author.name.split()[0]
-                
+            name = message.author.nick or message.author.name
+
             display_prefixes = await get_display_prefixes(self)
             prefixes_message = await get_prefixes_message(self, display_prefixes)
             
