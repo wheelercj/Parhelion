@@ -72,11 +72,31 @@ async def get_display_prefixes(bot) -> list:
     return display_prefixes
 
 
-async def get_prefixes_str(bot) -> str:
-    '''Returns a string with all prefixes, comma separated'''
-    display_prefixes = await get_display_prefixes(bot)
+async def get_prefixes_str(bot, display_prefixes: list = None) -> str:
+    '''Returns a string with all prefixes, comma separated
+    
+    The prefixes are sorted from shortest to longest.    
+    '''
+    if display_prefixes is None:
+        display_prefixes = await get_display_prefixes(bot)
     prefixes = [f'`{x}`' for x in display_prefixes]
     return ', '.join(prefixes)
+
+
+async def get_prefixes_message(bot, display_prefixes: list = None) -> str:
+    '''Returns a message that explains the command prefixes
+    
+    The prefixes are sorted from shortest to longest.
+    '''
+    if display_prefixes is None:
+        display_prefixes = await get_display_prefixes(bot)
+    prefixes_str = await get_prefixes_str(bot, display_prefixes)
+    if len(display_prefixes) > 1:
+        return 'prefixes are ' + prefixes_str
+    elif len(display_prefixes) == 1:
+        return 'prefix is ' + prefixes_str
+    else:
+        raise ValueError
 
 
 async def create_task_key(task_type: str = '', author_id: int = 0, target_time: str = ''):

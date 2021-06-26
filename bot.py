@@ -7,7 +7,7 @@ import sys
 import traceback
 
 # Internal imports
-from common import dev_mail, get_display_prefixes, get_prefixes_str
+from common import dev_mail, get_prefixes_message, get_display_prefixes
 from startup import continue_tasks
 
 
@@ -103,7 +103,8 @@ class Bot(commands.Bot):
     async def answer_mention(self, message: str):
         """If the entire message is the bot's mention, respond
         
-        Show a list of the bot's command prefixes."""
+        Show a list of the bot's command prefixes.
+        """
         if self.user.mention == message.content.replace('!', '', 1):
             # Get the message author's name.
             nickname = message.author.nick
@@ -112,15 +113,7 @@ class Bot(commands.Bot):
             else:
                 name = message.author.name.split()[0]
                 
-            # Get the command prefixes.
-            display_prefixes = await get_display_prefixes(self)
-            prefixes_str = await get_prefixes_str(self)
-            if len(display_prefixes) > 1:
-                prefixes_message = 'prefixes are ' + prefixes_str
-            elif len(display_prefixes) == 1:
-                prefixes_message = 'prefix is ' + prefixes_str
-            else:
-                display_prefixes = [f'@{self.user.name} ']
-                prefixes_message = f'prefix is `{self.user.name}`'
+            display_prefixes = await get_display_prefixes(self.bot)
+            prefixes_message = await get_prefixes_message(self.bot, display_prefixes)
             
             await message.channel.send(f'Hello {name}! My command {prefixes_message}. Use `{display_prefixes[0]}help` to get help with commands.')
