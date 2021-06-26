@@ -87,18 +87,15 @@ async def continue_reminder(bot, reminder, destination, remaining_seconds: int):
             await asyncio.sleep(remaining_seconds)
             await destination.send(f'<@!{reminder.author_id}>, here is your {reminder.duration} reminder: {reminder.message}')
             await delete_task(task=reminder)
-            # reminders_logger.log(logging.INFO, f'deleting {reminder}')  # TODO
         else:
             await destination.send(f'<@!{reminder.author_id}>, an error delayed your reminder: {reminder.message}')
             target_time = datetime.fromisoformat(reminder.target_time)
             await destination.send(f'The reminder had been set for {target_time.year}-{target_time.month}-{target_time.day} at {target_time.hour}:{target_time.minute} UTC')
             await delete_task(task=reminder)
-            # reminders_logger.log(logging.ERROR, f'Delayed delivery. Deleting {reminder}')  # TODO
 
     except Exception as e:
         await destination.send(f'<@!{reminder.author_id}>, your reminder was cancelled because of an error: {e}')
         if await bot.is_owner(reminder.author_id):
             await send_traceback(destination, e)
         await delete_task(task=reminder)
-        # reminders_logger.log(logging.ERROR, f'deleting {reminder} because {e}')  # TODO
         raise e

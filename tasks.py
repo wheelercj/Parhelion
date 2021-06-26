@@ -83,9 +83,6 @@ async def delete_task(**kwargs):
     except KeyError:
         # The task may have been deleted by the user.
         pass
-        # TODO:
-        # log_message = f'could not find task to delete: {self}'
-        # logger.log(logging.WARNING, log_message)
 
 
 async def eval_task(string: str) -> Any:

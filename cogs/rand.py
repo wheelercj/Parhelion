@@ -3,20 +3,11 @@ import discord
 from discord.ext import commands
 import random
 from datetime import datetime, timezone, timedelta
-import logging
 import asyncio
 
 # Internal imports
 from task import Daily_Quote
 from tasks import save_task, delete_task
-
-
-daily_quotes_logger = logging.getLogger('daily_quotes')
-daily_quotes_logger.setLevel(logging.ERROR)
-daily_quotes_handler = logging.FileHandler(filename='daily_quotes.log', encoding='utf-8')
-daily_quotes_handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(lineno)s: %(message)s'))
-if not daily_quotes_logger.hasHandlers():
-    daily_quotes_logger.addHandler(daily_quotes_handler)
 
 
 async def save_daily_quote(ctx, target_time: str) -> Daily_Quote:

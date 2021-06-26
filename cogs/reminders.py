@@ -2,7 +2,6 @@
 from replit import db
 import re
 import asyncio
-import logging
 from datetime import datetime, timezone, timedelta
 import discord
 from discord.ext import commands
@@ -11,14 +10,6 @@ from discord.ext import commands
 from common import send_traceback, create_task_key
 from task import Reminder
 from tasks import save_task, delete_task, eval_task
-
-
-reminders_logger = logging.getLogger('reminders')
-reminders_logger.setLevel(logging.ERROR)
-reminders_handler = logging.FileHandler(filename='reminders.log', encoding='utf-8')
-reminders_handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(lineno)s: %(message)s'))
-if not reminders_logger.hasHandlers():
-    reminders_logger.addHandler(reminders_handler)
 
 
 async def save_reminder(ctx, duration: str, seconds: int, message: str) -> Reminder:
@@ -59,7 +50,6 @@ class Reminders(commands.Cog):
 
             await ctx.send(f'{ctx.author.mention}, here is your {duration} reminder: {message}')
             await delete_task(task=reminder)
-            reminders_logger.log(logging.INFO, f'deleting {reminder}')        
         except Exception as e:
             await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
             if await ctx.bot.is_owner(ctx.author):
@@ -88,8 +78,6 @@ class Reminders(commands.Cog):
 
                     r_list += f'\n\n{i+1}. "{reminder.message}"\nduration: {reminder.duration}\ntime remaining: {str(remaining)}'
                 except Exception as e:
-                    log_message = f'Deleting {db[key]} because {e}'
-                    reminders_logger.log(logging.ERROR, log_message)
                     del db[key]
                     await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
 
@@ -117,8 +105,6 @@ class Reminders(commands.Cog):
                 key = r_keys[index-1]
                 reminder = await eval_task(db[key])
                 await ctx.send(f'Reminder deleted: "{reminder.message}"')
-                log_message = f'deleting {db[key]}'
-                reminders_logger.log(logging.INFO, log_message)
                 del db[key]
             except KeyError:
                 await ctx.send('Reminder not found.')

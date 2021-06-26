@@ -77,9 +77,6 @@ class Bot(commands.Bot):
 
 
     async def on_command(self, ctx):
-        # log_message = f'author: {ctx.author.display_name}; guild: {ctx.guild}; command: {ctx.message.content}'
-        # logger.log(COMMANDS, log_message)
-
         # Save the owner's commands for easy reuse.
         if ctx.author.id == self.owner_id:
             if 'reinvoke' not in ctx.command.aliases \
