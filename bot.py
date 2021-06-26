@@ -32,7 +32,6 @@ class Bot(commands.Bot):
         self.launch_time = datetime.now(timezone.utc)
         self.previous_command_ctxs = []
         self.session = aiohttp.ClientSession(loop=self.loop)
-        self.global_cooldown = commands.CooldownMapping.from_cooldown(1, 2, commands.BucketType.user)
         
         self.add_check(self.check_cooldown, call_once=True)
 
@@ -123,21 +122,9 @@ class Bot(commands.Bot):
 
 
     async def check_cooldown(self, ctx):
-        # The help command must not have the global cooldown
-        # because it puts all the other commands on cooldown
-        # which hides all of them.
-        if ctx.command == self.help_command:
-            return True
-
-        # This check is called once for each of the bot's
-        # commands when the help command is used, so
-        # prevent the cooldown for those too.
-        if ctx.command.name not in ctx.message.content:
-            return True
-
-        bucket = self.global_cooldown.get_bucket(ctx.message)
+        global_cooldown = commands.CooldownMapping.from_cooldown(1, 2, commands.BucketType.user)
+        bucket = global_cooldown.get_bucket(ctx.message)
         retry_after = bucket.update_rate_limit()
         if retry_after:
             raise commands.CommandOnCooldown(bucket, retry_after)
-
         return True
