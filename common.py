@@ -62,7 +62,7 @@ async def get_display_prefixes(bot) -> list:
     # unrendered mention prefixes, and add one with the
     # "correct" appearance.
     display_prefixes = [f'@{bot.user.name} ']
-    mention_regex = re.compile(rf'<@!?\d{{{len(str(bot.user.id))}}}>')
+    mention_regex = re.compile(rf'<@!?{bot.user.id}>')
     for prefix in raw_prefixes:
         if mention_regex.match(prefix) is None:
             display_prefixes.append(prefix)
