@@ -126,8 +126,8 @@ class Bot(commands.Bot):
             else:
                 name = message.author.name.split()[0]
                 
-            display_prefixes = await get_display_prefixes(self.bot)
-            prefixes_message = await get_prefixes_message(self.bot, display_prefixes)
+            display_prefixes = await get_display_prefixes(self)
+            prefixes_message = await get_prefixes_message(self, display_prefixes)
             
             await message.channel.send(f'Hello {name}! My command {prefixes_message}. Use `{display_prefixes[0]}help` to get help with commands.')
 
