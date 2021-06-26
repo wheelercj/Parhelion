@@ -8,6 +8,7 @@ import traceback
 
 # Internal imports
 from common import dev_mail, get_prefixes_message, get_display_prefixes
+from common import dev_settings
 from startup import continue_tasks
 
 
@@ -23,8 +24,11 @@ extensions = [
 
 
 class Bot(commands.Bot):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        intents = discord.Intents.default()
+        intents.members = True
+
+        super().__init__(intents=intents, command_prefix=self.get_command_prefixes)
 
         for extension in extensions:
             self.load_extension(extension)
@@ -34,6 +38,13 @@ class Bot(commands.Bot):
         self.session = aiohttp.ClientSession(loop=self.loop)
         
         self.add_check(self.check_cooldown, call_once=True)
+
+
+    def get_command_prefixes(self, bot, message):
+        prefixes = dev_settings.bot_prefixes
+        # TODO: after changing hosts and setting up a new database,
+        # allow server-side prefix customization here.
+        return commands.when_mentioned_or(*prefixes)(bot, message)
 
 
     async def close(self):
