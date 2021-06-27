@@ -144,9 +144,9 @@ class Other(commands.Cog):
                 await send_traceback(ctx, e)
 
 
-    @commands.command(aliases=['rotate', 'shift', 'cipher'])
+    @commands.command(aliases=['rotate', 'rot', 'shift'])
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def rot(self, ctx, n: int, *, message: str):
+    async def cipher(self, ctx, n: int, *, message: str):
         '''Rotates each letter n letters through the alphabet'''
         message = message.lower()
         new_string = ''
