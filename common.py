@@ -10,7 +10,7 @@ class Dev_Settings:
         self.bot_invite_link = 'https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328'
         self.support_server_link = 'https://discord.gg/mCqGhPJVcN'
         self.bot_repository_link = 'https://github.com/wheelercj/Parhelion'
-        self.privacy_policy_link = 'https://mystb.in/KindsExoticBattle'
+        self.privacy_policy_link = 'https://github.com/wheelercj/Parhelion/blob/master/privacy_policy.md'
 
 dev_settings = Dev_Settings()
 
