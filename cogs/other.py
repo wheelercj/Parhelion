@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 import json
 import discord
 from discord.ext import commands
-from textwrap import dedent
 
 # Internal imports
 from common import remove_backticks, send_traceback, get_prefixes_str, dev_settings
