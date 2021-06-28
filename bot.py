@@ -90,15 +90,23 @@ class Bot(commands.Bot):
         if hasattr(ctx.command, 'on_error'):
             return
 
-        if isinstance(error, commands.CommandOnCooldown):
+        # Exception hierarchy: https://discordpy.readthedocs.io/en/latest/ext/commands/api.html?highlight=permissions#exception-hierarchy
+        if isinstance(error, commands.CommandNotFound):
+            await ctx.send('Command not found.')
+        elif isinstance(error, commands.DisabledCommand):
+            await ctx.send('This command has been disabled.')
+        elif isinstance(error, commands.CommandOnCooldown):
             if error.cooldown.per <= 3:
+                # The global cooldown was triggered, and error.retry_after is inaccurate.
                 await ctx.send('Command on cooldown.')
             else:
                 await ctx.send(f'Command on cooldown. Please try again in {error.retry_after:.2f} seconds.')
         elif isinstance(error, commands.UserInputError):
             await ctx.send(error)
-        elif isinstance(error, commands.CheckFailure):
+        elif isinstance(error, commands.NotOwner):
             await ctx.send('Only the owner can use this command.')
+        elif isinstance(error, commands.BotMissingPermissions):
+            await ctx.send(f'This server has not given the bot the permissions needed for this command to work: {error.missing_perms}')
         else:
             print(f'Ignoring exception in command {ctx.command}:', file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
