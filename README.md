@@ -5,10 +5,11 @@ A simple Discord bot that can play music, solve math questions, and send reminde
 ![demo](images/demo.png)
 
 ## how to try this bot
-There are two ways you can add this bot to Discord servers where you have "manage server" permissions:
+There are three ways you can try this bot:
 
-1. By adding my instance of the bot to your server by clicking [this link](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328).
-2. By making a fork and creating your own instance of the bot.
+1. By joining the [support server](https://discord.gg/mCqGhPJVcN).
+2. By adding my instance of the bot to a server where you have "manage server" permissions by clicking [this link](https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328).
+3. By making a fork and creating your own instance of the bot (and then adding your own instance of the bot to a server where you have "manage server" permissions).
 
 After adding this bot, you can see all the commands by entering `;help`.
 
@@ -24,3 +25,6 @@ Here are some guides to making Discord bots that I found helpful:
 Here are some of this bot's commands. This image will not always be kept up-to-date.
 
 ![help demo](images/help_demo.png)
+
+## privacy policy
+You can find the bot's privacy policy [here](https://github.com/wheelercj/Parhelion/blob/master/privacy_policy.md).
