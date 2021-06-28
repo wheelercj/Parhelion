@@ -20,7 +20,7 @@ class Other(commands.Cog):
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def prefixes(self, ctx):
         '''Lists the bot\'s current prefixes'''
-        prefixes = get_prefixes_str(self.bot)
+        prefixes = get_prefixes_str(self.bot, ctx.message)
         await ctx.send(f'My current prefixes are {prefixes}')
 
 
@@ -36,7 +36,7 @@ class Other(commands.Cog):
     async def about(self, ctx):
         '''Shows general info about this bot'''
         embed = discord.Embed(title=f'{self.bot.user.name}#{self.bot.user.discriminator}')
-        prefixes = await get_prefixes_str(self.bot)
+        prefixes = await get_prefixes_str(self.bot, ctx.message)
         
         embed.add_field(name='prefixes\u2800', value=prefixes + '\u2800\n\u2800')
         embed.add_field(name='\u2800owner\u2800', value=f'\u2800{dev_settings.dev_name}\u2800\n\u2800')

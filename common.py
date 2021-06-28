@@ -52,12 +52,14 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
         await user.send(message)
 
 
-async def get_display_prefixes(bot) -> list:
+async def get_display_prefixes(bot, message: discord.Message) -> list:
     '''Lists the prefixes as they appear in Discord
     
     The prefixes are sorted from shortest to longest.
     '''
-    raw_prefixes: list = bot.command_prefix(bot, '')
+    raw_prefixes: list = bot.command_prefix(bot, message)
+    if '' in raw_prefixes:
+        raw_prefixes.remove('')
 
     # The unrendered mention pattern looks different in code
     # than when a user types it in Discord, so remove both
@@ -74,25 +76,25 @@ async def get_display_prefixes(bot) -> list:
     return display_prefixes
 
 
-async def get_prefixes_str(bot, display_prefixes: list = None) -> str:
+async def get_prefixes_str(bot, message: discord.Message, display_prefixes: list = None) -> str:
     '''Returns a string with all prefixes, comma separated
     
     The prefixes are sorted from shortest to longest.    
     '''
     if display_prefixes is None:
-        display_prefixes = await get_display_prefixes(bot)
+        display_prefixes = await get_display_prefixes(bot, message)
     prefixes = [f'`{x}`' for x in display_prefixes]
     return ', '.join(prefixes)
 
 
-async def get_prefixes_message(bot, display_prefixes: list = None) -> str:
+async def get_prefixes_message(bot, message: discord.Message, display_prefixes: list = None) -> str:
     '''Returns a message that explains the command prefixes
     
     The prefixes are sorted from shortest to longest.
     '''
     if display_prefixes is None:
-        display_prefixes = await get_display_prefixes(bot)
-    prefixes_str = await get_prefixes_str(bot, display_prefixes)
+        display_prefixes = await get_display_prefixes(bot, message)
+    prefixes_str = await get_prefixes_str(bot, message, display_prefixes)
     if len(display_prefixes) > 1:
         return 'prefixes are ' + prefixes_str
     elif len(display_prefixes) == 1:

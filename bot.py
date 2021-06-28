@@ -5,10 +5,10 @@ from datetime import datetime, timezone
 import aiohttp
 import sys
 import traceback
+from copy import copy
 
 # Internal imports
-from common import dev_mail, get_prefixes_message, get_display_prefixes
-from common import dev_settings
+from common import dev_settings, dev_mail, get_prefixes_message, get_display_prefixes
 from startup import continue_tasks
 
 
@@ -40,10 +40,14 @@ class Bot(commands.Bot):
         self.add_check(self.check_cooldown, call_once=True)
 
 
-    def get_command_prefixes(self, bot, message):
-        prefixes = dev_settings.bot_prefixes
+    def get_command_prefixes(self, bot, message: discord.Message):
+        prefixes = copy(dev_settings.bot_prefixes)
         # TODO: after changing hosts and setting up a new database,
         # allow server-side prefix customization here.
+        
+        if not message.guild:
+            prefixes.append('')
+        
         return commands.when_mentioned_or(*prefixes)(bot, message)
 
 
@@ -68,12 +72,20 @@ class Bot(commands.Bot):
         print('------------------------------------')
 
 
-    async def on_message(self, message: str):
+    async def on_message(self, message: discord.Message):
         if message.author.bot:
             return
         
-        await self.answer_mention(message)
-        await self.process_commands(message)
+        if await self.is_only_bot_mention(message):
+            await self.answer_mention(message)
+        else:
+            await self.process_commands(message)
+
+
+    async def is_only_bot_mention(self, message: discord.Message):
+        if self.user.mention == message.content.replace('!', '', 1):
+            return True
+        return False
 
 
     async def on_command(self, ctx):
@@ -118,18 +130,17 @@ class Bot(commands.Bot):
         await dev_mail(self, message, use_embed=False)
 
 
-    async def answer_mention(self, message: str):
-        """If the entire message is the bot's mention, respond
-        
-        Show a list of the bot's command prefixes.
-        """
-        if self.user.mention == message.content.replace('!', '', 1):
+    async def answer_mention(self, message: discord.Message):
+        '''Show a list of the bot\'s command prefixes'''
+        try:
             name = message.author.nick or message.author.name
+        except AttributeError:
+            name = message.author.name
 
-            display_prefixes = await get_display_prefixes(self)
-            prefixes_message = await get_prefixes_message(self, display_prefixes)
-            
-            await message.channel.send(f'Hello {name}! My command {prefixes_message}. Use `{display_prefixes[0]}help` to get help with commands.')
+        display_prefixes = await get_display_prefixes(self, message)
+        prefixes_message = await get_prefixes_message(self, message, display_prefixes)
+        
+        await message.channel.send(f'Hello {name}! My command {prefixes_message}. Use `{display_prefixes[0]}help` to get help with commands.')
 
 
     async def check_cooldown(self, ctx):
