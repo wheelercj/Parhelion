@@ -189,5 +189,21 @@ class Owner(commands.Cog):
             await ctx.send(f'Python error: {e}')
 
 
+    @commands.command(name='inspect', aliases=['source', 'src', 'getsource'])
+    @commands.cooldown(1, 15, commands.BucketType.user)
+    async def _inspect(self, ctx, *, command: str):
+        """Shows the source code of a command"""
+        try:
+            cmds = {cmd.name: cmd for cmd in self.bot.commands}
+            if command not in cmds.keys():
+                raise NameError(f'Command {command} not found.')
+            source = str(inspect.getsource(cmds[command].callback))
+            await ctx.send(f'```py\n{source}```')
+        except NameError as e:
+            await ctx.send(e)
+        except KeyError as e:
+            await ctx.send(e)
+
+
 def setup(bot):
     bot.add_cog(Owner(bot))

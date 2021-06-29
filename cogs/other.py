@@ -50,7 +50,6 @@ class Other(commands.Cog):
         embed.add_field(name='\u2800links\u2800',
             value=f'\u2800[bot invite]({dev_settings.bot_invite_link})\u2800\n\u2800' \
                 f'[support server]({dev_settings.support_server_link})\u2800\n\u2800' \
-                f'[repository]({dev_settings.bot_repository_link})\u2800\n\u2800' \
                 f'[privacy policy]({dev_settings.privacy_policy_link})\u2800\n\u2800')
         embed.add_field(name='\u2800made with',
             value=f'\u2800Python v{platform.python_version()}\n\u2800' \
@@ -91,25 +90,6 @@ class Other(commands.Cog):
         embed.set_thumbnail(url=ctx.guild.icon_url)
 
         await ctx.send(embed=embed)
-
-
-    @commands.command(name='inspect', aliases=['source', 'src', 'getsource'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
-    async def _inspect(self, ctx, *, command: str = None):
-        """Shows the source code of a command"""
-        if command is None:
-            await ctx.send(f'Here is my source code: {dev_settings.bot_repository_link}')
-        else:
-            try:
-                cmds = {cmd.name: cmd for cmd in self.bot.commands}
-                if command not in cmds.keys():
-                    raise NameError(f'Command {command} not found.')
-                source = str(inspect.getsource(cmds[command].callback))
-                await ctx.send(f'```py\n{source}```')
-            except NameError as e:
-                await ctx.send(e)
-            except KeyError as e:
-                await ctx.send(e)
 
 
     @commands.command(aliases=['calc', 'solve', 'maths'])
