@@ -17,6 +17,8 @@ class Owner(commands.Cog):
         if not await self.bot.is_owner(ctx.author):
             raise commands.NotOwner
 
+        return True
+
 
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.user)
