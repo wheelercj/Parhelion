@@ -37,22 +37,30 @@ class Other(commands.Cog):
         embed = discord.Embed(title=f'{self.bot.user.name}#{self.bot.user.discriminator}')
         prefixes = await get_prefixes_str(self.bot, ctx.message)
         
-        embed.add_field(name='prefixes\u2800', value=prefixes + '\u2800\n\u2800')
-        embed.add_field(name='\u2800owner\u2800', value=f'\u2800{dev_settings.dev_name}\u2800\n\u2800')
-        embed.add_field(name='\u2800uptime', value=f'\u2800{await self.uptime(ctx)}\n\u2800')
+        embed.add_field(name='prefixes\u2800',
+            value=f'{prefixes}\u2800\n' \
+            '\u2800')
+        embed.add_field(name='\u2800owner\u2800',
+            value=f'\u2800{dev_settings.dev_name}\u2800\n' \
+            '\u2800')
+        embed.add_field(name='\u2800uptime',
+            value=f'\u2800{await self.uptime(ctx)}\n' \
+            '\u2800')
 
         embed.add_field(name='stats\u2800',
             value=f'servers: {len(self.bot.guilds)}\u2800\n' \
                 f'users: {len(self.bot.users)}\u2800\n' \
                 f'commands: {len(self.bot.commands)}\u2800\n' \
-                f'tasks: {len(db)}\u2800\u2800')
+                '\u2800')
         embed.add_field(name='\u2800links\u2800',
-            value=f'\u2800[bot invite]({dev_settings.bot_invite_link})\u2800\n\u2800' \
-                f'[support server]({dev_settings.support_server_link})\u2800\n\u2800' \
-                f'[privacy policy]({dev_settings.privacy_policy_link})\u2800\n\u2800')
+            value=f'\u2800[bot invite]({dev_settings.bot_invite_link})\u2800\n' \
+                f'\u2800[support server]({dev_settings.support_server_link})\u2800\n' \
+                f'\u2800[privacy policy]({dev_settings.privacy_policy_link})\u2800\n' \
+                '\u2800')
         embed.add_field(name='\u2800made with',
-            value=f'\u2800Python v{platform.python_version()}\n\u2800' \
-                f'and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\n\u2800')
+            value=f'\u2800Python v{platform.python_version()}\n' \
+                f'\u2800and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\n' \
+                '\u2800')
 
         await ctx.send(embed=embed)
 
