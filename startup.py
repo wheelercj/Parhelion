@@ -3,6 +3,7 @@ from replit import db
 from datetime import datetime, timezone, timedelta
 import asyncio
 import copy
+from typing import List, Callable
 
 # Internal imports
 from common import send_traceback, create_task_key
@@ -15,7 +16,7 @@ async def continue_tasks(bot):
     '''Runs all saved tasks, one at a time
     
     This function processes only one task at a time,
-    which is one of the reasons the keys should be
+    which is one of the reasons the tasks must be
     sorted by target time.
     '''
     task_keys = await sorted_task_keys()
@@ -25,6 +26,7 @@ async def continue_tasks(bot):
 
 
 async def continue_task(bot, task_key: str):
+    '''Continues a task that had been stopped by a server restart'''
     task = await eval_task(db[task_key])
     destination = await task.get_destination(bot)
 
@@ -39,15 +41,15 @@ async def continue_task(bot, task_key: str):
         await continue_daily_quote(bot, task, destination, remaining_seconds)
 
 
-async def sorted_task_keys():
-    '''Return all task keys, sorted by target time'''
+async def sorted_task_keys() -> List[str]:
+    '''Returns all task keys, sorted by target time'''
     prefix = await create_task_key()
     task_keys = db.prefix(prefix)
     return sorted(task_keys, key=lambda x: x.split()[2])
 
 
-async def update_task_target_time(task, constructor, new_target_time: str):
-    '''Update the database'''
+async def update_task_target_time(task, constructor: Callable, new_target_time: str):
+    '''Updates the database'''
     new_task_key = await create_task_key(task.task_type, task.author_id, new_target_time)
     new_task = copy.deepcopy(task)
     new_task.target_time = new_target_time
@@ -57,7 +59,7 @@ async def update_task_target_time(task, constructor, new_target_time: str):
 
 
 async def target_tomorrow(task) -> str:
-    '''Keep the same target time, but change the target day to tomorrow'''
+    '''Changes the target day to tomorrow without changing the time'''
     tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
     old_target_time = datetime.fromisoformat(task.target_time)
     hour = old_target_time.hour
@@ -68,7 +70,10 @@ async def target_tomorrow(task) -> str:
 
 
 async def continue_daily_quote(bot, daily_quote, destination, remaining_seconds: int):
-    '''destination can be ctx, a channel object, or a user object'''
+    '''Continues a daily quote that had been stopped by a server restart
+    
+    destination can be ctx, a channel object, or a user object
+    '''
     if remaining_seconds > 0:
         await asyncio.sleep(remaining_seconds)
 

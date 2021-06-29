@@ -1,6 +1,7 @@
 import re
 import traceback
 import discord
+from typing import List
 
 
 class Dev_Settings:
@@ -15,16 +16,16 @@ class Dev_Settings:
 dev_settings = Dev_Settings()
 
 
-async def send_traceback(ctx, e):
-    etype = type(e)
-    trace = e.__traceback__
-    lines = traceback.format_exception(etype, e, trace)
+async def send_traceback(ctx, error):
+    etype = type(error)
+    trace = error.__traceback__
+    lines = traceback.format_exception(etype, error, trace)
     traceback_text = ''.join(lines)
     await ctx.send(f'```\n{traceback_text}\n```')
 
 
 def remove_backticks(statement: str, languages=['py', 'python']) -> str:
-    '''Removes backticks around a code block, if they are there'''
+    '''Removes language name and backticks around a code block, if they are there'''
     if statement.startswith('```'):
         statement = statement[3:]
         for language in languages:
@@ -52,12 +53,12 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
         await user.send(message)
 
 
-async def get_display_prefixes(bot, message: discord.Message) -> list:
+async def get_display_prefixes(bot, message: discord.Message) -> List[str]:
     '''Lists the prefixes as they appear in Discord
     
     The prefixes are sorted from shortest to longest.
     '''
-    raw_prefixes: list = bot.command_prefix(bot, message)
+    raw_prefixes: List[str] = bot.command_prefix(bot, message)
     if '' in raw_prefixes:
         raw_prefixes.remove('')
 
@@ -103,8 +104,8 @@ async def get_prefixes_message(bot, message: discord.Message, display_prefixes: 
         raise ValueError
 
 
-async def create_task_key(task_type: str = '', author_id: int = 0, target_time: str = ''):
-    '''Create a task key string
+async def create_task_key(task_type: str = '', author_id: int = 0, target_time: str = '') -> str:
+    '''Create a task key
     
     If one or more of the last arguments are missing, a key
     prefix will be returned.

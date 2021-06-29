@@ -9,7 +9,7 @@ from task import Reminder, Daily_Quote
 
 
 async def save_task(ctx, task_type: str, target_time: str, duration: str, constructor, *args) -> Any:
-    '''Saves one task to the database
+    '''Saves one task to the database and returns it
 
     duration is for output only and can be empty or in any format
     without commas.

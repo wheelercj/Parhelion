@@ -9,7 +9,7 @@ app = Flask('')
 
 @app.route('/')
 def home():
-    return 'I\'m alive. Click "code" ^'
+    return 'The bot\'s web server is online.'
 
 
 def run():

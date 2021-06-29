@@ -6,6 +6,7 @@ import aiohttp
 import sys
 import traceback
 from copy import copy
+from typing import List
 
 # Internal imports
 from common import dev_settings, dev_mail, get_prefixes_message, get_display_prefixes
@@ -37,13 +38,20 @@ class Bot(commands.Bot):
         self.previous_command_ctxs = []
         self.session = aiohttp.ClientSession(loop=self.loop)
         
-        self.add_check(self.check_cooldown, call_once=True)
+        self.add_check(self.check_global_cooldown, call_once=True)
 
 
-    def get_command_prefixes(self, bot, message: discord.Message):
+    def get_command_prefixes(self, bot, message: discord.Message) -> List[str]:
+        '''Returns the bot\'s command prefixes
+        
+        This function is called each time a command is invoked,
+        and so the prefixes can be customized based on where
+        the message is from.
+        '''
         prefixes = copy(dev_settings.bot_prefixes)
-        # TODO: after changing hosts and setting up a new database,
-        # allow server-side prefix customization here.
+        # TODO: after changing hosts and setting up a new
+        # database, allow server-side prefix customization
+        # here.
         
         if not message.guild:
             prefixes.append('')
@@ -66,6 +74,8 @@ class Bot(commands.Bot):
 
 
     async def on_ready(self):
+        # This function may be called many times while the
+        # bot is running, so it should not do much.
         print('------------------------------------')
         print(f'discord.py v{discord.__version__}')
         print(f'{self.user.name}#{self.user.discriminator} ready!')
@@ -75,7 +85,6 @@ class Bot(commands.Bot):
     async def on_message(self, message: discord.Message):
         if message.author.bot:
             return
-        
         if await self.is_only_bot_mention(message):
             await self.answer_mention(message)
         else:
@@ -83,6 +92,7 @@ class Bot(commands.Bot):
 
 
     async def is_only_bot_mention(self, message: discord.Message):
+        '''Returns True if the entire message is a bot mention'''
         if self.user.mention == message.content.replace('!', '', 1):
             return True
         return False
@@ -124,14 +134,14 @@ class Bot(commands.Bot):
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 
-    async def on_guild_join(self, guild):
-        message = f'I\'ve joined a new server called "{guild}"!' \
+    async def on_guild_join(self, guild_name: str):
+        message = f'I\'ve joined a new server called "{guild_name: str}"!' \
                 f'\nI am now in {len(self.guilds)} servers.'
         await dev_mail(self, message, use_embed=False)
 
 
     async def answer_mention(self, message: discord.Message):
-        '''Show a list of the bot\'s command prefixes'''
+        '''Shows a list of the bot\'s command prefixes'''
         try:
             name = message.author.nick or message.author.name
         except AttributeError:
@@ -143,7 +153,11 @@ class Bot(commands.Bot):
         await message.channel.send(f'Hello {name}! My command {prefixes_message}. Use `{display_prefixes[0]}help` to get help with commands.')
 
 
-    async def check_cooldown(self, ctx):
+    async def check_global_cooldown(self, ctx):
+        '''Returns True if the user has not triggered the global cooldown'''
+        # This function must be called only once per
+        # invocation. In other words, with bot.add_check use
+        # call_once=True.
         global_cooldown = commands.CooldownMapping.from_cooldown(1, 2, commands.BucketType.user)
         bucket = global_cooldown.get_bucket(ctx.message)
         retry_after = bucket.update_rate_limit()

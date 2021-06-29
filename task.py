@@ -1,7 +1,7 @@
 class Task(object):
     '''A task to be done at specific time(s)'''
     def __init__(self, task_type: str, author_id: int, start_time: str, target_time: str, duration: str = '', is_dm: bool = True, guild_id: int = 0, channel_id: int = 0):
-        '''Create a Task
+        '''Creates a Task
 
         The time strings must be in Python's default ISO format
         (with no spaces). The duration string is for output
@@ -16,7 +16,7 @@ class Task(object):
         self.guild_id = guild_id
         self.channel_id = channel_id
 
-    async def get_task_key(self):
+    async def get_task_key(self) -> str:
         return f'task:{self.task_type} {self.author_id} {self.target_time}'
 
     async def get_destination(self, bot):
@@ -29,7 +29,7 @@ class Task(object):
 
 class Reminder(Task):
     def __init__(self, message: str, author_id: int, start_time: str, target_time: str, duration: str = '', is_dm: bool = True, guild_id: int = 0, channel_id: int = 0):
-        '''Create a Reminder
+        '''Creates a Reminder
 
         The time strings must be in Python's default ISO format
         (with no spaces). The duration string is for output
@@ -64,7 +64,7 @@ class Reminder(Task):
 
 class Daily_Quote(Task):
     def __init__(self, author_id: int, start_time: str, target_time: str, duration: str = '', is_dm: bool = True, guild_id: int = 0, channel_id: int = 0):
-        '''Create a Daily_Quote
+        '''Creates a Daily_Quote
 
         The time strings must be in Python's default ISO format
         (with no spaces). The duration string is for output
