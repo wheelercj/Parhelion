@@ -1,5 +1,4 @@
 # External imports
-from replit import db
 import platform
 from datetime import datetime, timezone
 import json
@@ -30,7 +29,7 @@ class Other(commands.Cog):
         await ctx.send(f'Pong! It took {round(self.bot.latency, 2)} ms.')
 
 
-    @commands.command(aliases=['i', 'info', 'stats', 'uptime', 'invite', 'support', 'privacy-policy', 'privacy'])
+    @commands.command(aliases=['i', 'info', 'stats', 'uptime', 'invite', 'support', 'owner', 'privacy-policy', 'privacy'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def about(self, ctx):
         """Shows general info about this bot"""
