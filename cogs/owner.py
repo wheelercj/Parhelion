@@ -1,6 +1,7 @@
 # External imports
 from discord.ext import commands
 import textwrap
+import inspect
 import asyncio
 
 # Internal imports
@@ -199,10 +200,10 @@ class Owner(commands.Cog):
         try:
             cmds = {cmd.name: cmd for cmd in self.bot.commands}
             if command not in cmds.keys():
-                raise NameError(f'Command {command} not found.')
+                raise ValueError(f'Command {command} not found.')
             source = str(inspect.getsource(cmds[command].callback))
             await ctx.send(f'```py\n{source}```')
-        except NameError as e:
+        except ValueError as e:
             await ctx.send(e)
         except KeyError as e:
             await ctx.send(e)
