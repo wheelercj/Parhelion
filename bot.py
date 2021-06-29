@@ -114,7 +114,7 @@ class Bot(commands.Bot):
 
         # Exception hierarchy: https://discordpy.readthedocs.io/en/latest/ext/commands/api.html?highlight=permissions#exception-hierarchy
         if isinstance(error, commands.CommandNotFound):
-            await ctx.send(f'Command {ctx.command} not found.')
+            await ctx.send(f'Command not found.')
         elif isinstance(error, commands.DisabledCommand):
             await ctx.send('This command has been disabled.')
         elif isinstance(error, commands.CommandOnCooldown):
