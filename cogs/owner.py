@@ -188,6 +188,7 @@ class Owner(commands.Cog):
             exec(code, env)
             await ctx.message.add_reaction('✅')
         except Exception as e:
+            await ctx.message.add_reaction('❗')
             await ctx.send(f'Python error: {e}')
 
 
