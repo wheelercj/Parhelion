@@ -35,10 +35,23 @@ class Owner(commands.Cog):
 
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def leave(self, ctx):
-        """Makes the bot leave the server"""
-        await ctx.send(f'Now leaving the server. Goodbye!')
-        await ctx.guild.leave()
+    async def leave(self, ctx, *, server_name: str = None):
+        """Makes the bot leave a server
+        
+        If no server name is given, the bot will leave the current server.
+        """
+        if server_name is None:
+            await ctx.send(f'Now leaving the server. Goodbye!')
+            await ctx.guild.leave()
+            return
+        else:
+            for server in ctx.bot.guilds:
+                if server_name == server.name:
+                    await ctx.send(f'Now leaving server: {server.name}')
+                    await server.leave()
+                    return
+
+            await ctx.send('Server not found.')
 
 
     @commands.command(name='repeat', aliases=['r', 'reinvoke'])
