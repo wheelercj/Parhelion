@@ -41,9 +41,11 @@ class Owner(commands.Cog):
         If no server name is given, the bot will leave the current server.
         """
         if server_name is None:
-            await ctx.send(f'Now leaving the server. Goodbye!')
-            await ctx.guild.leave()
-            return
+            if ctx.guild is None:
+                await ctx.send('This command can only be used without an argument in a server.')
+            else:
+                await ctx.send(f'Now leaving the server. Goodbye!')
+                await ctx.guild.leave()
         else:
             for server in ctx.bot.guilds:
                 if server_name == server.name:

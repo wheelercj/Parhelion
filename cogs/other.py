@@ -89,6 +89,7 @@ class Other(commands.Cog):
 
 
     @commands.command(name='server-info', aliases=['serverinfo'])
+    @commands.guild_only()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def server_info(self, ctx):
         """Shows info about the current server"""

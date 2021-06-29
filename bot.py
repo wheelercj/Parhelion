@@ -129,6 +129,8 @@ class Bot(commands.Bot):
             await ctx.send('Only the owner can use this command.')
         elif isinstance(error, commands.BotMissingPermissions):
             await ctx.send(f'This server has not given the bot the permissions needed for this command to work: {error.missing_perms}')
+        elif isinstance(error, commands.NoPrivateMessage):
+            await ctx.send('This command cannot be used in private messages.')
         else:
             print(f'Ignoring exception in command {ctx.command}:', file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
