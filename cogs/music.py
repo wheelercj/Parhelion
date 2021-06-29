@@ -87,7 +87,7 @@ class Music(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def join(self, ctx, *, channel: discord.VoiceChannel):
-        '''Joins a voice channel'''
+        """Joins a voice channel"""
 
         if ctx.voice_client is not None:
             return await ctx.voice_client.move_to(channel)
@@ -106,7 +106,7 @@ class Music(commands.Cog):
     # I don't want to allow downloading of audio files to repl.it, so this command can never be used anyways.   
     # @commands.command()
     # async def play(self, ctx, *, query):
-    #   '''Plays a file from the local filesystem'''
+    #   """Plays a file from the local filesystem"""
 
     #   source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(query))
     #   ctx.voice_client.play(source, after=lambda e: print('Player error: %s' % e) if e else None)
@@ -117,7 +117,7 @@ class Music(commands.Cog):
     # This command downloads files into repl.it, and the quality of the music it plays is terrible probably because of repl.it's limited resources.
     # @commands.command()
     # async def yt(self, ctx, *, url):
-    #   '''Plays from a url (almost anything youtube_dl supports)'''
+    #   """Plays from a url (almost anything youtube_dl supports)"""
 
     #   async with ctx.typing():
     #       player = await YTDLSource.from_url(url, loop=self.bot.loop)
@@ -129,7 +129,7 @@ class Music(commands.Cog):
     @commands.command(aliases=['music', 'play'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def stream(self, ctx, *, url):
-        '''Streams audio from a url'''
+        """Streams audio from a url"""
 
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
@@ -141,7 +141,7 @@ class Music(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def volume(self, ctx, volume: int):
-        '''Changes the player's volume'''
+        """Changes the player's volume"""
 
         if ctx.voice_client is None:
             return await ctx.send('Not connected to a voice channel.')
@@ -153,7 +153,7 @@ class Music(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def stop(self, ctx):
-        '''Stops and disconnects the bot from voice'''
+        """Stops and disconnects the bot from voice"""
         await ctx.voice_client.disconnect()
 
         

@@ -42,12 +42,12 @@ class Bot(commands.Bot):
 
 
     def get_command_prefixes(self, bot, message: discord.Message) -> List[str]:
-        '''Returns the bot\'s command prefixes
+        """Returns the bot's command prefixes
         
         This function is called each time a command is invoked,
         and so the prefixes can be customized based on where
         the message is from.
-        '''
+        """
         prefixes = copy(dev_settings.bot_prefixes)
         # TODO: after changing hosts and setting up a new
         # database, allow server-side prefix customization
@@ -92,7 +92,7 @@ class Bot(commands.Bot):
 
 
     async def is_only_bot_mention(self, message: discord.Message):
-        '''Returns True if the entire message is a bot mention'''
+        """Returns True if the entire message is a bot mention"""
         if self.user.mention == message.content.replace('!', '', 1):
             return True
         return False
@@ -141,7 +141,7 @@ class Bot(commands.Bot):
 
 
     async def answer_mention(self, message: discord.Message):
-        '''Shows a list of the bot\'s command prefixes'''
+        """Shows a list of the bot's command prefixes"""
         try:
             name = message.author.nick or message.author.name
         except AttributeError:
@@ -154,7 +154,7 @@ class Bot(commands.Bot):
 
 
     async def check_global_cooldown(self, ctx):
-        '''Returns True if the user has not triggered the global cooldown'''
+        """Returns True if the user has not triggered the global cooldown"""
         # This function must be called only once per
         # invocation. In other words, with bot.add_check use
         # call_once=True.

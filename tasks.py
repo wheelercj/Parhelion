@@ -9,7 +9,7 @@ from task import Reminder, Daily_Quote
 
 
 async def save_task(ctx, task_type: str, target_time: str, duration: str, constructor, *args) -> Any:
-    '''Saves one task to the database and returns it
+    """Saves one task to the database and returns it
 
     duration is for output only and can be empty or in any format
     without commas.
@@ -19,7 +19,7 @@ async def save_task(ctx, task_type: str, target_time: str, duration: str, constr
     as in the task's constructor. (The task constructor must
     take these uninherited arguments before all the inherited
     arguments.)
-    '''
+    """
     start_time = datetime.now(timezone.utc)
     author_id = ctx.author.id
     try:
@@ -39,7 +39,7 @@ async def save_task(ctx, task_type: str, target_time: str, duration: str, constr
 
 
 async def delete_task(**kwargs):
-    '''Deletes task(s) from the database
+    """Deletes task(s) from the database
 
     kwargs: task, author_id, task_type, target_time.
     Either use the task kwarg, or the author_id kwarg, or both
@@ -51,7 +51,7 @@ async def delete_task(**kwargs):
     type by that user.
     Use of author_id, task_type, and target_time will delete the
     one task with that key.
-    '''
+    """
     try:
         if 'task' in kwargs.keys():
             task = kwargs['task']
@@ -86,11 +86,11 @@ async def delete_task(**kwargs):
 
 
 async def eval_task(string: str) -> Any:
-    '''Turns a task str into an object
+    """Turns a task str into an object
     
     The task constructor must take any uninherited arguments
     before all the inherited arguments.
-    '''
+    """
     i = string.find('(')
     constructor_name = string[:i]
     args = string[i+1:-1].split(', ')

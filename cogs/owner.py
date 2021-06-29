@@ -8,7 +8,7 @@ from common import remove_backticks
 
 
 class Owner(commands.Cog):
-    '''Commands that can only be used by the bot owner.'''
+    """Commands that can only be used by the bot owner."""
     def __init__(self, bot):
         self.bot = bot
 
@@ -20,20 +20,20 @@ class Owner(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def echo(self, ctx, *, message: str):
-        '''Repeats a message'''
+        """Repeats a message"""
         await ctx.send(message)
 
 
     @commands.command(name='shut-down')
     async def shut_down(self, ctx):
-        '''Shuts down the bot'''
+        """Shuts down the bot"""
         await self.bot.close()
 
 
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def leave(self, ctx):
-        '''Makes the bot leave the server'''
+        """Makes the bot leave the server"""
         await ctx.send(f'Now leaving the server. Goodbye!')
         await ctx.guild.leave()
 
@@ -41,7 +41,7 @@ class Owner(commands.Cog):
     @commands.command(name='repeat', aliases=['r', 'reinvoke'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def repeat_command(self, ctx, n : int = 1, skip: int = 0):
-        '''Repeats the last command you used'''
+        """Repeats the last command you used"""
         previous = ctx.bot.previous_command_ctxs
         if not len(previous):
             await ctx.send('No previous commands saved.')
@@ -61,7 +61,7 @@ class Owner(commands.Cog):
     @commands.command(name='list-exts', aliases=['list-ext', 'list-extensions'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def list_extensions(self, ctx):
-        '''Lists all currently loaded extensions'''
+        """Lists all currently loaded extensions"""
         message = 'Currently loaded extensions:\n' \
             + '\n'.join(self.bot.extensions.keys())
         await ctx.send(message)
@@ -70,7 +70,7 @@ class Owner(commands.Cog):
     @commands.command(name='reload', aliases=['reload-ext', 'reload-exts'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def reload_extension(self, ctx, *, extension: str):
-        '''Reloads an extension'''
+        """Reloads an extension"""
         extensions = extension.split()
         message = ''
         for ext in extensions:
@@ -99,7 +99,7 @@ class Owner(commands.Cog):
     @commands.command(name='load', aliases=['load-ext', 'load-exts'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def load_extension(self, ctx, *, extension: str):
-        '''Loads an extension'''
+        """Loads an extension"""
         extensions = extension.split()
         message = ''
         for ext in extensions:
@@ -115,7 +115,7 @@ class Owner(commands.Cog):
     @commands.command(name='unload', aliases=['unload-ext', 'unload-exts'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def unload_extension(self, ctx, *, extension: str):
-        '''Unloads an extension'''
+        """Unloads an extension"""
         extensions = extension.split()
         message = ''
         for ext in extensions:
@@ -131,7 +131,7 @@ class Owner(commands.Cog):
     @commands.command(name='reload-all', aliases=['reload-all-exts'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def reload_all_extensions(self, ctx):
-        '''Reloads all currently loaded extensions'''
+        """Reloads all currently loaded extensions"""
         message = ''
         extensions = list(self.bot.extensions.keys())
         for ext in extensions.copy():
@@ -148,11 +148,11 @@ class Owner(commands.Cog):
     @commands.command(name='eval', aliases=['evaluate'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def _eval(self, ctx, *, expression: str):
-        '''Evaluates a Python expression
+        """Evaluates a Python expression
         
         Returns result to Discord.
         Has access to bot via self.
-        '''
+        """
         # This command must never be made available to anyone
         # besides this bot's developers because Python's eval
         # function is not safe.
@@ -165,11 +165,11 @@ class Owner(commands.Cog):
     @commands.command(name='py', aliases=['python', 'exec', 'exe', 'execute'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def _exec(self, ctx, *, statement: str):
-        '''Executes a Python statement
+        """Executes a Python statement
         
         Requires use of `await ctx.send` for output.
         Has direct access to bot.
-        '''
+        """
         # This command must never be made available to anyone
         # besides this bot's developers because Python's exec
         # function is not safe.

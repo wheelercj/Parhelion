@@ -13,7 +13,7 @@ from tasks import save_task, delete_task, eval_task
 
 
 async def save_reminder(ctx, duration: str, seconds: int, message: str) -> Reminder:
-    '''Saves one reminder to the database'''
+    """Saves one reminder to the database"""
     start_time = datetime.now(timezone.utc)
     target_time = start_time + timedelta(0, seconds)
     target_time = target_time.isoformat()
@@ -30,10 +30,10 @@ class Reminders(commands.Cog):
     @commands.command(aliases=['add-r', 'reminder', 'remindme'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def remind(self, ctx, duration: str, *, message: str):
-        '''Sends you a reminder, e.g. ;remind 1h30m iron socks
+        """Sends you a reminder, e.g. ;remind 1h30m iron socks
         
         The maximum time allowed is 24.85 days (see https://bugs.python.org/issue20493 for details).
-        '''
+        """
         # Remove some chars for security and simplicity.
         to_remove = ['"', '\'', ',', '\\', '{', '}']
         for char in to_remove:
@@ -59,7 +59,7 @@ class Reminders(commands.Cog):
     @commands.command(name='list-r', aliases=['list-reminders'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def list_reminders(self, ctx):
-        '''Shows all of your reminders'''
+        """Shows all of your reminders"""
         task_key_prefix = await create_task_key('reminder', ctx.author.id)
         r_keys = db.prefix(task_key_prefix)
         r_keys = sorted(r_keys)
@@ -88,12 +88,11 @@ class Reminders(commands.Cog):
     @commands.command(name='del-r', aliases=['del-reminder', 'delete-reminder'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def del_r(self, ctx, index: int):
-        '''Deletes a reminder by its index
+        """Deletes a reminder by its index
         
-        Currently, this only deletes a reminder from the database,
-        not from the program. A deleted reminder will then only be
-        cancelled if the bot is restarted.
-        '''
+        Currently, this only deletes a reminder from the
+        database, not from the program. A deleted reminder will then only be cancelled if the bot is restarted.
+        """
         task_key_prefix = await create_task_key('reminder', ctx.author.id)
         r_keys = db.prefix(task_key_prefix)
         r_keys = sorted(r_keys)
@@ -113,20 +112,20 @@ class Reminders(commands.Cog):
     @del_r.error
     async def del_r_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send('Error: missing argument. Use the reminder\'s index number shown in the list-r command.')
+            await ctx.send("Error: missing argument. Use the reminder's index number shown in the list-r command.")
             await ctx.send(error)
         elif isinstance(error, commands.BadArgument):
-            await ctx.send('Error: use the reminder\'s index number shown in the list-r command.')
+            await ctx.send("Error: use the reminder's index number shown in the list-r command.")
 
 
     def parse_time(self, Time: str) -> float:
-        '''Converts a str of one or multiple units of time to a float of seconds
+        """Converts a str of one or multiple units of time to a float of seconds
         
         The str must be in a certain format. Valid examples:
             2h45m
             30s
             2d5h30m
-        '''
+        """
         seconds = 0.0
         while True:
             unit_match = re.search(r'[dhms]', Time)

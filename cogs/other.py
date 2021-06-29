@@ -19,7 +19,7 @@ class Other(commands.Cog):
     @commands.command(aliases=['prefix'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def prefixes(self, ctx):
-        '''Lists the bot\'s current prefixes'''
+        """Lists the bot's current prefixes"""
         prefixes = get_prefixes_str(self.bot, ctx.message)
         await ctx.send(f'My current prefixes are {prefixes}')
 
@@ -27,14 +27,14 @@ class Other(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def ping(self, ctx):
-        '''Pings the server'''
+        """Pings the server"""
         await ctx.send(f'Pong! It took {round(self.bot.latency, 2)} ms.')
 
 
     @commands.command(aliases=['i', 'info', 'stats', 'uptime', 'invite', 'support', 'privacy-policy', 'privacy'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def about(self, ctx):
-        '''Shows general info about this bot'''
+        """Shows general info about this bot"""
         embed = discord.Embed(title=f'{self.bot.user.name}#{self.bot.user.discriminator}')
         prefixes = await get_prefixes_str(self.bot, ctx.message)
         
@@ -70,7 +70,7 @@ class Other(commands.Cog):
     @commands.command(name='time', aliases=['clock', 'UTC', 'utc'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def _time(self, ctx):
-        '''Shows the current time in UTC'''
+        """Shows the current time in UTC"""
         current_time = datetime.now(timezone.utc)
         await ctx.send(f'The current time is {current_time} UTC')
 
@@ -78,7 +78,7 @@ class Other(commands.Cog):
     @commands.command(name='server-info', aliases=['serverinfo'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def server_info(self, ctx):
-        '''Shows info about the current server'''
+        """Shows info about the current server"""
         embed = discord.Embed()
         embed.add_field(name='server info\n\u2800',
             value=f'**name:** {ctx.guild.name}\n'
@@ -96,7 +96,7 @@ class Other(commands.Cog):
     @commands.command(name='inspect', aliases=['source', 'src', 'getsource'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def _inspect(self, ctx, *, command: str = None):
-        '''Shows the source code of a command'''
+        """Shows the source code of a command"""
         if command is None:
             await ctx.send(f'Here is my source code: {dev_settings.bot_repository_link}')
         else:
@@ -115,11 +115,11 @@ class Other(commands.Cog):
     @commands.command(aliases=['calc', 'solve', 'maths'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def math(self, ctx, *, expression: str):
-        '''Evaluates a math expression
+        """Evaluates a math expression
         
         Evaluates multiple expressions if they're on separate lines, and supports code blocks.
         Uses the math.js API: https://mathjs.org/docs/expressions/syntax.html
-        '''
+        """
         try:
             expression = remove_backticks(expression)
             if '**' in expression:
@@ -157,7 +157,7 @@ class Other(commands.Cog):
     @commands.command(aliases=['rotate', 'rot', 'shift'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def cipher(self, ctx, n: int, *, message: str):
-        '''Rotates each letter n letters through the alphabet'''
+        """Rotates each letter n letters through the alphabet"""
         message = message.lower()
         new_string = ''
         alphabet = 'abcdefghijklmnopqrstuvwxyz'

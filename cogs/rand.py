@@ -11,16 +11,16 @@ from tasks import save_task, delete_task
 
 
 async def save_daily_quote(ctx, target_time: str) -> Daily_Quote:
-    '''Saves one daily quote task to the database'''
+    """Saves one daily quote task to the database"""
     daily_quote = await save_task(ctx, 'daily_quote', target_time, '', Daily_Quote)
     return daily_quote
 
 
 async def send_quote(destination, bot):
-    '''Send a random quote to destination
+    """Send a random quote to destination
     
     destination can be ctx, a channel object, or a user object.
-    '''
+    """
     params = {
         'lang':'en',
         'method':'getQuote',
@@ -41,7 +41,7 @@ class Random(commands.Cog):
     @commands.command(aliases=['random'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def rand(self, ctx, low: int = 1, high: int = 6):
-        '''Gives a random number (default bounds: 1 and 6)'''
+        """Gives a random number (default bounds: 1 and 6)"""
         low = int(low)
         high = int(high)
         if  low <= high:
@@ -53,7 +53,7 @@ class Random(commands.Cog):
     @commands.command(name='flip-coin', aliases=['flip', 'coin-flip'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def flip_coin(self, ctx):
-        '''Flips a coin'''
+        """Flips a coin"""
         n = random.randint(1, 2)
         if n == 1:
             await ctx.send('heads')
@@ -72,10 +72,10 @@ class Random(commands.Cog):
 
 
     async def daily_quote_loop(self, destination, bot, target_time: str):
-        '''Send a quote once a day at a specific time
+        """Send a quote once a day at a specific time
         
         destination can be ctx, a channel object, or a user object.
-        '''
+        """
         while True:
             target_time = datetime.fromisoformat(target_time)
             now = datetime.now(timezone.utc)
@@ -91,13 +91,13 @@ class Random(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def quote(self, ctx, daily_utc_time: str = ''):
-        '''Shows a random famous quote
+        """Shows a random famous quote
         
         If a UTC time is provided in HH:mm format, a quote will be
         sent each day at that time. You can use the time command
         to see the current UTC time. You can cancel daily quotes
         with `quote stop`.
-        '''
+        """
         if not len(daily_utc_time):
             await send_quote(ctx, self.bot)
             return
@@ -125,7 +125,7 @@ class Random(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def choose(self, ctx, choice_count: int, *choices: str):
-        '''Chooses randomly from multiple choices'''
+        """Chooses randomly from multiple choices"""
         choices_made = []
         for _ in range(0, choice_count):
             choices_made.append(random.choice(choices))

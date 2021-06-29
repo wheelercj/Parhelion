@@ -1,12 +1,12 @@
 class Task(object):
-    '''A task to be done at specific time(s)'''
+    """A task to be done at specific time(s)"""
     def __init__(self, task_type: str, author_id: int, start_time: str, target_time: str, duration: str = '', is_dm: bool = True, guild_id: int = 0, channel_id: int = 0):
-        '''Creates a Task
+        """Creates a Task
 
         The time strings must be in Python's default ISO format
         (with no spaces). The duration string is for output
         only and can be empty or in any format without commas.
-        '''
+        """
         self.task_type = task_type
         self.author_id = author_id
         self.start_time = start_time
@@ -29,12 +29,12 @@ class Task(object):
 
 class Reminder(Task):
     def __init__(self, message: str, author_id: int, start_time: str, target_time: str, duration: str = '', is_dm: bool = True, guild_id: int = 0, channel_id: int = 0):
-        '''Creates a Reminder
+        """Creates a Reminder
 
         The time strings must be in Python's default ISO format
         (with no spaces). The duration string is for output
         only and can be empty or in any format without commas.
-        '''
+        """
         super().__init__('reminder', author_id, start_time, target_time, duration, is_dm, guild_id, channel_id)
         self.message = message
 
@@ -64,12 +64,12 @@ class Reminder(Task):
 
 class Daily_Quote(Task):
     def __init__(self, author_id: int, start_time: str, target_time: str, duration: str = '', is_dm: bool = True, guild_id: int = 0, channel_id: int = 0):
-        '''Creates a Daily_Quote
+        """Creates a Daily_Quote
 
         The time strings must be in Python's default ISO format
         (with no spaces). The duration string is for output
         only and can be empty or in any format without commas.
-        '''
+        """
         super().__init__('daily_quote', author_id, start_time, target_time, duration, is_dm, guild_id, channel_id)
 
     def __repr__(self):

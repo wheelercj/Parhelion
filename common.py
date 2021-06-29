@@ -25,7 +25,7 @@ async def send_traceback(ctx, error):
 
 
 def remove_backticks(statement: str, languages=['py', 'python']) -> str:
-    '''Removes language name and backticks around a code block, if they are there'''
+    """Removes language name and backticks around a code block, if they are there"""
     if statement.startswith('```'):
         statement = statement[3:]
         for language in languages:
@@ -54,10 +54,10 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
 
 
 async def get_display_prefixes(bot, message: discord.Message) -> List[str]:
-    '''Lists the prefixes as they appear in Discord
+    """Lists the prefixes as they appear in Discord
     
     The prefixes are sorted from shortest to longest.
-    '''
+    """
     raw_prefixes: List[str] = bot.command_prefix(bot, message)
     if '' in raw_prefixes:
         raw_prefixes.remove('')
@@ -78,10 +78,10 @@ async def get_display_prefixes(bot, message: discord.Message) -> List[str]:
 
 
 async def get_prefixes_str(bot, message: discord.Message, display_prefixes: list = None) -> str:
-    '''Returns a string with all prefixes, comma separated
+    """Returns a string with all prefixes, comma separated
     
     The prefixes are sorted from shortest to longest.    
-    '''
+    """
     if display_prefixes is None:
         display_prefixes = await get_display_prefixes(bot, message)
     prefixes = [f'`{x}`' for x in display_prefixes]
@@ -89,10 +89,10 @@ async def get_prefixes_str(bot, message: discord.Message, display_prefixes: list
 
 
 async def get_prefixes_message(bot, message: discord.Message, display_prefixes: list = None) -> str:
-    '''Returns a message that explains the command prefixes
+    """Returns a message that explains the command prefixes
     
     The prefixes are sorted from shortest to longest.
-    '''
+    """
     if display_prefixes is None:
         display_prefixes = await get_display_prefixes(bot, message)
     prefixes_str = await get_prefixes_str(bot, message, display_prefixes)
@@ -105,11 +105,11 @@ async def get_prefixes_message(bot, message: discord.Message, display_prefixes: 
 
 
 async def create_task_key(task_type: str = '', author_id: int = 0, target_time: str = '') -> str:
-    '''Create a task key
+    """Create a task key
     
     If one or more of the last arguments are missing, a key
     prefix will be returned.
-    '''
+    """
     if not len(target_time):
         if not author_id:
             if not len(task_type):
