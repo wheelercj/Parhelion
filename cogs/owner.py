@@ -8,7 +8,7 @@ from common import remove_backticks
 
 
 class Owner(commands.Cog):
-    """Commands that can only be used by the bot owner."""
+    """Commands that can only be used by the bot owner"""
     def __init__(self, bot):
         self.bot = bot
 
@@ -16,7 +16,6 @@ class Owner(commands.Cog):
     async def cog_check(self, ctx):
         if not await self.bot.is_owner(ctx.author):
             raise commands.NotOwner
-
         return True
 
 
