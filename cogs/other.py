@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import json
 import discord
 from discord.ext import commands
+import typing
 
 # Internal imports
 from common import remove_backticks, send_traceback, get_prefixes_str, dev_settings
@@ -105,6 +106,86 @@ class Other(commands.Cog):
         embed.set_thumbnail(url=ctx.guild.icon_url)
 
         await ctx.send(embed=embed)
+    
+
+    @commands.command(name='user-info', aliases=['whois', 'who-is', 'member-info'])
+    @commands.guild_only()
+    @commands.cooldown(1, 15, commands.BucketType.user)
+    async def user_info(self, ctx, user_id: typing.Optional[int], *, name: typing.Optional[str]):
+        """Shows info about a member of the current server
+        
+        This command works with either their user ID, nickname, or username.
+        """
+        member = None
+        if user_id is not None:
+            member: discord.Member = ctx.guild.get_member(user_id)
+        elif name is not None:
+            member: discord.Member = ctx.guild.get_member_named(name)
+
+        if member is None:
+            await ctx.send('User not found.')
+            return
+
+        embed = discord.Embed()
+        embed.add_field(name=f'{member.name}#{member.discriminator}\n\u2800',
+            value=f'**display name:** {member.display_name}\n'
+                + f'**ID:** {member.id}\n'
+                + await self.get_whether_bot(ctx, member)
+                + f'**account created:** {member.created_at}\n'
+                + f'**joined server:** {member.joined_at}\n'
+                + f'**top server role:** {member.top_role}\n'
+                + f'**server roles:** ' + ', '.join(x.name for x in member.roles) + '\n'
+                + await self.get_mutual_server_count(ctx, member)
+                + await self.get_premium_since(ctx, member)
+                + await self.get_global_roles(ctx, member)
+        )
+        embed.set_thumbnail(url=member.avatar_url)
+
+        await ctx.send(embed=embed)
+
+
+    async def get_whether_bot(self, ctx, member: discord.Member) -> str:
+        """Returns a message if member is a bot, otherwise returns an empty string"""
+        if member.bot:
+            return f'**{member.display_name} is a bot**\n'
+        else:
+            return ''
+
+
+    async def get_mutual_server_count(self, ctx, member: discord.Member) -> str:
+        """Gets the number of servers in common between ctx.author and a member
+        
+        Returns an empty string if member is ctx.author or a bot.
+        """
+        if ctx.author != member and not member.bot:
+            return f'**mutual servers with you:** {len(member.mutual_guilds)}\n'
+        else:
+            return ''
+
+
+    async def get_premium_since(self, ctx, member: discord.Member) -> str:
+        """Gets the datetime of when a member's premium began
+        
+        Returns an empty string if the member does not have premium.
+        """
+        r = member.premium_since
+        if r is not None:
+            return f'**premium since:** {r}\n'
+        else:
+            return ''
+
+
+    async def get_global_roles(self, ctx, member: discord.Member) -> str:
+        """Gets the global Discord roles of a member
+        
+        E.g. Discord staff, bug hunter, verified bot, etc.
+        Returns an empty string if the member has no global roles.
+        """
+        flags = ', '.join(member.public_flags.all())
+        if len(flags):
+            return f'**global roles:**: {flags}\n'
+        else:
+            return ''
 
 
     @commands.command(aliases=['calc', 'solve', 'maths'])
