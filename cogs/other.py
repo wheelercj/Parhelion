@@ -89,26 +89,74 @@ class Other(commands.Cog):
         await ctx.send(f'The current time is {current_time} UTC')
 
 
-    @commands.command(name='server-info', aliases=['serverinfo'])
+    @commands.command(name='server-info', aliases=['serverinfo', 'guild-info', 'guildinfo'])
     @commands.guild_only()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def server_info(self, ctx):
         """Shows info about the current server"""
+        if ctx.guild.unavailable:
+            await ctx.send('The server\'s data is unavailable.')
+            return
+
+        guild = self.bot.get_guild(ctx.guild.id)
+        bot_count = await self.get_bot_count(ctx, guild)
+        human_count = guild.member_count - bot_count
+
         embed = discord.Embed()
-        embed.add_field(name='server info\n\u2800',
-            value=f'**name:** {ctx.guild.name}\n'
-                + f'**ID:** {ctx.guild.id}\n'
-                + f'**description:** {ctx.guild.description}\n'
-                + f'**owner:** {ctx.guild.owner}\n'
-                + f'**roles:** {len(ctx.guild.roles)}\n'
-                + f'**members:** {len(ctx.guild.members)}'
+        embed.add_field(name='server info',
+            value=f'name: {guild.name}\n'
+                + f'ID: {guild.id}\n'
+                + f'owner: {guild.owner.name}#{guild.owner.discriminator}\n'
+                + f'owner ID: {guild.owner_id}\n'
+                + f'description: {guild.description}\n'
+                + f'created: {guild.created_at}\n'
+                + f'region: {guild.region}\n'
+                + f'preferred locale: {guild.preferred_locale}\n'
+                + f'current boosts: {guild.premium_subscription_count}\n'
+                + f'roles: {len(guild.roles)}\n'
+                + f'emojis: {len(guild.emojis)}/{guild.emoji_limit}\n'
+                + f'file size limit: {guild.filesize_limit/1000000:.2f} MB\n'
+                + f'bitrate limit: {guild.bitrate_limit/1000} kbps\n'
+                + '\n'
+                + '**members**\n'
+                + f'total members: {guild.member_count}/{guild.max_members}\n'
+                + f'humans: {human_count}\n'
+                + f'bots: {bot_count}\n'
+                + '\n'
+                + '**channels**\n'
+                + f'total channels: {len(guild.channels)}\n'
+                + f'categories: {len(guild.categories)}\n'
+                + f'text channels: {len(guild.text_channels)}\n'
+                + f'voice channels: {len(guild.voice_channels)}\n'
+                + f'stages: {len(guild.stage_channels)}\n'
+                + f'max video channel users: {guild.max_video_channel_users}\n'
+                + '\n'
+                + await self.get_server_features(ctx, guild)
         )
-        embed.set_thumbnail(url=ctx.guild.icon_url)
+        embed.set_thumbnail(url=guild.icon_url)
 
         await ctx.send(embed=embed)
     
 
-    @commands.command(name='user-info', aliases=['whois', 'who-is', 'member-info'])
+    async def get_bot_count(self, ctx, guild):
+        """Counts the bots in the server"""
+        count = 0
+        for member in guild.members:
+            if member.bot:
+                count += 1
+        return count
+
+
+    async def get_server_features(self, ctx, guild):
+        """Gets the server's features or returns any empty string if there are none"""
+        features = ', '.join(guild.features)
+        if len(features):
+            return '**features**\n' + features
+        else:
+            return ''
+
+
+    @commands.command(name='user-info', aliases=['userinfo', 'who-is', 'whois', 'member-info', 'memberinfo'])
     @commands.guild_only()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def user_info(self, ctx, user_id: typing.Optional[int], *, name: typing.Optional[str]):
