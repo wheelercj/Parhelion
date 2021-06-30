@@ -144,15 +144,10 @@ class Bot(commands.Bot):
 
     async def answer_mention(self, message: discord.Message):
         """Shows a list of the bot's command prefixes"""
-        try:
-            name = message.author.nick or message.author.name
-        except AttributeError:
-            name = message.author.name
-
         display_prefixes = await get_display_prefixes(self, message)
         prefixes_message = await get_prefixes_message(self, message, display_prefixes)
         
-        await message.channel.send(f'Hello {name}! My command {prefixes_message}. Use `{display_prefixes[0]}help` to get help with commands.')
+        await message.channel.send(f'Hello {message.author.display_name}! My command {prefixes_message}. Use `{display_prefixes[0]}help` to get help with commands.')
 
 
     async def check_global_cooldown(self, ctx):
