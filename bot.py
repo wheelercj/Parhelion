@@ -14,7 +14,6 @@ from startup import continue_tasks
 
 
 extensions = [
-    'cogs.docs',
     'cogs.help',
     'cogs.info',
     'cogs.music',
