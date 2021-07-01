@@ -5,6 +5,9 @@ from datetime import datetime, timezone
 import typing
 from typing import List, Tuple
 
+# Internal imports
+from common import _get_member
+
 
 class Info(commands.Cog):
     def __init__(self, bot):
@@ -93,23 +96,6 @@ class Info(commands.Cog):
             return ''
 
 
-    async def _get_member(self, ctx, member_id: typing.Optional[int], *, name: str = None) -> discord.Member:
-        """Gets a member object from a member ID, display name, or context
-        
-        member_id can only be used in a guild. If both an ID and
-        a name are given, the ID will be used. If neither are
-        given, ctx.author.id will be used.
-        """
-        if member_id is not None:
-            return ctx.guild.get_member(member_id)
-        elif name is not None:
-            if ctx.guild is None:
-                raise ValueError('member_id can only be used in a guild')
-            return ctx.guild.get_member_named(name)
-        else:
-            return ctx.guild.get_member(ctx.author.id)
-
-
     @commands.command(name='user-info', aliases=['ui', 'whois', 'who-is', 'userinfo', 'member-info', 'memberinfo'])
     @commands.guild_only()
     @commands.cooldown(1, 15, commands.BucketType.user)
@@ -119,7 +105,7 @@ class Info(commands.Cog):
         This command works with either their user ID, nickname, or
         username.
         """
-        member: discord.Member = await self._get_member(ctx, user_id, name)
+        member: discord.Member = await _get_member(ctx, user_id, name)
         if member is None:
             await ctx.send('User not found.')
             return
@@ -196,7 +182,7 @@ class Info(commands.Cog):
         This command works with either their user ID, nickname, or
         username.
         """
-        member: discord.Member = await self._get_member(ctx, user_id, name)
+        member: discord.Member = await _get_member(ctx, user_id, name)
         if member is None:
             await ctx.send('User not found.')
             return
