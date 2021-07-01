@@ -26,7 +26,7 @@ class Info(commands.Cog):
         await ctx.send(f'The current time is {current_time} UTC')
 
 
-    @commands.command(name='server-info', aliases=['serverinfo', 'guild-info', 'guildinfo'])
+    @commands.command(name='server-info', aliases=['si', 'serverinfo', 'guild-info', 'guildinfo'])
     @commands.guild_only()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def server_info(self, ctx):
@@ -93,10 +93,12 @@ class Info(commands.Cog):
             return ''
 
 
-    async def _get_member(self, ctx, member_id: int = None, name: str = None) -> discord.Member:
+    async def _get_member(self, ctx, member_id: typing.Optional[int], *, name: str = None) -> discord.Member:
         """Gets a member object from a member ID, display name, or context
         
-        member_id can only be used in a guild.
+        member_id can only be used in a guild. If both an ID and
+        a name are given, the ID will be used. If neither are
+        given, ctx.author.id will be used.
         """
         if member_id is not None:
             return ctx.guild.get_member(member_id)
@@ -108,13 +110,14 @@ class Info(commands.Cog):
             return ctx.guild.get_member(ctx.author.id)
 
 
-    @commands.command(name='user-info', aliases=['userinfo', 'who-is', 'whois', 'member-info', 'memberinfo'])
+    @commands.command(name='user-info', aliases=['ui', 'whois', 'who-is', 'userinfo', 'member-info', 'memberinfo'])
     @commands.guild_only()
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def user_info(self, ctx, user_id: typing.Optional[int], *, name: typing.Optional[str]):
+    async def user_info(self, ctx, user_id: typing.Optional[int], *, name: str = None):
         """Shows info about a member of the current server
         
-        This command works with either their user ID, nickname, or username.
+        This command works with either their user ID, nickname, or
+        username.
         """
         member: discord.Member = await self._get_member(ctx, user_id, name)
         if member is None:
@@ -161,7 +164,8 @@ class Info(commands.Cog):
     async def get_premium_since(self, ctx, member: discord.Member) -> str:
         """Gets the datetime of when a member's premium began
         
-        Returns an empty string if the member does not have premium.
+        Returns an empty string if the member does not have
+        premium.
         """
         r = member.premium_since
         if r is not None:
@@ -186,8 +190,12 @@ class Info(commands.Cog):
     @commands.command(name='permissions', aliases=['perms'])
     @commands.guild_only()
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def server_permissions(self, ctx, user_id: typing.Optional[int], *, name: typing.Optional[str]):
-        """Shows the server and channel permissions of a user"""
+    async def server_permissions(self, ctx, user_id: typing.Optional[int], *, name: str = None):
+        """Shows the server and channel permissions of a user
+        
+        This command works with either their user ID, nickname, or
+        username.
+        """
         member: discord.Member = await self._get_member(ctx, user_id, name)
         if member is None:
             await ctx.send('User not found.')
@@ -196,28 +204,34 @@ class Info(commands.Cog):
         embed = discord.Embed(title=f'{member.name}#{member.discriminator}\'s permissions')
 
         server_perms = await self.format_perms(member.guild_permissions)
-        embed.add_field(name=f'server permissions', value=server_perms)
+        embed.add_field(name=f'server permissions',
+            value=server_perms)
 
         all_channel_perms = await self.get_each_channels_perms(ctx, member)
         if len(all_channel_perms):
             server_n = server_perms.count('\n')
             channel_n = all_channel_perms.count('\n')
             if server_n > channel_n:
-                embed.add_field(name='channel overwrites', value=all_channel_perms)
+                embed.add_field(name='channel overwrites',
+                    value=all_channel_perms)
             else:
                 half = channel_n / 2
-                embed.add_field(name='channel overwrites', value=all_channel_perms[:half])
-                embed.add_field(name='channel overwrites cont.', value=all_channel_perms[half:])
+                embed.add_field(name='channel overwrites',
+                    value=all_channel_perms[:half])
+                embed.add_field(name='channel overwrites cont.',
+                    value=all_channel_perms[half:])
         
         await ctx.send(embed=embed)
 
 
     async def format_perms(self, permissions: discord.Permissions) -> str:
-        """Convert a permissions object to a printable string
+        """Converts a permissions object to a printable string
         
-        Returns False if the permissions are for a hidden text channel.
+        Returns False if the permissions are for a hidden text
+        channel.
         """
-        if not permissions.read_messages and permissions.read_messages is not None:
+        if not permissions.read_messages \
+                and permissions.read_messages is not None:
             return False
         perm_list = sorted(list(permissions), key=lambda x: x[0])
         return await self.perm_list_message(perm_list)
@@ -246,12 +260,13 @@ class Info(commands.Cog):
 
 
     async def perm_list_message(self, perm_list: List[Tuple[str, bool]]) -> str:
-        """Convert a permissions list to a printable string
+        """Converts a permissions list to a printable string
         
-        perm_list is a list of tuples in the format (name_of_perm, if_perm_granted).
-        Using `list(perm_obj)` where `perm_obj` is of type discord.Permissions gives 
-        the correct format. If a permission's bool is set to None, the permission will
-        be ignored.
+        perm_list is a list of tuples in the format
+        (perm_name, is_perm_granted). Using `list(perm_obj)` where
+        `perm_obj` is of type discord.Permissions gives the
+        correct format. If a permission's bool is set to None, the
+        permission will be ignored.
         """
         perm_str = ''
         for name, value in perm_list:
