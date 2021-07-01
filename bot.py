@@ -48,7 +48,7 @@ class Bot(commands.Bot):
         and so the prefixes can be customized based on where
         the message is from.
         """
-        prefixes = copy(dev_settings.bot_prefixes)
+        prefixes = copy(dev_settings.default_bot_prefixes)
         # TODO: after changing hosts and setting up a new
         # database, allow server-side prefix customization
         # here.
