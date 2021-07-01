@@ -4,6 +4,7 @@ import json
 import discord
 from discord.ext import commands
 import typing
+from typing import List, Tuple
 
 # Internal imports
 from common import remove_backticks, send_traceback
@@ -96,6 +97,21 @@ class Other(commands.Cog):
             return ''
 
 
+    async def _get_member(self, ctx, member_id: int = None, name: str = None) -> discord.Member:
+        """Gets a member object from a member ID, display name, or context
+        
+        member_id can only be used in a guild.
+        """
+        if member_id is not None:
+            return ctx.guild.get_member(member_id)
+        elif name is not None:
+            if ctx.guild is None:
+                raise ValueError('member_id can only be used in a guild')
+            return ctx.guild.get_member_named(name)
+        else:
+            return ctx.guild.get_member(ctx.author.id)
+
+
     @commands.command(name='user-info', aliases=['userinfo', 'who-is', 'whois', 'member-info', 'memberinfo'])
     @commands.guild_only()
     @commands.cooldown(1, 15, commands.BucketType.user)
@@ -104,12 +120,7 @@ class Other(commands.Cog):
         
         This command works with either their user ID, nickname, or username.
         """
-        member = None
-        if user_id is not None:
-            member: discord.Member = ctx.guild.get_member(user_id)
-        elif name is not None:
-            member: discord.Member = ctx.guild.get_member_named(name)
-
+        member: discord.Member = await self._get_member(ctx, user_id, name)
         if member is None:
             await ctx.send('User not found.')
             return
@@ -174,6 +185,87 @@ class Other(commands.Cog):
             return f'**global roles:**: {flags}\n'
         else:
             return ''
+
+
+    @commands.command(name='permissions', aliases=['perms'])
+    @commands.guild_only()
+    @commands.cooldown(1, 15, commands.BucketType.user)
+    async def server_permissions(self, ctx, user_id: typing.Optional[int], *, name: typing.Optional[str]):
+        """Shows the server and channel permissions of a user"""
+        member: discord.Member = await self._get_member(ctx, user_id, name)
+        if member is None:
+            await ctx.send('User not found.')
+            return
+
+        embed = discord.Embed(title=f'{member.name}#{member.discriminator}\'s permissions')
+
+        server_perms = await self.format_perms(member.guild_permissions)
+        embed.add_field(name=f'server permissions', value=server_perms)
+
+        all_channel_perms = await self.get_each_channels_perms(ctx, member)
+        if len(all_channel_perms):
+            server_n = server_perms.count('\n')
+            channel_n = all_channel_perms.count('\n')
+            if server_n > channel_n:
+                embed.add_field(name='channel overwrites', value=all_channel_perms)
+            else:
+                half = channel_n / 2
+                embed.add_field(name='channel overwrites', value=all_channel_perms[:half])
+                embed.add_field(name='channel overwrites cont.', value=all_channel_perms[half:])
+        
+        await ctx.send(embed=embed)
+
+
+    async def format_perms(self, permissions: discord.Permissions) -> str:
+        """Convert a permissions object to a printable string
+        
+        Returns False if the permissions are for a hidden text channel.
+        """
+        if not permissions.read_messages and permissions.read_messages is not None:
+            return False
+        perm_list = sorted(list(permissions), key=lambda x: x[0])
+        return await self.perm_list_message(perm_list)
+
+
+    async def get_each_channels_perms(self, ctx, member: discord.Member) -> str:
+        """Gets the permissions for each channel that overwrite the server permissions
+        
+        Any hidden text channels are not named, but counted.
+        """
+        all_channel_perms = ''
+        hidden_text_count = 0
+        for channel in ctx.guild.channels:
+            channel_perms = await self.format_perms(channel.overwrites_for(member))
+            if not channel_perms and channel_perms != '' and channel.category:
+                hidden_text_count += 1
+            elif len(channel_perms):
+                all_channel_perms += f'**\u2800{channel.name}**\n' \
+                                     f'{channel_perms}\n'
+        
+        if hidden_text_count:
+            all_channel_perms += f'**\u2800({hidden_text_count} hidden text channels)**\n' \
+                                 f'\u2800❌ read messages\n'
+        
+        return all_channel_perms
+
+
+    async def perm_list_message(self, perm_list: List[Tuple[str, bool]]) -> str:
+        """Convert a permissions list to a printable string
+        
+        perm_list is a list of tuples in the format (name_of_perm, if_perm_granted).
+        Using `list(perm_obj)` where `perm_obj` is of type discord.Permissions gives 
+        the correct format. If a permission's bool is set to None, the permission will
+        be ignored.
+        """
+        perm_str = ''
+        for name, value in perm_list:
+            name = name.replace('_', ' ')
+            if value:
+                perm_str += f'\u2800✅ {name}\n'
+            elif value is not None:
+                perm_str += f'\u2800❌ {name}\n'
+
+        return perm_str
 
 
     @commands.command(aliases=['calc', 'solve', 'maths'])
