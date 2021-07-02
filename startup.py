@@ -8,7 +8,7 @@ from typing import List, Callable
 # Internal imports
 from common import send_traceback, create_task_key
 from tasks import delete_task, eval_task
-from task import Daily_Quote
+from task import Task, Reminder, Daily_Quote
 from cogs.rand import send_quote
 
 
@@ -48,7 +48,7 @@ async def sorted_task_keys() -> List[str]:
     return sorted(task_keys, key=lambda x: x.split()[2])
 
 
-async def update_task_target_time(task, constructor: Callable, new_target_time: str):
+async def update_task_target_time(task: Task, constructor: Callable, new_target_time: str):
     """Updates the database"""
     new_task_key = await create_task_key(task.task_type, task.author_id, new_target_time)
     new_task = copy.deepcopy(task)
@@ -58,7 +58,7 @@ async def update_task_target_time(task, constructor: Callable, new_target_time: 
     await delete_task(task=task)
 
 
-async def target_tomorrow(task) -> str:
+async def target_tomorrow(task: Task) -> str:
     """Changes the target day to tomorrow without changing the time"""
     tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
     old_target_time = datetime.fromisoformat(task.target_time)
@@ -69,7 +69,7 @@ async def target_tomorrow(task) -> str:
     return new_target_time.isoformat()
 
 
-async def continue_daily_quote(bot, daily_quote, destination, remaining_seconds: int):
+async def continue_daily_quote(bot, daily_quote: Daily_Quote, destination, remaining_seconds: int):
     """Continues a daily quote that had been stopped by a server restart
     
     destination can be ctx, a channel object, or a user object
@@ -82,7 +82,7 @@ async def continue_daily_quote(bot, daily_quote, destination, remaining_seconds:
     await update_task_target_time(daily_quote, Daily_Quote, new_target_time)
     
 
-async def continue_reminder(bot, reminder, destination, remaining_seconds: int):
+async def continue_reminder(bot, reminder: Reminder, destination, remaining_seconds: int):
     """Continues a reminder that had been stopped by a server restart
     
     destination can be ctx, a channel object, or a user object.
