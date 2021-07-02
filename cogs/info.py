@@ -40,45 +40,45 @@ class Info(commands.Cog):
 
         guild = self.bot.get_guild(ctx.guild.id)
         bot_count = await self.get_bot_count(ctx, guild)
-        human_count = guild.member_count - bot_count
+        cat_count = len(guild.categories)
 
-        embed = discord.Embed()
-        embed.add_field(name='server info',
-            value=f'name: {guild.name}\n'
-                + f'ID: {guild.id}\n'
+        embed = discord.Embed(title='server info')
+        embed.add_field(name=guild.name,
+            value=f'ID: {guild.id}\n'
                 + f'owner: {guild.owner.name}#{guild.owner.discriminator}\n'
                 + f'owner ID: {guild.owner_id}\n'
                 + f'description: {guild.description}\n'
                 + f'created: {guild.created_at}\n'
                 + f'region: {guild.region}\n'
                 + f'preferred locale: {guild.preferred_locale}\n'
-                + f'current boosts: {guild.premium_subscription_count}\n'
+                + f'total members: {guild.member_count}/{guild.max_members} ({bot_count} bots)\n'
                 + f'roles: {len(guild.roles)}\n'
+                + f'current boosts: {guild.premium_subscription_count}\n'
+                + f'boost level: {guild.premium_tier}\n'
                 + f'emojis: {len(guild.emojis)}/{guild.emoji_limit}\n'
                 + f'file size limit: {guild.filesize_limit/1000000:.2f} MB\n'
                 + f'bitrate limit: {guild.bitrate_limit/1000} kbps\n'
                 + '\n'
-                + '**members**\n'
-                + f'total members: {guild.member_count}/{guild.max_members}\n'
-                + f'humans: {human_count}\n'
-                + f'bots: {bot_count}\n'
-                + '\n'
                 + '**channels**\n'
-                + f'total channels: {len(guild.channels)}\n'
-                + f'categories: {len(guild.categories)}\n'
+                + f'categories: {cat_count}\n'
+                + f'total channels: {len(guild.channels) - cat_count}\n'
                 + f'text channels: {len(guild.text_channels)}\n'
                 + f'voice channels: {len(guild.voice_channels)}\n'
                 + f'stages: {len(guild.stage_channels)}\n'
                 + f'max video channel users: {guild.max_video_channel_users}\n'
-                + '\n'
-                + await self.get_server_features(ctx, guild)
         )
+
+        features = await self.get_server_features(ctx, guild)
+        if len(features):
+            embed.add_field(name='\u2800',
+                value='**features**\n' + features)
+
         embed.set_thumbnail(url=guild.icon_url)
 
         await ctx.send(embed=embed)
     
 
-    async def get_bot_count(self, ctx, guild):
+    async def get_bot_count(self, ctx, guild: discord.Guild) -> int:
         """Counts the bots in the server"""
         count = 0
         for member in guild.members:
@@ -87,13 +87,12 @@ class Info(commands.Cog):
         return count
 
 
-    async def get_server_features(self, ctx, guild):
+    async def get_server_features(self, ctx, guild: discord.Guild) -> str:
         """Gets the server's features or returns any empty string if there are none"""
-        features = ', '.join(guild.features)
-        if len(features):
-            return '**features**\n' + features
-        else:
-            return ''
+        features = ''
+        for feature in sorted(guild.features):
+            features += f'\n• ' + feature.replace('_', ' ').lower()
+        return features
 
 
     @commands.command(name='user-info', aliases=['ui', 'whois', 'who-is', 'userinfo', 'member-info', 'memberinfo'])
