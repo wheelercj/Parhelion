@@ -32,7 +32,8 @@ async def get_member(ctx, member_id: typing.Optional[int], name: str = None) -> 
         return ctx.guild.get_member(ctx.author.id)
 
 
-async def send_traceback(ctx, error):
+async def send_traceback(ctx, error: BaseException):
+    """Sends the traceback of an exception to ctx"""
     etype = type(error)
     trace = error.__traceback__
     lines = traceback.format_exception(etype, error, trace)
@@ -61,6 +62,7 @@ def remove_backticks(statement: str, languages=['py', 'python']) -> str:
 
 
 async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
+    """Sends a private message to the bot owner"""
     user = await bot.fetch_user(bot.owner_id)
     if use_embed:
         embed = discord.Embed(title=embed_title, description=message)
@@ -93,10 +95,12 @@ async def get_display_prefixes(bot, message: discord.Message) -> List[str]:
     return display_prefixes
 
 
-async def get_prefixes_str(bot, message: discord.Message, display_prefixes: list = None) -> str:
+async def get_prefixes_str(bot, message: discord.Message, display_prefixes: List[str] = None) -> str:
     """Returns a string with all prefixes, comma separated
     
-    The prefixes are sorted from shortest to longest.    
+    The prefixes should be sorted from shortest to longest.
+    If display_prefixes is not provided, it will
+    be retrieved.
     """
     if display_prefixes is None:
         display_prefixes = await get_display_prefixes(bot, message)
@@ -104,10 +108,14 @@ async def get_prefixes_str(bot, message: discord.Message, display_prefixes: list
     return ', '.join(prefixes)
 
 
-async def get_prefixes_message(bot, message: discord.Message, display_prefixes: list = None) -> str:
+async def get_prefixes_message(bot, message: discord.Message, display_prefixes: List[str] = None) -> str:
     """Returns a message that explains the command prefixes
     
-    The prefixes are sorted from shortest to longest.
+    The message starts with `prefixes are` or `prefix is`,
+    depending on how many there are.
+    The prefixes should be sorted from shortest to longest.
+    If display_prefixes is not provided, it will
+    be retrieved.
     """
     if display_prefixes is None:
         display_prefixes = await get_display_prefixes(bot, message)
@@ -121,7 +129,7 @@ async def get_prefixes_message(bot, message: discord.Message, display_prefixes: 
 
 
 async def create_task_key(task_type: str = '', author_id: int = 0, target_time: str = '') -> str:
-    """Create a task key
+    """Creates a task key
     
     If one or more of the last arguments are missing, a key
     prefix will be returned.
