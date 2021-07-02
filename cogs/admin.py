@@ -23,7 +23,7 @@ class Admin(commands.Cog):
             await ctx.send('You can delete up to 100 messages at once.')
             return
 
-        messages = await ctx.channel.history(limit=n).flatten()
+        messages = await ctx.channel.history(limit=n+1).flatten()
         await ctx.channel.delete_messages(messages[1:])
 
 
