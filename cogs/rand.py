@@ -39,7 +39,6 @@ class Random(commands.Cog):
 
 
     @commands.command(aliases=['random'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def rand(self, ctx, low: int = 1, high: int = 6):
         """Gives a random number (default bounds: 1 and 6)"""
         low = int(low)
@@ -51,7 +50,6 @@ class Random(commands.Cog):
 
 
     @commands.command(name='flip-coin', aliases=['flip', 'coin-flip'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def flip_coin(self, ctx):
         """Flips a coin"""
         n = random.randint(1, 2)
@@ -89,7 +87,6 @@ class Random(commands.Cog):
 
 
     @commands.command()
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def quote(self, ctx, daily_utc_time: str = ''):
         """Shows a random famous quote
         
@@ -123,7 +120,6 @@ class Random(commands.Cog):
 
 
     @commands.command()
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def choose(self, ctx, choice_count: int, *choices: str):
         """Chooses randomly from multiple choices"""
         choices_made = []

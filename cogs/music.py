@@ -86,7 +86,6 @@ class Music(commands.Cog):
         
     @commands.command()
     @commands.guild_only()
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def join(self, ctx, *, channel: discord.VoiceChannel):
         """Joins a voice channel"""
 
@@ -129,7 +128,6 @@ class Music(commands.Cog):
         
     @commands.command(aliases=['music', 'play'])
     @commands.guild_only()
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def stream(self, ctx, *, url):
         """Streams audio from a url"""
 
@@ -142,7 +140,6 @@ class Music(commands.Cog):
         
     @commands.command()
     @commands.guild_only()
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def volume(self, ctx, volume: int):
         """Changes the player's volume"""
 
@@ -155,7 +152,6 @@ class Music(commands.Cog):
         
     @commands.command()
     @commands.guild_only()
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def stop(self, ctx):
         """Stops and disconnects the bot from voice"""
         await ctx.voice_client.disconnect()

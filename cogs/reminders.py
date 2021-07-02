@@ -26,7 +26,6 @@ class Reminders(commands.Cog):
 
 
     @commands.command(aliases=['add-r', 'reminder', 'remindme'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def remind(self, ctx, duration: str, *, message: str):
         """Sends you a reminder, e.g. `remind 1h30m iron socks`
         
@@ -60,7 +59,6 @@ class Reminders(commands.Cog):
 
 
     @commands.command(name='list-r', aliases=['list-reminders'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def list_reminders(self, ctx):
         """Shows all of your reminders"""
         task_key_prefix = await create_task_key('reminder', ctx.author.id)
@@ -89,7 +87,6 @@ class Reminders(commands.Cog):
 
 
     @commands.command(name='del-r', aliases=['del-reminder', 'delete-reminder'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def del_r(self, ctx, index: int):
         """Deletes a reminder by its index
         

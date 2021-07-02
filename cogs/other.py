@@ -13,7 +13,6 @@ class Other(commands.Cog):
 
 
     @commands.command(aliases=['calc', 'solve', 'maths'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def math(self, ctx, *, expression: str):
         """Evaluates a math expression
         
@@ -55,7 +54,6 @@ class Other(commands.Cog):
 
 
     @commands.command(aliases=['rotate', 'rot', 'shift'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def cipher(self, ctx, n: int, *, message: str):
         """Rotates each letter n letters through the alphabet"""
         message = message.lower()

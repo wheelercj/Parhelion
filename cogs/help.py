@@ -14,8 +14,7 @@ class Embedded_Minimal_Help_Command(commands.MinimalHelpCommand):
         super().__init__()
         self.command_attrs = {
             'name': 'help',
-            'aliases': ['helps', 'command', 'commands'],
-            'cooldown': commands.Cooldown(1, 15, commands.BucketType.user)
+            'aliases': ['helps', 'command', 'commands']
         }
 
     async def send_pages(self):
@@ -37,7 +36,6 @@ class Help(commands.Cog):
 
 
     @commands.command(aliases=['prefix'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def prefixes(self, ctx):
         """Lists the bot's current prefixes"""
         prefixes = await get_prefixes_str(self.bot, ctx.message)
@@ -45,7 +43,6 @@ class Help(commands.Cog):
 
 
     @commands.command(aliases=['i', 'info', 'stats', 'uptime', 'invite', 'support', 'owner', 'privacy-policy', 'privacy'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def about(self, ctx):
         """Shows general info about this bot"""
         embed = discord.Embed(title=f'{self.bot.user.name}#{self.bot.user.discriminator}')

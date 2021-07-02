@@ -23,8 +23,9 @@ class Bot(commands.Bot):
         self.load_default_extensions()
 
         self.launch_time = datetime.now(timezone.utc)
-        self.previous_command_ctxs = []
+        self.cooldown_bucket = None
         self.session = aiohttp.ClientSession(loop=self.loop)
+        self.previous_command_ctxs = []
         
         self.add_check(self.check_global_cooldown, call_once=True)
 
@@ -126,11 +127,7 @@ class Bot(commands.Bot):
         elif isinstance(error, commands.DisabledCommand):
             await ctx.send('This command has been disabled.')
         elif isinstance(error, commands.CommandOnCooldown):
-            if error.cooldown.per <= 3:
-                # The global cooldown was triggered, and error.retry_after is inaccurate.
-                await ctx.send('Command on cooldown.')
-            else:
-                await ctx.send(f'Command on cooldown. Please try again in {error.retry_after:.2f} seconds.')
+            await ctx.send(f'Command on cooldown. Please try again in {error.retry_after:.2f} seconds.')
         elif isinstance(error, commands.UserInputError):
             await ctx.send(error)
         elif isinstance(error, commands.NotOwner):
@@ -172,9 +169,11 @@ class Bot(commands.Bot):
         invocation for the help command to work. So, with
         bot.add_check use call_once=True.
         """
-        global_cooldown = commands.CooldownMapping.from_cooldown(1, 2, commands.BucketType.user)
-        bucket = global_cooldown.get_bucket(ctx.message)
-        retry_after = bucket.update_rate_limit()
+        global_cooldown = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
+        if not self.cooldown_bucket:
+            self.cooldown_bucket = global_cooldown.get_bucket(ctx.message)
+        retry_after = self.cooldown_bucket.update_rate_limit()
+
         if retry_after:
-            raise commands.CommandOnCooldown(bucket, retry_after)
+            raise commands.CommandOnCooldown(self.cooldown_bucket, retry_after)
         return True

@@ -15,14 +15,12 @@ class Info(commands.Cog):
 
     
     @commands.command()
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def ping(self, ctx):
         """Pings the server"""
         await ctx.send(f'Pong! It took {round(self.bot.latency, 2)} ms.')
 
 
     @commands.command(name='time', aliases=['clock', 'UTC', 'utc'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def _time(self, ctx):
         """Shows the current time in UTC"""
         current_time = datetime.now(timezone.utc)
@@ -31,7 +29,6 @@ class Info(commands.Cog):
 
     @commands.command(name='server-info', aliases=['si', 'serverinfo', 'guild-info', 'guildinfo'])
     @commands.guild_only()
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def server_info(self, ctx):
         """Shows info about the current server"""
         if ctx.guild.unavailable:
@@ -97,7 +94,6 @@ class Info(commands.Cog):
 
     @commands.command(name='user-info', aliases=['ui', 'whois', 'who-is', 'userinfo', 'member-info', 'memberinfo'])
     @commands.guild_only()
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def user_info(self, ctx, user_id: typing.Optional[int], *, name: str = None):
         """Shows info about a member of the current server
         
@@ -174,7 +170,6 @@ class Info(commands.Cog):
 
     @commands.command(name='permissions', aliases=['perms'])
     @commands.guild_only()
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def server_permissions(self, ctx, user_id: typing.Optional[int], *, name: str = None):
         """Shows the server and channel permissions of a user
         

@@ -13,7 +13,6 @@ class Admin(commands.Cog):
 
 
     @commands.command(aliases=['cleanup'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def clear(self, ctx, n: int):
         """Deletes the previous n messages, up to 100
         

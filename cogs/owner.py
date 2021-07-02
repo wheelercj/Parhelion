@@ -21,7 +21,6 @@ class Owner(commands.Cog):
 
 
     @commands.command()
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def echo(self, ctx, *, message: str):
         """Repeats a message"""
         await ctx.send(message)
@@ -34,7 +33,6 @@ class Owner(commands.Cog):
 
 
     @commands.command()
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def leave(self, ctx, *, server_name: str = None):
         """Makes the bot leave a server
         
@@ -57,7 +55,6 @@ class Owner(commands.Cog):
 
 
     @commands.command(name='repeat', aliases=['r', 'reinvoke'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def repeat_command(self, ctx, n : int = 1, skip: int = 0):
         """Repeats the last command you used"""
         previous = ctx.bot.previous_command_ctxs
@@ -77,7 +74,6 @@ class Owner(commands.Cog):
 
 
     @commands.command(name='list-exts', aliases=['list-ext', 'list-extensions'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def list_extensions(self, ctx):
         """Lists all currently loaded extensions"""
         message = 'Currently loaded extensions:\n' \
@@ -86,7 +82,6 @@ class Owner(commands.Cog):
 
 
     @commands.command(name='reload', aliases=['reload-ext', 'reload-exts'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def reload_extension(self, ctx, *, extension: str):
         """Reloads an extension"""
         extensions = extension.split()
@@ -115,7 +110,6 @@ class Owner(commands.Cog):
 
 
     @commands.command(name='load', aliases=['load-ext', 'load-exts'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def load_extension(self, ctx, *, extension: str):
         """Loads an extension"""
         extensions = extension.split()
@@ -131,7 +125,6 @@ class Owner(commands.Cog):
 
 
     @commands.command(name='unload', aliases=['unload-ext', 'unload-exts'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def unload_extension(self, ctx, *, extension: str):
         """Unloads an extension"""
         extensions = extension.split()
@@ -147,7 +140,6 @@ class Owner(commands.Cog):
 
 
     @commands.command(name='reload-all', aliases=['reload-all-exts'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def reload_all_extensions(self, ctx):
         """Reloads all currently loaded extensions"""
         message = ''
@@ -164,7 +156,6 @@ class Owner(commands.Cog):
 
 
     @commands.command(name='eval', aliases=['evaluate'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def _eval(self, ctx, *, expression: str):
         """Evaluates a Python expression
         
@@ -181,7 +172,6 @@ class Owner(commands.Cog):
 
 
     @commands.command(name='py', aliases=['python', 'exec', 'exe', 'execute'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def _exec(self, ctx, *, statement: str):
         """Executes a Python statement
         
@@ -209,7 +199,6 @@ class Owner(commands.Cog):
 
 
     @commands.command(name='inspect', aliases=['source', 'src', 'getsource'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
     async def _inspect(self, ctx, *, command: str):
         """Shows the source code of a command"""
         try:
