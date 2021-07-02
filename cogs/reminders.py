@@ -12,7 +12,7 @@ from task import Reminder
 from tasks import save_task, delete_task, eval_task
 
 
-async def save_reminder(ctx, start_time: datetime.datetime, target_time: datetime.datetime, duration: str, seconds: int, message: str) -> Reminder:
+async def save_reminder(ctx, start_time: datetime, target_time: datetime, duration: str, seconds: int, message: str) -> Reminder:
     """Saves one reminder to the database"""
     target_time = target_time.isoformat()
     reminder = await save_task(ctx, 'reminder', target_time, duration, Reminder, message)

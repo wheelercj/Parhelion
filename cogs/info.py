@@ -6,7 +6,7 @@ import typing
 from typing import List, Tuple
 
 # Internal imports
-from common import _get_member
+from common import get_member
 
 
 class Info(commands.Cog):
@@ -104,7 +104,7 @@ class Info(commands.Cog):
         This command works with either their user ID, nickname, or
         username.
         """
-        member: discord.Member = await _get_member(ctx, user_id, name)
+        member: discord.Member = await get_member(ctx, user_id, name)
         if member is None:
             await ctx.send('User not found.')
             return
@@ -181,7 +181,7 @@ class Info(commands.Cog):
         This command works with either their user ID, nickname, or
         username.
         """
-        member: discord.Member = await _get_member(ctx, user_id, name)
+        member: discord.Member = await get_member(ctx, user_id, name)
         if member is None:
             await ctx.send('User not found.')
             return

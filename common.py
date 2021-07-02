@@ -16,7 +16,7 @@ class Dev_Settings:
 dev_settings = Dev_Settings()
 
 
-async def _get_member(ctx, member_id: typing.Optional[int], *, name: str = None) -> discord.Member:
+async def get_member(ctx, member_id: typing.Optional[int], name: typing.Optional[str]) -> discord.Member:
     """Gets a member object from a member ID, display name, or context
     
     member_id can only be used in a guild. If both an ID and
