@@ -13,17 +13,6 @@ from common import dev_settings, dev_mail, get_prefixes_message, get_display_pre
 from startup import continue_tasks
 
 
-extensions = [
-    'cogs.help',
-    'cogs.info',
-    'cogs.music',
-    'cogs.other',
-    'cogs.owner',
-    'cogs.rand',
-    'cogs.reminders',
-]
-
-
 class Bot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
@@ -31,14 +20,29 @@ class Bot(commands.Bot):
 
         super().__init__(intents=intents, command_prefix=self.get_command_prefixes)
 
-        for extension in extensions:
-            self.load_extension(extension)
+        self.load_default_extensions()
 
         self.launch_time = datetime.now(timezone.utc)
         self.previous_command_ctxs = []
         self.session = aiohttp.ClientSession(loop=self.loop)
         
         self.add_check(self.check_global_cooldown, call_once=True)
+
+
+    def load_default_extensions(self):
+        default_extensions = [
+            # 'cogs.admin',
+            'cogs.help',
+            'cogs.info',
+            'cogs.music',
+            'cogs.other',
+            'cogs.owner',
+            'cogs.rand',
+            'cogs.reminders',
+        ]
+
+        for extension in default_extensions:
+            self.load_extension(extension)
 
 
     def get_command_prefixes(self, bot, message: discord.Message) -> List[str]:
