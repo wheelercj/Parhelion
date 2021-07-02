@@ -8,7 +8,7 @@ from typing import List
 class Dev_Settings:
     def __init__(self):
         self.default_bot_prefixes = [';', 'par ', 'Par ']
-        self.bot_invite_link = 'https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328'
+        self.bot_invite_link = 'https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3402816'
         self.support_server_link = 'https://discord.gg/mCqGhPJVcN'
         self.privacy_policy_link = 'https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853'
 

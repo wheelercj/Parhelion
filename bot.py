@@ -137,7 +137,9 @@ class Bot(commands.Bot):
         elif isinstance(error, commands.MissingPermissions):
             await ctx.send(f'You do not have the necessary permissions to use this command: {error.missing_perms}')
         elif isinstance(error, commands.BotMissingPermissions):
-            await ctx.send(f'This server has not given the bot the permissions needed for this command to work: {error.missing_perms}')
+            perms_needed = ', '.join(error.missing_perms).replace('_', ' ')
+            await ctx.send(f'I have not been granted some permission(s) needed for this command to work: {perms_needed}. Permissions can be managed in the server\'s settings.')
+            await dev_mail(self, f'The invite link may need to be updated with more permission(s): {perms_needed}')
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send('This command cannot be used in private messages.')
         else:

@@ -13,7 +13,7 @@ class Admin(commands.Cog):
 
 
     @commands.command(aliases=['cleanup'])
-    @commands.bot_has_permissions(read_message_history=True, manage_messages=True)
+    @commands.bot_has_guild_permissions(read_message_history=True, manage_messages=True)
     async def clear(self, ctx, n: int):
         """Deletes the previous n messages, up to 100
         
