@@ -112,7 +112,7 @@ class Bot(commands.Bot):
                     self.previous_command_ctxs = self.previous_command_ctxs[1:]
 
 
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx, error: commands.CommandError):
         if hasattr(ctx.command, 'on_error'):
             return
 
@@ -144,9 +144,10 @@ class Bot(commands.Bot):
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 
-    async def on_guild_join(self, guild_name: str):
-        message = f'I\'ve joined a new server called "{guild_name: str}"!' \
-                f'\nI am now in {len(self.guilds)} servers.'
+    async def on_guild_join(self, guild: discord.Guild):
+        message = 'I\'ve joined a new server called ' \
+        f'"{guild.name}"!\nI am now in ' \
+        f'{len(self.guilds)} servers.'
         await dev_mail(self, message, use_embed=False)
 
 
