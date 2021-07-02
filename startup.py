@@ -1,14 +1,14 @@
 # External imports
 from replit import db
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 import asyncio
 import copy
 from typing import List, Callable
 
 # Internal imports
 from common import send_traceback, create_task_key
-from tasks import delete_task, eval_task
 from task import Task, Reminder, Daily_Quote
+from tasks import delete_task, eval_task, target_tomorrow
 from cogs.rand import send_quote
 
 
@@ -56,17 +56,6 @@ async def update_task_target_time(task: Task, constructor: Callable, new_target_
     
     db[new_task_key] = repr(new_task)
     await delete_task(task=task)
-
-
-async def target_tomorrow(task: Task) -> str:
-    """Changes the target day to tomorrow without changing the time"""
-    tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
-    old_target_time = datetime.fromisoformat(task.target_time)
-    hour = old_target_time.hour
-    minute = old_target_time.minute
-    new_target_time = datetime(tomorrow.year, tomorrow.month, tomorrow.day, int(hour), int(minute), tzinfo=timezone.utc)
-
-    return new_target_time.isoformat()
 
 
 async def continue_daily_quote(bot, daily_quote: Daily_Quote, destination, remaining_seconds: int):

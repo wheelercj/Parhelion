@@ -4,10 +4,12 @@ from discord.ext import commands
 import random
 from datetime import datetime, timezone, timedelta
 import asyncio
+from aiohttp.client_exceptions import ContentTypeError
 
 # Internal imports
 from task import Daily_Quote
-from tasks import save_task, delete_task
+from tasks import save_task, delete_task, target_tomorrow
+from common import dev_mail
 
 
 async def save_daily_quote(ctx, target_time: str) -> Daily_Quote:
@@ -16,21 +18,37 @@ async def save_daily_quote(ctx, target_time: str) -> Daily_Quote:
     return daily_quote
 
 
-async def send_quote(destination, bot):
+async def send_quote(destination, bot, daily_quote: Daily_Quote = None):
     """Send a random quote to destination
     
     destination can be ctx, a channel object, or a user object.
+    If a daily_quote is received, its target time will be updated to
+    the same time the following day.
     """
     params = {
-        'lang':'en',
-        'method':'getQuote',
-        'format':'json'
+        'lang': 'en',
+        'method': 'getQuote',
+        'format': 'json'
     }
-    async with bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
-        json_text = await response.json()
-    quote, author = json_text['quoteText'], json_text['quoteAuthor']
-    embed = discord.Embed(description=f'"{quote}"\n — {author}')
-    await destination.send(embed=embed)
+    try:
+        async with bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
+            json_text = await response.json()
+        quote, author = json_text['quoteText'], json_text['quoteAuthor']
+        embed = discord.Embed(description=f'"{quote}"\n — {author}')
+        await destination.send(embed=embed)
+        if daily_quote is not None:
+            await target_tomorrow(daily_quote)
+    except ContentTypeError as error:
+        print(f'forismatic {error = }')
+        params = {
+            'lang': 'en',
+            'method': 'getQuote',
+            'format': 'text/html'
+        }
+        async with bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
+            text = await response.text()
+        if 'Why do I have to complete a CAPTCHA?' in text:
+            await dev_mail(bot, 'forismatic is requesting a CAPTCHA.')
 
 
 class Random(commands.Cog):
@@ -59,7 +77,7 @@ class Random(commands.Cog):
             await ctx.send('tails')
 
 
-    async def begin_daily_quote(self, destination, target_time: str):
+    async def begin_daily_quote(self, destination, target_time: str, daily_quote: Daily_Quote):
         def error_callback(running_task):
             # Tasks fail silently without this function.
             if running_task.exception():
@@ -69,7 +87,7 @@ class Random(commands.Cog):
         running_task.add_done_callback(error_callback)
 
 
-    async def daily_quote_loop(self, destination, bot, target_time: str):
+    async def daily_quote_loop(self, destination, bot, target_time: str, daily_quote: Daily_Quote):
         """Send a quote once a day at a specific time
         
         destination can be ctx, a channel object, or a user object.
@@ -83,7 +101,7 @@ class Random(commands.Cog):
                 date = now.date()
             target_time = datetime.combine(date, target_time.time())
             await discord.utils.sleep_until(target_time)
-            await send_quote(destination, bot)
+            await send_quote(destination, bot, daily_quote)
 
 
     @commands.command()
@@ -113,10 +131,10 @@ class Random(commands.Cog):
         target_time = datetime(today.year, today.month, today.day, int(hour), int(minute), tzinfo=timezone.utc)
         target_time = target_time.isoformat()
 
-        await save_daily_quote(ctx, target_time)
+        daily_quote = await save_daily_quote(ctx, target_time)
 
         await ctx.send(f'Time set! At {daily_utc_time} UTC each day, I will send you a random quote.')
-        await self.begin_daily_quote(ctx, target_time)
+        await self.begin_daily_quote(ctx, target_time, daily_quote)
 
 
     @commands.command()

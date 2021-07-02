@@ -1,11 +1,11 @@
 # External imports
 from replit import db
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any
 
 # Internal imports
 from common import create_task_key
-from task import Reminder, Daily_Quote
+from task import Task, Reminder, Daily_Quote
 
 
 async def save_task(ctx, task_type: str, target_time: str, duration: str, constructor, *args) -> Any:
@@ -112,3 +112,14 @@ async def eval_task(string: str) -> Any:
         print(f'Error: constructor name not found.')
     
     return task
+
+
+async def target_tomorrow(task: Task) -> str:
+    """Changes the target day to tomorrow without changing the time"""
+    tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
+    old_target_time = datetime.fromisoformat(task.target_time)
+    hour = old_target_time.hour
+    minute = old_target_time.minute
+    new_target_time = datetime(tomorrow.year, tomorrow.month, tomorrow.day, int(hour), int(minute), tzinfo=timezone.utc)
+
+    return new_target_time.isoformat()
