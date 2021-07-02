@@ -1,10 +1,10 @@
-# External imports
+# external imports
 import discord
 from discord.ext import commands
 from datetime import datetime, timezone
 import platform
 
-# Internal imports
+# internal imports
 from common import dev_settings, get_member, get_prefixes_str
 
 

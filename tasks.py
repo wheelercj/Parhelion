@@ -1,9 +1,9 @@
-# External imports
+# external imports
 from replit import db
 from datetime import datetime, timezone, timedelta
 from typing import Any
 
-# Internal imports
+# internal imports
 from common import create_task_key
 from task import Task, Reminder, Daily_Quote
 

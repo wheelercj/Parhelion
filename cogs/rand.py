@@ -1,4 +1,4 @@
-# External imports
+# external imports
 import discord
 from discord.ext import commands
 import random
@@ -6,7 +6,7 @@ from datetime import datetime, timezone, timedelta
 import asyncio
 from aiohttp.client_exceptions import ContentTypeError
 
-# Internal imports
+# internal imports
 from task import Daily_Quote
 from tasks import save_task, delete_task, target_tomorrow
 from common import dev_mail

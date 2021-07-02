@@ -1,7 +1,7 @@
-# External imports
+# external imports
 import os
 
-# Internal imports
+# internal imports
 from bot import Bot
 from keep_alive import keep_alive
 

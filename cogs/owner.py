@@ -1,10 +1,10 @@
-# External imports
+# external imports
 from discord.ext import commands
 import textwrap
 import inspect
 import asyncio
 
-# Internal imports
+# internal imports
 from common import remove_backticks
 
 

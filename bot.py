@@ -1,4 +1,4 @@
-# External imports
+# external imports
 import discord
 from discord.ext import commands
 from datetime import datetime, timezone
@@ -8,7 +8,7 @@ import traceback
 from copy import copy
 from typing import List
 
-# Internal imports
+# internal imports
 from common import dev_settings, dev_mail, get_prefixes_message, get_display_prefixes
 from startup import continue_tasks
 

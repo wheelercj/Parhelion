@@ -1,11 +1,11 @@
-# External imports
+# external imports
 import discord
 from discord.ext import commands
 from datetime import datetime, timezone
 import typing
 from typing import List, Tuple
 
-# Internal imports
+# internal imports
 from common import get_member
 
 

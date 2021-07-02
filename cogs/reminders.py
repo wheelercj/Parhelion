@@ -1,4 +1,4 @@
-# External imports
+# external imports
 from replit import db
 import re
 import asyncio
@@ -6,7 +6,7 @@ from datetime import datetime, timezone, timedelta
 import discord
 from discord.ext import commands
 
-# Internal imports
+# internal imports
 from common import send_traceback, create_task_key
 from task import Reminder
 from tasks import save_task, delete_task, eval_task

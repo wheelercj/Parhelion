@@ -1,11 +1,11 @@
-# External imports
+# external imports
 from replit import db
 from datetime import datetime, timezone
 import asyncio
 import copy
 from typing import List, Callable
 
-# Internal imports
+# internal imports
 from common import send_traceback, create_task_key
 from task import Task, Reminder, Daily_Quote
 from tasks import delete_task, eval_task, target_tomorrow

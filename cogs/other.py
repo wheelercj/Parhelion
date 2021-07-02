@@ -1,9 +1,9 @@
-# External imports
+# external imports
 import discord
 from discord.ext import commands
 import json
 
-# Internal imports
+# internal imports
 from common import remove_backticks, send_traceback
 
 
