@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import platform
 
 # Internal imports
-from common import dev_settings, get_prefixes_str
+from common import dev_settings, get_member, get_prefixes_str
 
 
 # Guide on subclassing HelpCommand: https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96
@@ -50,11 +50,12 @@ class Help(commands.Cog):
         """Shows general info about this bot"""
         embed = discord.Embed(title=f'{self.bot.user.name}#{self.bot.user.discriminator}')
         prefixes = await get_prefixes_str(self.bot, ctx.message)
+        owner = await get_member(ctx, self.bot.owner_id)
         
         embed.add_field(name='prefixes\u2800',
             value=f'{prefixes}\u2800\n')
         embed.add_field(name='\u2800owner\u2800',
-            value=f'\u2800{dev_settings.dev_name}\u2800\n')
+            value=f'\u2800{owner.name}#{owner.discriminator}\u2800\n')
         embed.add_field(name='\u2800uptime',
             value=f'\u2800{await self.uptime(ctx)}\n')
 

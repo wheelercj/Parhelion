@@ -160,10 +160,14 @@ class Bot(commands.Bot):
 
 
     async def check_global_cooldown(self, ctx):
-        """Returns True if the user has not triggered the global cooldown"""
-        # This function must be called only once per
-        # invocation. In other words, with bot.add_check use
-        # call_once=True.
+        """Checks if ctx.author used any command recently
+        
+        Returns True if the user has not triggered the global
+        cooldown, raises commands.CommandOnCooldown otherwise.
+        This function must be called only once per command
+        invocation for the help command to work. So, with
+        bot.add_check use call_once=True.
+        """
         global_cooldown = commands.CooldownMapping.from_cooldown(1, 2, commands.BucketType.user)
         bucket = global_cooldown.get_bucket(ctx.message)
         retry_after = bucket.update_rate_limit()

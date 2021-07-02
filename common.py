@@ -7,7 +7,6 @@ from typing import List
 
 class Dev_Settings:
     def __init__(self):
-        self.dev_name = '(chris)#3047'
         self.default_bot_prefixes = [';', 'par ', 'Par ']
         self.bot_invite_link = 'https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3595328'
         self.support_server_link = 'https://discord.gg/mCqGhPJVcN'
@@ -16,7 +15,7 @@ class Dev_Settings:
 dev_settings = Dev_Settings()
 
 
-async def get_member(ctx, member_id: typing.Optional[int], name: typing.Optional[str]) -> discord.Member:
+async def get_member(ctx, member_id: typing.Optional[int], name: str = None) -> discord.Member:
     """Gets a member object from a member ID, display name, or context
     
     member_id can only be used in a guild. If both an ID and
