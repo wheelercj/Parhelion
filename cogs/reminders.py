@@ -12,10 +12,8 @@ from task import Reminder
 from tasks import save_task, delete_task, eval_task
 
 
-async def save_reminder(ctx, duration: str, seconds: int, message: str) -> Reminder:
+async def save_reminder(ctx, start_time: datetime.datetime, target_time: datetime.datetime, duration: str, seconds: int, message: str) -> Reminder:
     """Saves one reminder to the database"""
-    start_time = datetime.now(timezone.utc)
-    target_time = start_time + timedelta(0, seconds)
     target_time = target_time.isoformat()
     reminder = await save_task(ctx, 'reminder', target_time, duration, Reminder, message)
     
@@ -30,9 +28,9 @@ class Reminders(commands.Cog):
     @commands.command(aliases=['add-r', 'reminder', 'remindme'])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def remind(self, ctx, duration: str, *, message: str):
-        """Sends you a reminder, e.g. ;remind 1h30m iron socks
+        """Sends you a reminder, e.g. `remind 1h30m iron socks`
         
-        The maximum time allowed is 24.85 days (see https://bugs.python.org/issue20493 for details).
+        The maximum reliable duration is 24.85 days (see https://bugs.python.org/issue20493 for details).
         """
         # Remove some chars for security and simplicity.
         to_remove = ['"', '\'', ',', '\\', '{', '}']
@@ -41,12 +39,17 @@ class Reminders(commands.Cog):
 
         try:
             seconds = self.parse_time(duration)
-            if seconds > 2147483:
-                raise ValueError('The maximum time possible is 24.85d')
+            start_time = datetime.now(timezone.utc)
+            target_time = start_time + timedelta(0, seconds)
+
+            reminder = await save_reminder(ctx, start_time, target_time, duration, seconds, message)
             await ctx.send(f'Reminder set! In {duration}, I will remind you: {message}')
-            reminder = await save_reminder(ctx, duration, seconds, message)
 
             await asyncio.sleep(seconds)
+
+            now = datetime.now(timezone.utc)
+            if now < target_time:
+                raise ValueError('Reminder sleep failed.')
 
             await ctx.send(f'{ctx.author.mention}, here is your {duration} reminder: {message}')
             await delete_task(task=reminder)

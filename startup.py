@@ -90,6 +90,11 @@ async def continue_reminder(bot, reminder, destination, remaining_seconds: int):
     try:
         if remaining_seconds > 0:
             await asyncio.sleep(remaining_seconds)
+
+            now = datetime.now(timezone.utc)
+            if now < datetime.fromisoformat(reminder.target_time):
+                raise ValueError('Reminder sleep failed.')
+
             await destination.send(f'<@!{reminder.author_id}>, here is your {reminder.duration} reminder: {reminder.message}')
             await delete_task(task=reminder)
         else:
