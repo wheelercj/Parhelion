@@ -103,7 +103,11 @@ class Bot(commands.Bot):
 
 
     async def on_command(self, ctx):
-        # Save the owner's commands for easy reuse.
+        await self.save_owners_command(ctx)
+
+
+    async def save_owners_command(self, ctx):
+        """Saves the owner's commands for easy reuse"""
         if ctx.author.id == self.owner_id:
             if 'reinvoke' not in ctx.command.aliases \
                     and 'reinvoke' != ctx.command.name:
