@@ -31,7 +31,7 @@ class Bot(commands.Bot):
 
     def load_default_extensions(self):
         default_extensions = [
-            # 'cogs.admin',
+            'cogs.admin',
             'cogs.help',
             'cogs.info',
             'cogs.music',
@@ -131,6 +131,10 @@ class Bot(commands.Bot):
             await ctx.send(error)
         elif isinstance(error, commands.NotOwner):
             await ctx.send('Only the owner can use this command.')
+        elif isinstance(error, commands.MissingRole):
+            await ctx.send(f'You do not have the necessary role to use this command: {error.missing_role}')
+        elif isinstance(error, commands.MissingPermissions):
+            await ctx.send(f'You do not have the necessary permissions to use this command: {error.missing_perms}')
         elif isinstance(error, commands.BotMissingPermissions):
             await ctx.send(f'This server has not given the bot the permissions needed for this command to work: {error.missing_perms}')
         elif isinstance(error, commands.NoPrivateMessage):
