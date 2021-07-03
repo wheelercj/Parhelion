@@ -3,6 +3,8 @@ import discord
 from discord.ext import commands
 from datetime import datetime, timezone
 import aiohttp
+import os
+import re
 import sys
 import traceback
 from copy import copy
@@ -22,10 +24,12 @@ class Bot(commands.Bot):
 
         self.load_default_extensions()
 
+        self.app_info: commands.Bot.AppInfo = None
+        self.owner_id: int = None
         self.launch_time = datetime.now(timezone.utc)
         self.global_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
         self.session = aiohttp.ClientSession(loop=self.loop)
-        self.previous_command_ctxs = []
+        self.previous_command_ctxs: List[commands.Context] = []
         
         self.add_check(self.check_global_cooldown, call_once=True)
 
@@ -71,6 +75,8 @@ class Bot(commands.Bot):
     async def on_connect(self):
         print('Loading . . . ')
         await self.wait_until_ready()
+        self.app_info: commands.Bot.AppInfo = await self.application_info()
+        self.owner_id = self.app_info.owner.id
         await continue_tasks(self)
 
 
@@ -88,12 +94,25 @@ class Bot(commands.Bot):
 
 
     async def on_message(self, message: discord.Message):
+        await self.detect_token(message)
         if message.author.bot:
             return
         if await self.is_only_bot_mention(message):
             await self.answer_mention(message)
         else:
             await self.process_commands(message)
+
+
+    async def detect_token(self, message: discord.Message):
+        """Detects bot tokens and warns people about them"""
+        token_regex = re.compile(r'([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})')
+        match = token_regex.search(message.content)
+        if match is not None:
+            if match[0] == os.environ['DISCORD_BOT_SECRET_TOKEN']:
+                await dev_mail(self, 'URGENT: my token was leaked! I will attempt to delete the message with the token.')
+                await message.delete()
+            else:
+                await message.reply('Token detected!')
 
 
     async def is_only_bot_mention(self, message: discord.Message):
