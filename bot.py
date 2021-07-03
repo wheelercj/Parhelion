@@ -108,11 +108,21 @@ class Bot(commands.Bot):
         token_regex = re.compile(r'([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})')
         match = token_regex.search(message.content)
         if match is not None:
-            if match[0] == os.environ['DISCORD_BOT_SECRET_TOKEN']:
-                await dev_mail(self, 'URGENT: my token was leaked! I will attempt to delete the message with the token.')
-                await message.delete()
-            else:
-                await message.reply('Token detected!')
+            await self.publish_token(match[0], message)
+
+
+    async def publish_token(self, discord_bot_token: str, message: discord.Message):
+        """Publishes tokens in GitHub gists to invalidate them and protect bots"""
+        url = 'https://api.github.com/gists'
+        data = '{"public":true,"files":{"discord-bot-token.txt":{"content":"%s"}}}' % discord_bot_token
+        github_token = os.environ['GITHUB_TOKEN']
+        auth = aiohttp.BasicAuth('beep-boop-82197842', password=github_token)
+
+        async with self.session.post(url, data=data, auth=auth) as response:
+            if not response:
+                raise ValueError(f'GitHub API request failed with status code {response.status}.')
+
+        await message.reply(f'Bot token detected and invalidated! If the token was in use, the bot it belonged to will need to get a new token before being able to reconnect to Discord. For more details, see <https://gist.github.com/beep-boop-82197842/4255864be63966b8618e332d1df30619>')
 
 
     async def is_only_bot_mention(self, message: discord.Message):
