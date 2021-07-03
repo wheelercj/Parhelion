@@ -149,6 +149,10 @@ class Bot(commands.Bot):
     async def on_command_error(self, ctx, error: commands.CommandError):
         if hasattr(ctx.command, 'on_error'):
             return
+        if isinstance(error, commands.CommandInvokeError):
+            # All errors from command invocations are
+            # temporarily wrapped in commands.CommandInvokeError
+            error = error.original
 
         # Exception hierarchy: https://discordpy.readthedocs.io/en/latest/ext/commands/api.html?highlight=permissions#exception-hierarchy
         if isinstance(error, commands.CommandNotFound):
