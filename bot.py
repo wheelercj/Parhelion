@@ -23,7 +23,7 @@ class Bot(commands.Bot):
         self.load_default_extensions()
 
         self.launch_time = datetime.now(timezone.utc)
-        self.cooldown_bucket = None
+        self.global_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.previous_command_ctxs = []
         
@@ -165,17 +165,16 @@ class Bot(commands.Bot):
     async def check_global_cooldown(self, ctx):
         """Checks if ctx.author used any command recently
         
-        Returns True if the user has not triggered the global
-        cooldown, raises commands.CommandOnCooldown otherwise.
+        If the user has not triggered the global cooldown, the global
+        cooldown is triggered and True is returned. Otherwise, the
+        commands.CommandOnCooldown exception is raised.
         This function must be called only once per command
         invocation for the help command to work. So, with
         bot.add_check use call_once=True.
         """
-        global_cooldown = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
-        if not self.cooldown_bucket:
-            self.cooldown_bucket = global_cooldown.get_bucket(ctx.message)
-        retry_after = self.cooldown_bucket.update_rate_limit()
+        bucket = self.global_cd.get_bucket(ctx.message)
+        retry_after = bucket.update_rate_limit()
 
         if retry_after:
-            raise commands.CommandOnCooldown(self.cooldown_bucket, retry_after)
+            raise commands.CommandOnCooldown(bucket, retry_after)
         return True
