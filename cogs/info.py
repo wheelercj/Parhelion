@@ -9,6 +9,11 @@ from typing import List, Tuple
 from common import get_member
 
 
+def y_n(boolean: bool):
+    """Returns 'yes' or 'no'"""
+    return 'yes' if boolean else 'no'
+
+
 class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -27,7 +32,7 @@ class Info(commands.Cog):
         await ctx.send(f'The current time is {current_time} UTC')
 
 
-    @commands.command(name='server-info', aliases=['si', 'gi', serverinfo', 'guild-info', 'guildinfo'])
+    @commands.command(name='server-info', aliases=['si', 'gi', 'serverinfo', 'guild-info', 'guildinfo'])
     @commands.guild_only()
     async def server_info(self, ctx):
         """Shows info about the current server"""
@@ -41,9 +46,7 @@ class Info(commands.Cog):
 
         embed = discord.Embed(title='server info')
         embed.add_field(name=guild.name,
-            value=f'ID: {guild.id}\n'
-                + f'owner: {guild.owner.name}#{guild.owner.discriminator}\n'
-                + f'owner ID: {guild.owner_id}\n'
+            value=f'owner: {guild.owner.name}#{guild.owner.discriminator}\n'
                 + f'description: {guild.description}\n'
                 + f'created: {guild.created_at}\n'
                 + f'region: {guild.region}\n'
@@ -92,7 +95,7 @@ class Info(commands.Cog):
         return features
 
 
-    @commands.command(name='user-info', aliases=['ui', 'mi', whois', 'who-is', 'userinfo', 'member-info', 'memberinfo'])
+    @commands.command(name='user-info', aliases=['ui', 'mi', 'whois', 'who-is', 'userinfo', 'member-info', 'memberinfo'])
     @commands.guild_only()
     async def user_info(self, ctx, user_id: typing.Optional[int], *, name: str = None):
         """Shows info about a member of the current server
@@ -108,7 +111,6 @@ class Info(commands.Cog):
         embed = discord.Embed()
         embed.add_field(name=f'{member.name}#{member.discriminator}\n\u2800',
             value=f'**display name:** {member.display_name}\n'
-                + f'**ID:** {member.id}\n'
                 + await self.get_whether_bot(ctx, member)
                 + f'**account created:** {member.created_at}\n'
                 + f'**joined server:** {member.joined_at}\n'
@@ -166,6 +168,43 @@ class Info(commands.Cog):
             return f'**global roles:**: {flags}\n'
         else:
             return ''
+
+
+    @commands.command(name='role-info', aliases=['ri', 'roleinfo'])
+    @commands.guild_only()
+    async def role_info(self, ctx, role_name: str):
+        """Shows info about a role on the current server"""
+        # TODO: 
+        # To see a role's permissions, use the `permissions` command.
+        roles: List[discord.Role] = ctx.guild.roles
+        role = None
+        for r in roles:
+            if r.name == role_name:
+                role = r
+
+        if role is None:
+            await ctx.send('Role not found.')
+            return
+
+        managing_bot = None
+        if role.tags is not None:
+            if role.tags.bot_id is not None:
+                managing_bot = await get_member(ctx, role.tags.bot_id)
+
+        embed = discord.Embed()
+        embed.add_field(name='role info',
+            value=f'name: {role.name}\n'
+                + f'members: {len(role.members)}\n'
+                + f'hierarcy position: {role.position}\n'
+                + f'created: {role.created_at}\n'
+                + f'mentionable: {y_n(role.mentionable)}\n'
+                + f'default: {y_n(role.is_default())}\n'
+                + f'premium: {y_n(role.is_premium_subscriber())}\n'
+                + f'managing bot: {managing_bot}\n'
+                + f'3rd-party integration: {y_n(role.managed)}\n'
+        )
+
+        await ctx.send(embed=embed)
 
 
     @commands.command(name='permissions', aliases=['perms'])
