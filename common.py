@@ -32,6 +32,21 @@ async def get_member(ctx, member_id: typing.Optional[int], name: str = None) -> 
         return ctx.guild.get_member(ctx.author.id)
 
 
+async def get_role(ctx, role_id: typing.Optional[int], role_name: str = None) -> discord.Role:
+    """Gets a role object from a role ID or role name
+    
+    This function can only be used in a guild. If both an ID and
+    a name are given, the ID will be used.
+    """
+    if role_id is not None:
+        return ctx.guild.get_role(role_id)
+    elif role_name is not None:
+        roles: List[discord.Role] = ctx.guild.roles
+        for r in roles:
+            if r.name == role_name:
+                return r
+
+
 async def send_traceback(ctx, error: BaseException):
     """Sends the traceback of an exception to ctx"""
     etype = type(error)

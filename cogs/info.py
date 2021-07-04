@@ -6,7 +6,7 @@ import typing
 from typing import List, Tuple
 
 # internal imports
-from common import get_member
+from common import get_member, get_role
 
 
 def y_n(boolean: bool):
@@ -100,8 +100,7 @@ class Info(commands.Cog):
     async def user_info(self, ctx, user_id: typing.Optional[int], *, name: str = None):
         """Shows info about a member of the current server
         
-        This command works with either their user ID, nickname, or
-        username.
+        Use either their user ID, nickname, or username.
         """
         member: discord.Member = await get_member(ctx, user_id, name)
         if member is None:
@@ -172,16 +171,14 @@ class Info(commands.Cog):
 
     @commands.command(name='role-info', aliases=['ri', 'roleinfo'])
     @commands.guild_only()
-    async def role_info(self, ctx, role_name: str):
-        """Shows info about a role on the current server"""
+    async def role_info(self, ctx, role_id: typing.Optional[int], *, role_name: str = None):
+        """Shows info about a role on the current server
+        
+        Use either the role name or ID.
+        """
         # TODO: 
         # To see a role's permissions, use the `permissions` command.
-        roles: List[discord.Role] = ctx.guild.roles
-        role = None
-        for r in roles:
-            if r.name == role_name:
-                role = r
-
+        role = await get_role(ctx, role_id, role_name)
         if role is None:
             await ctx.send('Role not found.')
             return
@@ -200,8 +197,8 @@ class Info(commands.Cog):
                 + f'mentionable: {y_n(role.mentionable)}\n'
                 + f'default: {y_n(role.is_default())}\n'
                 + f'premium: {y_n(role.is_premium_subscriber())}\n'
-                + f'managing bot: {managing_bot}\n'
                 + f'3rd-party integration: {y_n(role.managed)}\n'
+                + f'managing bot: {managing_bot}\n'
         )
 
         await ctx.send(embed=embed)
@@ -212,10 +209,10 @@ class Info(commands.Cog):
     async def server_permissions(self, ctx, user_id: typing.Optional[int], *, name: str = None):
         """Shows the server and channel permissions of a user
         
-        This command works with either their user ID, nickname, or
-        username.
+        This command works with either their user ID, nickname,
+        or username.
         """
-        member: discord.Member = await get_member(ctx, user_id, name)
+        member = await get_member(ctx, user_id, name)
         if member is None:
             await ctx.send('User not found.')
             return
