@@ -9,7 +9,7 @@ from typing import List, Tuple, Union
 from common import get_member, get_role
 
 
-def y_n(boolean: bool):
+def y_n(boolean: bool) -> str:
     """Returns 'yes' or 'no'"""
     return 'yes' if boolean else 'no'
 
