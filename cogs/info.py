@@ -207,13 +207,10 @@ class Info(commands.Cog):
     async def server_permissions(self, ctx, ID: typing.Optional[int], *, name: str = None):
         """Shows the server and channel permissions of a user or role
 
-        Use either an ID or a name. If a user and role have the same ID and/or name, the permissions for the user will be shown.
+        Use either an ID or a name. If a user and role have the same ID and/or name,
+        the permissions for the user will be shown. User permissions include the
+        permissions for all roles that user has.
         """
-        # TODO:
-        # It appears that to fully understand a member's permissions, you have to
-        # cross-check their member permissions and the permissions of each and every
-        # one of their roles. Modifying this command to take all of these into
-        # account and show a member's overall permissions could be very helpful.
         server_perms, overwrites, title = await self.get_perms(ctx, ID, name)
         if server_perms is None:
             await ctx.send('Could not find the user or role.')
