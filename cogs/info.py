@@ -27,7 +27,7 @@ class Info(commands.Cog):
         await ctx.send(f'The current time is {current_time} UTC')
 
 
-    @commands.command(name='server-info', aliases=['si', 'serverinfo', 'guild-info', 'guildinfo'])
+    @commands.command(name='server-info', aliases=['si', 'gi', serverinfo', 'guild-info', 'guildinfo'])
     @commands.guild_only()
     async def server_info(self, ctx):
         """Shows info about the current server"""
@@ -92,7 +92,7 @@ class Info(commands.Cog):
         return features
 
 
-    @commands.command(name='user-info', aliases=['ui', 'whois', 'who-is', 'userinfo', 'member-info', 'memberinfo'])
+    @commands.command(name='user-info', aliases=['ui', 'mi', whois', 'who-is', 'userinfo', 'member-info', 'memberinfo'])
     @commands.guild_only()
     async def user_info(self, ctx, user_id: typing.Optional[int], *, name: str = None):
         """Shows info about a member of the current server
