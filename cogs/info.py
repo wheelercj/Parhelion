@@ -220,23 +220,27 @@ class Info(commands.Cog):
             return
 
         embed = discord.Embed(title=title)
-        embed.add_field(name=f'server permissions',
-            value=server_perms)
-
+        embed.add_field(name=f'server permissions', value=server_perms)
         if len(overwrites):
-            server_n = server_perms.count('\n')
-            channel_n = overwrites.count('\n')
-            if server_n > channel_n:
-                embed.add_field(name='channel overwrites',
-                    value=overwrites)
-            else:
-                half = channel_n / 2
-                embed.add_field(name='channel overwrites',
-                    value=overwrites[:half])
-                embed.add_field(name='channel overwrites cont.',
-                    value=overwrites[half:])
-        
+            embed = await self.embed_overwrites(embed, server_perms, overwrites)
+
         await ctx.send(embed=embed)
+
+
+    async def embed_overwrites(self, embed, server_perms, overwrites):
+        server_n = server_perms.count('\n')
+        channel_n = overwrites.count('\n')
+        if server_n > channel_n:
+            embed.add_field(name='channel overwrites',
+                value=overwrites)
+        else:
+            half = channel_n / 2
+            embed.add_field(name='channel overwrites',
+                value=overwrites[:half])
+            embed.add_field(name='channel overwrites cont.',
+                value=overwrites[half:])
+
+        return embed
 
 
     async def format_perms(self, permissions: discord.Permissions) -> str:
