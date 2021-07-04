@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from datetime import datetime, timezone
 import typing
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 # internal imports
 from common import get_member, get_role
@@ -100,7 +100,7 @@ class Info(commands.Cog):
     async def user_info(self, ctx, user_id: typing.Optional[int], *, name: str = None):
         """Shows info about a member of the current server
         
-        Use either their user ID, nickname, or username.
+        Use either their user ID, nickname, or username. To see user permissions, use the `permissions` command.
         """
         member: discord.Member = await get_member(ctx, user_id, name)
         if member is None:
@@ -174,10 +174,8 @@ class Info(commands.Cog):
     async def role_info(self, ctx, role_id: typing.Optional[int], *, role_name: str = None):
         """Shows info about a role on the current server
         
-        Use either the role name or ID.
+        Use either the role name or ID. To see role permissions, use the `permissions` command.
         """
-        # TODO: 
-        # To see a role's permissions, use the `permissions` command.
         role = await get_role(ctx, role_id, role_name)
         if role is None:
             await ctx.send('Role not found.')
@@ -206,36 +204,46 @@ class Info(commands.Cog):
 
     @commands.command(name='permissions', aliases=['perms'])
     @commands.guild_only()
-    async def server_permissions(self, ctx, user_id: typing.Optional[int], *, name: str = None):
-        """Shows the server and channel permissions of a user
-        
-        This command works with either their user ID, nickname,
-        or username.
+    async def server_permissions(self, ctx, ID: typing.Optional[int], *, name: str = None):
+        """Shows the server and channel permissions of a user or role
+
+        Use either an ID or a name. If a user and role have the same ID and/or name, the permissions for the user will be shown.
         """
-        member = await get_member(ctx, user_id, name)
-        if member is None:
-            await ctx.send('User not found.')
-            return
+        # TODO:
+        # It appears that to fully understand a member's permissions, you have to
+        # cross-check their member permissions and the permissions of each and every
+        # one of their roles. Modifying this command to take all of these into
+        # account and show a member's overall permissions could be very helpful.
+        member = await get_member(ctx, ID, name)
+        if member is not None:
+            embed = discord.Embed(title=f'{member.name}#{member.discriminator}\'s permissions')
+            server_perms = await self.format_perms(member.guild_permissions)
+            overwrites = await self.get_perm_overwrites(ctx, member)
+        else:
+            role = await get_role(ctx, ID, name)
+            if role is not None:
+                embed = discord.Embed(title=f'{role.name} role permissions')
+                server_perms = await self.format_perms(role.permissions)
+                overwrites = await self.get_perm_overwrites(ctx, role)
+            else:
+                await ctx.send('Could not find the user or role.')
+                return
 
-        embed = discord.Embed(title=f'{member.name}#{member.discriminator}\'s permissions')
-
-        server_perms = await self.format_perms(member.guild_permissions)
         embed.add_field(name=f'server permissions',
             value=server_perms)
 
-        all_channel_perms = await self.get_each_channels_perms(ctx, member)
-        if len(all_channel_perms):
+        if len(overwrites):
             server_n = server_perms.count('\n')
-            channel_n = all_channel_perms.count('\n')
+            channel_n = overwrites.count('\n')
             if server_n > channel_n:
                 embed.add_field(name='channel overwrites',
-                    value=all_channel_perms)
+                    value=overwrites)
             else:
                 half = channel_n / 2
                 embed.add_field(name='channel overwrites',
-                    value=all_channel_perms[:half])
+                    value=overwrites[:half])
                 embed.add_field(name='channel overwrites cont.',
-                    value=all_channel_perms[half:])
+                    value=overwrites[half:])
         
         await ctx.send(embed=embed)
 
@@ -253,26 +261,26 @@ class Info(commands.Cog):
         return await self.perm_list_message(perm_list)
 
 
-    async def get_each_channels_perms(self, ctx, member: discord.Member) -> str:
+    async def get_perm_overwrites(self, ctx, member_or_role: Union[discord.Member, discord.Role]) -> str:
         """Gets the permissions for each channel that overwrite the server permissions
         
         Any hidden text channels are not named, but counted.
         """
-        all_channel_perms = ''
+        overwrites = ''
         hidden_text_count = 0
         for channel in ctx.guild.channels:
-            channel_perms = await self.format_perms(channel.overwrites_for(member))
+            channel_perms = await self.format_perms(channel.overwrites_for(member_or_role))
             if not channel_perms and channel_perms != '' and channel.category:
                 hidden_text_count += 1
             elif len(channel_perms):
-                all_channel_perms += f'**\u2800{channel.name}**\n' \
+                overwrites += f'**\u2800{channel.name}**\n' \
                                      f'{channel_perms}\n'
         
         if hidden_text_count:
-            all_channel_perms += f'**\u2800({hidden_text_count} hidden text channels)**\n' \
+            overwrites += f'**\u2800({hidden_text_count} hidden text channels)**\n' \
                                  f'\u2800❌ read messages\n'
         
-        return all_channel_perms
+        return overwrites
 
 
     async def perm_list_message(self, perm_list: List[Tuple[str, bool]]) -> str:
