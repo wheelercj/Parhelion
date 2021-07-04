@@ -214,21 +214,12 @@ class Info(commands.Cog):
         # cross-check their member permissions and the permissions of each and every
         # one of their roles. Modifying this command to take all of these into
         # account and show a member's overall permissions could be very helpful.
-        member = await get_member(ctx, ID, name)
-        if member is not None:
-            embed = discord.Embed(title=f'{member.name}#{member.discriminator}\'s permissions')
-            server_perms = await self.format_perms(member.guild_permissions)
-            overwrites = await self.get_perm_overwrites(ctx, member)
-        else:
-            role = await get_role(ctx, ID, name)
-            if role is not None:
-                embed = discord.Embed(title=f'{role.name} role permissions')
-                server_perms = await self.format_perms(role.permissions)
-                overwrites = await self.get_perm_overwrites(ctx, role)
-            else:
-                await ctx.send('Could not find the user or role.')
-                return
+        server_perms, overwrites, title = await self.get_perms(ctx, ID, name)
+        if server_perms is None:
+            await ctx.send('Could not find the user or role.')
+            return
 
+        embed = discord.Embed(title=title)
         embed.add_field(name=f'server permissions',
             value=server_perms)
 
@@ -259,6 +250,25 @@ class Info(commands.Cog):
             return False
         perm_list = sorted(list(permissions), key=lambda x: x[0])
         return await self.perm_list_message(perm_list)
+
+
+    async def get_perms(self, ctx, ID: typing.Optional[int], name: str = None) -> Tuple[str, str, str]:
+        """Gets the formatted server perms, channel overwrites, and embed title"""
+        member = await get_member(ctx, ID, name)
+        if member is not None:
+            server_perms = await self.format_perms(member.guild_permissions)
+            overwrites = await self.get_perm_overwrites(ctx, member)
+            title = f'{member.name}#{member.discriminator}\'s permissions'
+            return server_perms, overwrites, title
+        else:
+            role = await get_role(ctx, ID, name)
+            if role is not None:
+                server_perms = await self.format_perms(role.permissions)
+                overwrites = await self.get_perm_overwrites(ctx, role)
+                title = f'{role.name} role permissions'
+                return server_perms, overwrites, title
+
+        return None, None, None
 
 
     async def get_perm_overwrites(self, ctx, member_or_role: Union[discord.Member, discord.Role]) -> str:
