@@ -12,9 +12,9 @@ class Admin(commands.Cog):
         return True
 
 
-    @commands.command(aliases=['cleanup'])
+    @commands.command(name='delete', aliases=['clear', 'cleanup'])
     @commands.bot_has_guild_permissions(read_message_history=True, manage_messages=True)
-    async def clear(self, ctx, n: int):
+    async def _delete(self, ctx, n: int):
         """Deletes the previous n messages, up to 100
         
         You cannot delete messages more than 14 days old.
