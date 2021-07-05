@@ -54,7 +54,7 @@ class Owner(commands.Cog):
             await ctx.send('Server not found.')
 
 
-    @commands.command(name='repeat', aliases=['r', 'reinvoke'])
+    @commands.command(name='repeat', aliases=['rep', 'reinvoke'])
     async def repeat_command(self, ctx, n : int = 1, skip: int = 0):
         """Repeats the last command you used"""
         previous = ctx.bot.previous_command_ctxs
@@ -68,7 +68,7 @@ class Owner(commands.Cog):
                         raise ValueError
                     else:
                         await c.reinvoke()
-                        await asyncio.sleep(n * 2.5)
+                        await asyncio.sleep(n * 1.5)
                 except IndexError:
                     pass
 
