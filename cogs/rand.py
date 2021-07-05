@@ -83,7 +83,7 @@ class Random(commands.Cog):
             if running_task.exception():
                 running_task.print_stack()
         
-        running_task = asyncio.create_task(self.daily_quote_loop(destination, self.bot, target_time))
+        running_task = asyncio.create_task(self.daily_quote_loop(destination, self.bot, target_time, daily_quote))
         running_task.add_done_callback(error_callback)
 
 
