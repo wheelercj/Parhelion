@@ -1,6 +1,6 @@
 # external imports
 from replit import db
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 # internal imports
@@ -120,6 +120,6 @@ async def target_tomorrow(task: Task) -> str:
     old_target_time = datetime.fromisoformat(task.target_time)
     hour = old_target_time.hour
     minute = old_target_time.minute
-    new_target_time = datetime(tomorrow.year, tomorrow.month, tomorrow.day, int(hour), int(minute), tzinfo=timezone.utc)
+    new_target_time = datetime(tomorrow.year, tomorrow.month, tomorrow.day, int(hour), int(minute))
 
     return new_target_time.isoformat()

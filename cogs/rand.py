@@ -2,7 +2,7 @@
 import discord
 from discord.ext import commands
 import random
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 import asyncio
 from aiohttp.client_exceptions import ContentTypeError
 
@@ -128,7 +128,7 @@ class Random(commands.Cog):
 
         hour, minute = daily_utc_time.split(':')
         today = datetime.utcnow()
-        target_time = datetime(today.year, today.month, today.day, int(hour), int(minute), tzinfo=timezone.utc)
+        target_time = datetime(today.year, today.month, today.day, int(hour), int(minute))
         target_time = target_time.isoformat()
 
         daily_quote = await save_daily_quote(ctx, target_time)
