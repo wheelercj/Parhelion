@@ -84,7 +84,7 @@ async def continue_reminder(bot, reminder: Reminder, destination, remaining_seco
             if now < datetime.fromisoformat(reminder.target_time):
                 raise ValueError('Reminder sleep failed.')
 
-            await destination.send(f'<@!{reminder.author_id}>, here is your {reminder.duration} reminder: {reminder.message}')
+            await destination.send(f'<@!{reminder.author_id}>, here is your reminder: {reminder.message}')
             await delete_task(task=reminder)
         else:
             await destination.send(f'<@!{reminder.author_id}>, an error delayed your reminder: {reminder.message}')

@@ -77,7 +77,9 @@ class Reminders(commands.Cog):
                     if str(remaining).startswith('-'):
                         raise ValueError('Negative time remaining.')
 
-                    r_list += f'\n\n{i+1}. "{reminder.message}"\nduration: {reminder.duration}\ntime remaining: {str(remaining)}'
+                    r_list += f'\n\n{i+1}. "{reminder.message}"' \
+                    + f'\ntarget time: {reminder.target_time}' \
+                    + f'\ntime remaining: {str(remaining)}'
                 except Exception as e:
                     del db[key]
                     await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
