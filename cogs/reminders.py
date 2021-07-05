@@ -2,12 +2,12 @@
 from replit import db
 import re
 import asyncio
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 import discord
 from discord.ext import commands
 
 # internal imports
-from common import send_traceback, create_task_key
+from common import send_traceback, create_task_key, parse_time_message
 from task import Reminder
 from tasks import save_task, delete_task, eval_task
 
@@ -26,34 +26,34 @@ class Reminders(commands.Cog):
 
 
     @commands.command(aliases=['add-r', 'reminder', 'remindme'])
-    async def remind(self, ctx, duration: str, *, message: str):
-        """Sends you a reminder, e.g. `remind 1h30m iron socks`
+    async def remind(self, ctx, *, time_and_message: str):
+        """Sends you a reminder
         
+        Enter the time (or duration) in front of the message.
         The maximum reliable duration is 24.85 days (see https://bugs.python.org/issue20493 for details).
         """
         # Remove some chars for security and simplicity.
         to_remove = ['"', '\'', ',', '\\', '{', '}']
         for char in to_remove:
-            message.replace(char, '')
+            time_and_message.replace(char, '')
 
         try:
-            seconds = self.parse_time(duration)
-            start_time = datetime.now(timezone.utc)
-            target_time = start_time + timedelta(0, seconds)
+            start_time = ctx.message.created_at
+            target_time, message = await parse_time_message(ctx, time_and_message)
+            seconds = (target_time - start_time).total_seconds()
 
-            reminder = await save_reminder(ctx, start_time, target_time, duration, seconds, message)
-            await ctx.send(f'Reminder set! In {duration}, I will remind you: {message}')
+            reminder = await save_reminder(ctx, start_time, target_time, '', seconds, message)
+            await ctx.reply(f'Reminder set! At {datetime.isoformat(target_time)}, I will remind you: {message}')
 
             await asyncio.sleep(seconds)
 
-            now = datetime.now(timezone.utc)
-            if now < target_time:
+            if datetime.now() < target_time:
                 raise ValueError('Reminder sleep failed.')
 
-            await ctx.send(f'{ctx.author.mention}, here is your {duration} reminder: {message}')
+            await ctx.reply(f'{ctx.author.mention}, here is your reminder: {message}')
             await delete_task(task=reminder)
         except Exception as e:
-            await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
+            await ctx.reply(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
             if await ctx.bot.is_owner(ctx.author):
                 await send_traceback(ctx, e)
 
@@ -73,7 +73,7 @@ class Reminders(commands.Cog):
                 try:
                     reminder = await eval_task(db[key])
                     target_time = datetime.fromisoformat(reminder.target_time)
-                    remaining = target_time - datetime.now(timezone.utc)
+                    remaining = target_time - datetime.now()
                     if str(remaining).startswith('-'):
                         raise ValueError('Negative time remaining.')
 
@@ -116,37 +116,6 @@ class Reminders(commands.Cog):
             await ctx.send(error)
         elif isinstance(error, commands.BadArgument):
             await ctx.send("Error: use the reminder's index number shown in the list-r command.")
-
-
-    def parse_time(self, Time: str) -> float:
-        """Converts a str of one or multiple units of time to a float of seconds
-        
-        The str must be in a certain format. Valid examples:
-            2h45m
-            30s
-            2d5h30m
-        """
-        seconds = 0.0
-        while True:
-            unit_match = re.search(r'[dhms]', Time)
-            if not unit_match:
-                return seconds
-            else:
-                unit = unit_match[0]
-                index = unit_match.start()
-                value = Time[:index]
-                Time = Time[index+1:]
-
-                if unit == 'd':
-                    seconds += float(value) * 24 * 60 * 60
-                elif unit == 'h':
-                    seconds += float(value) * 60 * 60
-                elif unit == 'm':
-                    seconds += float(value) * 60
-                elif unit == 's':
-                    seconds += float(value)
-                else:
-                    raise SyntaxError
 
 
 def setup(bot):

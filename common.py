@@ -1,8 +1,11 @@
 import re
 import traceback
 import discord
+from discord.ext import commands
 import typing
-from typing import List
+from typing import List, Tuple
+from datetime import datetime
+import dateparser
 
 
 class Dev_Settings:
@@ -86,6 +89,52 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
         await user.send(message)
 
 
+async def parse_time_message(ctx, user_input: str) -> Tuple[datetime, str]:
+    """Parses a string containing both a time description and a message
+
+    The time can be a date, duration, etc. written in natural language.
+    """
+    user_input = f'in {user_input}'
+    date_time, time_description = await split_time_message(user_input)
+
+    if date_time is None:
+        raise commands.BadArgument('Invalid time description')
+
+    now = ctx.message.created_at
+    date_time = date_time.replace(tzinfo=now.tzinfo)
+    message = user_input.replace(time_description, '')[1:]
+
+    return date_time, message
+
+
+async def split_time_message(user_input: str) -> Tuple[datetime, str]:
+    """Splits a string of a time description and a message
+    
+    The time can be a date, duration, etc. written in natural language.
+    """
+    split_input = user_input.split(' ')
+    dateparser_settings = {
+        'TIMEZONE': 'UTC',
+        'TO_TIMEZONE': 'UTC',
+        'RETURN_AS_TIMEZONE_AWARE': True,
+        'PREFER_DATES_FROM': 'future'
+    }
+
+    # The longest possible time description accepted is 7 words long.
+    max_length = len(split_input[:7])
+    date_time = None
+    time_description = ''
+    
+    # Gradually try parsing fewer words as a time description until a valid one is found.
+    for i in range(max_length, 0, -1):
+        time_description = ' '.join(split_input[:i])
+        date_time = dateparser.parse(time_description, settings=dateparser_settings)
+        if date_time is not None:
+            break
+
+    return date_time, time_description
+
+
 async def get_display_prefixes(bot, message: discord.Message) -> List[str]:
     """Lists the prefixes as they appear in Discord
     
@@ -156,3 +205,34 @@ async def create_task_key(task_type: str = '', author_id: int = 0, target_time: 
             return f'task:{task_type} '
         return f'task:{task_type} {author_id} '
     return f'task:{task_type} {author_id} {target_time}'
+
+
+async def parse_time(self, Time: str) -> float:
+    """Converts a str of one or multiple units of time to a float of seconds
+    
+    The str must be in a certain format. Valid examples:
+        2h45m
+        30s
+        2d5h30m
+    """
+    seconds = 0.0
+    while True:
+        unit_match = re.search(r'[dhms]', Time)
+        if not unit_match:
+            return seconds
+        else:
+            unit = unit_match[0]
+            index = unit_match.start()
+            value = Time[:index]
+            Time = Time[index+1:]
+
+            if unit == 'd':
+                seconds += float(value) * 24 * 60 * 60
+            elif unit == 'h':
+                seconds += float(value) * 60 * 60
+            elif unit == 'm':
+                seconds += float(value) * 60
+            elif unit == 's':
+                seconds += float(value)
+            else:
+                raise SyntaxError
