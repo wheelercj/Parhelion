@@ -94,7 +94,7 @@ class Random(commands.Cog):
         """
         while True:
             target_time = datetime.fromisoformat(target_time)
-            now = datetime.now(timezone.utc)
+            now = datetime.utcnow()
             if now > target_time:
                 date = now.date() + timedelta(days=1)
             else:
@@ -127,7 +127,7 @@ class Random(commands.Cog):
             return
 
         hour, minute = daily_utc_time.split(':')
-        today = datetime.now(timezone.utc)
+        today = datetime.utcnow()
         target_time = datetime(today.year, today.month, today.day, int(hour), int(minute), tzinfo=timezone.utc)
         target_time = target_time.isoformat()
 

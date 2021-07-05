@@ -1,7 +1,7 @@
 # external imports
 import discord
 from discord.ext import commands
-from datetime import datetime, timezone
+from datetime import datetime
 import aiohttp
 import os
 import re
@@ -26,7 +26,7 @@ class Bot(commands.Bot):
 
         self.app_info: commands.Bot.AppInfo = None
         self.owner_id: int = None
-        self.launch_time = datetime.now(timezone.utc)
+        self.launch_time = datetime.utcnow()
         self.global_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.previous_command_ctxs: List[commands.Context] = []

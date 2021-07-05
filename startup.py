@@ -30,7 +30,7 @@ async def continue_task(bot, task_key: str):
     task = await eval_task(db[task_key])
     destination = await task.get_destination(bot)
 
-    current_time = datetime.now()
+    current_time = datetime.utcnow()
     target_time = datetime.fromisoformat(task.target_time)
     remaining_time = target_time - current_time
     remaining_seconds = remaining_time.total_seconds()
@@ -80,7 +80,7 @@ async def continue_reminder(bot, reminder: Reminder, destination, remaining_seco
         if remaining_seconds > 0:
             await asyncio.sleep(remaining_seconds)
 
-            now = datetime.now()
+            now = datetime.utcnow()
             if now < datetime.fromisoformat(reminder.target_time):
                 raise ValueError('Reminder sleep failed.')
 

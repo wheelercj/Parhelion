@@ -20,7 +20,7 @@ async def save_task(ctx, task_type: str, target_time: str, duration: str, constr
     take these uninherited arguments before all the inherited
     arguments.)
     """
-    start_time = datetime.now(timezone.utc)
+    start_time = datetime.utcnow()
     author_id = ctx.author.id
     try:
         guild_id = ctx.guild.id
@@ -116,7 +116,7 @@ async def eval_task(string: str) -> Any:
 
 async def target_tomorrow(task: Task) -> str:
     """Changes the target day to tomorrow without changing the time"""
-    tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
+    tomorrow = datetime.utcnow() + timedelta(days=1)
     old_target_time = datetime.fromisoformat(task.target_time)
     hour = old_target_time.hour
     minute = old_target_time.minute

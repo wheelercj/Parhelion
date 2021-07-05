@@ -47,7 +47,7 @@ class Reminders(commands.Cog):
             await asyncio.sleep(seconds)
             # The maximum reliable sleep duration is 24.85 days (see https://bugs.python.org/issue20493 for details).
 
-            if datetime.now() < target_time:
+            if datetime.utcnow() < target_time:
                 raise ValueError('Reminder sleep failed.')
 
             await ctx.reply(f'{ctx.author.mention}, here is your reminder: {message}')
@@ -73,7 +73,7 @@ class Reminders(commands.Cog):
                 try:
                     reminder = await eval_task(db[key])
                     target_time = datetime.fromisoformat(reminder.target_time)
-                    remaining = target_time - datetime.now()
+                    remaining = target_time - datetime.utcnow()
                     if str(remaining).startswith('-'):
                         raise ValueError('Negative time remaining.')
 

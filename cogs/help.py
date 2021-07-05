@@ -1,7 +1,7 @@
 # external imports
 import discord
 from discord.ext import commands
-from datetime import datetime, timezone
+from datetime import datetime
 import platform
 
 # internal imports
@@ -74,7 +74,7 @@ class Help(commands.Cog):
 
     async def uptime(self, ctx) -> str:
         """Returns the amount of time the bot has been running"""
-        _uptime = datetime.now(timezone.utc) - self.bot.launch_time
+        _uptime = datetime.utcnow() - self.bot.launch_time
         hours, remainder = divmod(int(_uptime.total_seconds()), 3600)
         minutes, seconds = divmod(remainder, 60)
         days, hours = divmod(hours, 24)
