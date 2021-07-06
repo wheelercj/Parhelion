@@ -93,7 +93,8 @@ class Random(commands.Cog):
         destination can be ctx, a channel object, or a user object.
         """
         while True:
-            target_time = datetime.fromisoformat(target_time)
+            if isinstance(target_time, str):
+                target_time = datetime.fromisoformat(target_time)
             now = datetime.utcnow()
             if now > target_time:
                 date = now.date() + timedelta(days=1)
@@ -127,10 +128,11 @@ class Random(commands.Cog):
             return
 
         hour, minute = daily_utc_time.split(':')
-        today = datetime.utcnow()
-        target_time = datetime(today.year, today.month, today.day, int(hour), int(minute))
+        now = datetime.utcnow()
+        target_time = datetime(now.year, now.month, now.day, int(hour), int(minute))
+        if target_time < now:
+            target_time = target_time + timedelta(days=1)
         target_time = target_time.isoformat()
-
         daily_quote = await save_daily_quote(ctx, target_time)
 
         await ctx.send(f'Time set! At {daily_utc_time} UTC each day, I will send you a random quote.')
