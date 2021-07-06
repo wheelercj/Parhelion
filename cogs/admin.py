@@ -24,7 +24,8 @@ class Admin(commands.Cog):
         This cannot be undone or stopped once it begins.
         You cannot delete messages more than 14 days old.
         If the bot has the `manage messages` permission, messages from anyone
-        will be deleted. If more than 100 messages are being deleted at once, there will be a short delay between the deletion of each hundred
+        will be deleted. If more than 100 messages are being deleted at once, 
+        there will be a short delay between the deletion of each hundred
         messages.
         """
         if confirm != 'CONFIRM':
