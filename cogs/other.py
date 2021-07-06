@@ -75,8 +75,8 @@ class Other(commands.Cog):
     async def _mystbin(self, ctx, syntax: str, *, content: str):
         """Creates a new paste on Mystb.in and gives you the link
         
-        These are public pastes that cannot be edited or deleted
-        once they are posted.
+        You can use a code block! The pastes are public and
+        cannot be edited or deleted once they are posted.
         """
         async with ctx.typing():
             if syntax.startswith('```'):
@@ -84,8 +84,9 @@ class Other(commands.Cog):
                 if content.endswith('```'):
                     content = content[:-3]
 
-            mystbin_client = mystbin.Client()
+            mystbin_client = mystbin.Client(session=self.bot.session)
             paste = await mystbin_client.post(content, syntax=syntax)
+
             await ctx.reply(f'New Mystb.in paste created at <{paste.url}>')
 
 
