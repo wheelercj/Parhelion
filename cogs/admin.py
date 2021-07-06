@@ -16,7 +16,7 @@ class Admin(commands.Cog):
         return True
 
 
-    @commands.command(name='bulk-delete')
+    @commands.command(name='bulk-delete', aliases=['bulkdelete'])
     @commands.bot_has_guild_permissions(read_message_history=True, manage_messages=True)
     async def bulk_delete(self, ctx, n: int, confirm: str = None):
         """Deletes the previous n messages in the current channel
