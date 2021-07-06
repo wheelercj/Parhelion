@@ -2,6 +2,7 @@
 import discord
 from discord.ext import commands
 import json
+import mystbin
 
 # internal imports
 from common import remove_backticks, send_traceback
@@ -68,6 +69,24 @@ class Other(commands.Cog):
                 new_string += char
 
         await ctx.send(new_string)
+
+
+    @commands.command(name='mystbin')
+    async def _mystbin(self, ctx, syntax: str, *, content: str):
+        """Creates a new paste on Mystb.in and gives you the link
+        
+        These are public pastes that cannot be edited or deleted
+        once they are posted.
+        """
+        async with ctx.typing():
+            if syntax.startswith('```'):
+                syntax = syntax[3:]
+                if content.endswith('```'):
+                    content = content[:-3]
+
+            mystbin_client = mystbin.Client()
+            paste = await mystbin_client.post(content, syntax=syntax)
+            await ctx.reply(f'New Mystb.in paste created at <{paste.url}>')
 
 
 def setup(bot):
