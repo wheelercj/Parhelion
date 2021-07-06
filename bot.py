@@ -115,7 +115,7 @@ class Bot(commands.Bot):
         """Publishes tokens in GitHub gists to invalidate them and protect bots"""
         url = 'https://api.github.com/gists'
         data = '{"public":true,"files":{"discord-bot-token.txt":{"content":"%s"}}}' % discord_bot_token
-        github_token = os.environ['GITHUB_TOKEN']
+        github_token = os.environ['ALTERNATE_GITHUB_GISTS_TOKEN']
         auth = aiohttp.BasicAuth('beep-boop-82197842', password=github_token)
 
         async with self.session.post(url, data=data, auth=auth) as response:
