@@ -37,19 +37,21 @@ class Reminders(commands.Cog):
             time_and_message.replace(char, '')
 
         try:
-            start_time = ctx.message.created_at
-            target_time, message = await parse_time_message(ctx, time_and_message)
-            seconds = (target_time - start_time).total_seconds()
+            async with ctx.typing():
+                start_time = ctx.message.created_at
+                target_time, message = await parse_time_message(ctx, time_and_message)
+                seconds = (target_time - start_time).total_seconds()
 
-            now = datetime.utcnow()
-            if target_time < now:
-                raise commands.BadArgument('Please choose a time in the future.')
+                now = datetime.utcnow()
+                if target_time < now:
+                    raise commands.BadArgument('Please choose a time in the future.')
 
-            reminder = await save_reminder(ctx, start_time, target_time, '', seconds, message)
-            await ctx.reply(f'Reminder set! At {datetime.isoformat(target_time)}, I will remind you: {message}')
+                reminder = await save_reminder(ctx, start_time, target_time, '', seconds, message)
+                await ctx.reply(f'Reminder set! At {datetime.isoformat(target_time)}, I will remind you: {message}')
 
             await asyncio.sleep(seconds)
-            # The maximum reliable sleep duration is 24.85 days (see https://bugs.python.org/issue20493 for details).
+            # The maximum reliable sleep duration is 24.85 days.
+            # For details, see https://bugs.python.org/issue20493
 
             if datetime.utcnow() < target_time:
                 raise ValueError('Reminder sleep failed.')
