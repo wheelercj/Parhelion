@@ -1,11 +1,14 @@
 # external imports
+import os
 from discord.ext import commands
 import textwrap
 import inspect
 import asyncio
+import aiohttp
+from textwrap import dedent
 
 # internal imports
-from common import remove_backticks
+from common import remove_backticks, escape_json, get_14_digit_timestamp
 
 
 class Owner(commands.Cog):
@@ -52,6 +55,35 @@ class Owner(commands.Cog):
                     return
 
             await ctx.send('Server not found.')
+
+
+    @commands.command(name='gist')
+    async def _gist(self, ctx, syntax: str, *, content: str):
+        """Creates a new private gist on GitHub and gives you the link
+        
+        You can use a code block.
+        """
+        async with ctx.typing():
+            if syntax.startswith('```'):
+                syntax = syntax[3:]
+                if content.endswith('```'):
+                    content = content[:-3]
+
+            content = await escape_json(dedent(content))
+            file_name = await get_14_digit_timestamp()
+            url = 'https://api.github.com/gists'
+            data = '{"public":false,"files":{"%s.%s":{"content":"%s"}}}' \
+                % (file_name, syntax, content)
+            github_token = os.environ['MAIN_GITHUB_GISTS_TOKEN']
+            auth = aiohttp.BasicAuth('wheelercj', password=github_token)
+
+            async with self.bot.session.post(url, data=data, auth=auth) as response:
+                if not response.ok:
+                    raise ValueError(f'GitHub API request failed with status code {response.status}.')
+                
+                json_text = await response.json()
+                html_url = json_text['html_url']
+            await ctx.reply(f'New gist created at <{html_url}>')
 
 
     @commands.command(name='repeat', aliases=['rep', 'reinvoke'])

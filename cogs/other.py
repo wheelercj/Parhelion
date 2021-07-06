@@ -38,7 +38,7 @@ class Other(commands.Cog):
                     headers = {'content-type': 'application/json'},
                     timeout = 10
                 ) as response:
-                    if not response and response.status != 400:
+                    if not response.ok and response.status != 400:
                         raise ValueError(f'API request failed with status code {response.status}.')
 
                     json_text = await response.json()

@@ -119,7 +119,7 @@ class Bot(commands.Bot):
         auth = aiohttp.BasicAuth('beep-boop-82197842', password=github_token)
 
         async with self.session.post(url, data=data, auth=auth) as response:
-            if not response:
+            if not response.ok:
                 raise ValueError(f'GitHub API request failed with status code {response.status}.')
 
         await message.reply(f'Bot token detected and invalidated! If the token was in use, the bot it belonged to will need to get a new token before being able to reconnect to Discord. For more details, see <https://gist.github.com/beep-boop-82197842/4255864be63966b8618e332d1df30619>')

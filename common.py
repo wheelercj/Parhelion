@@ -50,6 +50,20 @@ async def get_role(ctx, role_id: typing.Optional[int], role_name: str = None) ->
                 return r
 
 
+async def escape_json(text: str) -> str:
+    """Escapes all chars that have meaning in JSON"""
+    text = text.replace('\\', '\\\\').replace('"', r'\"').replace('\n', r'\n').replace('\t', r'\t').replace('\r', r'\r').replace('\b', r'\b').replace('\f', r'\f').replace(r'\u', r'\\u').replace('/', '\/')
+    return text
+
+    
+async def get_14_digit_timestamp() -> str:
+    """Gets a timestamp in the format YYYYMMDDhhmmss"""
+    now = str(datetime.utcnow())
+    now = now[:19]  # Remove the microseconds.
+    now = now.replace('-', '').replace(':', '').replace(' ', '')
+    return now
+
+
 async def send_traceback(ctx, error: BaseException):
     """Sends the traceback of an exception to ctx"""
     etype = type(error)
