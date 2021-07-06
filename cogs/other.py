@@ -6,7 +6,7 @@ import mystbin
 from textwrap import dedent
 
 # internal imports
-from common import remove_backticks, send_traceback
+from common import unwrap_codeblock, send_traceback
 
 
 class Other(commands.Cog):
@@ -25,7 +25,7 @@ class Other(commands.Cog):
         # The math.js API allows a maximum of 10,000 requests per
         # day with a 10 second duration per evaluation.
         try:
-            expression = remove_backticks(expression)
+            _, expression = await unwrap_codeblock(expression)
             if '**' in expression:
                 raise ValueError('This command uses ^ rather than ** for exponents.')
             raw_expressions = expression.split('\n')

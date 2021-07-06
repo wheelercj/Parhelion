@@ -73,15 +73,25 @@ async def send_traceback(ctx, error: BaseException):
     await ctx.send(f'```\n{traceback_text}\n```')
 
 
-def remove_backticks(statement: str, languages=['py', 'python']) -> str:
-    """Removes language name and backticks around a code block, if they are there"""
+async def unwrap_codeblock(statement: str) -> Tuple[str, str]:
+    """Removes triple backticks and a syntax name around a code block
+    
+    Returns the unwrapped code and any syntax name found. If
+    there are not triple backticks, the returns are the unchanged
+    input and None. Any syntax name must be on the same line as the
+    leading triple backticks, and code must be on the next line(s).
+    The result is not dedented. Closing triple backticks optional.
+    """
+    syntax = None
     if statement.startswith('```'):
         statement = statement[3:]
-        for language in languages:
-            if statement.startswith(f'{language}\n'):
-                size = len(language) + 1
-                statement = statement[size:]
-                break
+
+        # Find the syntax used, if any.
+        i = statement.find('\n')
+        if i != -1:
+            syntax = statement[:i].strip()
+            statement = statement[i:]
+
         if statement.startswith('\n'):
             statement = statement[1:]
 
@@ -90,7 +100,7 @@ def remove_backticks(statement: str, languages=['py', 'python']) -> str:
         if statement.endswith('\n'):
             statement = statement[:-1]
 
-    return statement
+    return syntax, statement
 
 
 async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):

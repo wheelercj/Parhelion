@@ -8,7 +8,7 @@ import aiohttp
 from textwrap import dedent
 
 # internal imports
-from common import remove_backticks, escape_json, get_14_digit_timestamp
+from common import unwrap_codeblock, escape_json, get_14_digit_timestamp
 
 
 class Owner(commands.Cog):
@@ -63,11 +63,11 @@ class Owner(commands.Cog):
         
         You can use a code block.
         """
+        # This command currently creates the gists with my own GitHub
+        # account, so it should not be made available to others.
         async with ctx.typing():
             if syntax.startswith('```'):
-                syntax = syntax[3:]
-                if content.endswith('```'):
-                    content = content[:-3]
+                syntax, content = await unwrap_codeblock(syntax + '\n' + content)
 
             content = await escape_json(dedent(content))
             file_name = await get_14_digit_timestamp()
@@ -83,6 +83,7 @@ class Owner(commands.Cog):
                 
                 json_text = await response.json()
                 html_url = json_text['html_url']
+
             await ctx.reply(f'New gist created at <{html_url}>')
 
 
@@ -213,7 +214,7 @@ class Owner(commands.Cog):
         # This command must never be made available to anyone
         # besides this bot's developers because Python's exec
         # function is not safe.
-        statement = remove_backticks(statement)
+        _, statement = await unwrap_codeblock(statement)
         env = {
             'ctx': ctx,
             'bot': self.bot,
