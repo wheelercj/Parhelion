@@ -41,6 +41,10 @@ class Reminders(commands.Cog):
             target_time, message = await parse_time_message(ctx, time_and_message)
             seconds = (target_time - start_time).total_seconds()
 
+            now = datetime.utcnow()
+            if target_time < now:
+                raise commands.BadArgument('Please choose a time in the future.')
+
             reminder = await save_reminder(ctx, start_time, target_time, '', seconds, message)
             await ctx.reply(f'Reminder set! At {datetime.isoformat(target_time)}, I will remind you: {message}')
 
