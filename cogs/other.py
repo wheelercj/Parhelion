@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 import json
 import mystbin
+from textwrap import dedent
 
 # internal imports
 from common import remove_backticks, send_traceback
@@ -83,6 +84,8 @@ class Other(commands.Cog):
                 syntax = syntax[3:]
                 if content.endswith('```'):
                     content = content[:-3]
+
+            content = dedent(content)
 
             mystbin_client = mystbin.Client(session=self.bot.session)
             paste = await mystbin_client.post(content, syntax=syntax)
