@@ -4,8 +4,6 @@ from discord.ext import commands
 from datetime import datetime
 from typing import List, Tuple, Union
 
-from common import get_member
-
 
 def y_n(boolean: bool) -> str:
     """Returns 'yes' or 'no'"""
@@ -172,7 +170,7 @@ class Info(commands.Cog):
         managing_bot = None
         if role.tags is not None:
             if role.tags.bot_id is not None:
-                managing_bot = await get_member(ctx, role.tags.bot_id)
+                managing_bot = ctx.guild.get_member(role.tags.bot_id)
 
         embed = discord.Embed()
         embed.add_field(name='role info',

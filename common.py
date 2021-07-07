@@ -2,7 +2,6 @@ import re
 import traceback
 import discord
 from discord.ext import commands
-import typing
 from typing import List, Tuple
 from datetime import datetime
 import dateparser
@@ -16,23 +15,6 @@ class Dev_Settings:
         self.privacy_policy_link = 'https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853'
 
 dev_settings = Dev_Settings()
-
-
-async def get_member(ctx, member_id: typing.Optional[int], name: str = None) -> discord.Member:
-    """Gets a member object from a member ID, display name, or context
-    
-    member_id can only be used in a guild. If both an ID and
-    a name are given, the ID will be used. If neither are
-    given, ctx.author.id will be used.
-    """
-    if member_id is not None:
-        return ctx.guild.get_member(member_id)
-    elif name is not None:
-        if ctx.guild is None:
-            raise ValueError('member_id can only be used in a guild')
-        return ctx.guild.get_member_named(name)
-    else:
-        return ctx.guild.get_member(ctx.author.id)
 
 
 async def escape_json(text: str) -> str:
