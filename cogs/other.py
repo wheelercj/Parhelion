@@ -6,7 +6,7 @@ import mystbin
 from textwrap import dedent
 
 # internal imports
-from common import unwrap_codeblock, send_traceback
+from common import unwrap_code_block, send_traceback
 
 
 class Other(commands.Cog):
@@ -27,7 +27,7 @@ class Other(commands.Cog):
         # allows a maximum of 10,000 requests per day (or 25 requests per 216
         # seconds).
         try:
-            _, expression = await unwrap_codeblock(expression)
+            _, expression = await unwrap_code_block(expression)
             if '**' in expression:
                 raise ValueError('This command uses ^ rather than ** for exponents.')
             raw_expressions = expression.split('\n')
@@ -87,9 +87,7 @@ class Other(commands.Cog):
         cannot be edited or deleted once they are posted.
         """
         async with ctx.typing():
-            syntax = 'txt'
-            if content.startswith('```'):
-                syntax, content = await unwrap_codeblock(content)
+            syntax, content = await unwrap_code_block(content)
             content = dedent(content)
             mystbin_client = mystbin.Client(session=self.bot.session)
             paste = await mystbin_client.post(content, syntax=syntax)

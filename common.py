@@ -40,32 +40,39 @@ async def send_traceback(ctx, error: BaseException):
     await ctx.send(f'```\n{traceback_text}\n```')
 
 
-async def unwrap_codeblock(statement: str) -> Tuple[str, str]:
+async def unwrap_code_block(statement: str) -> Tuple[str, str]:
     """Removes triple backticks and a syntax name around a code block
     
-    Returns the unwrapped code and any syntax name found. If
-    there are not triple backticks, the returns are the unchanged
-    input and None. Any syntax name must be on the same line as the
-    leading triple backticks, and code must be on the next line(s).
-    The result is not dedented. Closing triple backticks optional.
+    Returns any syntax name found and the unwrapped code. Any 
+    syntax name must be on the same line as the leading triple 
+    backticks, and code must be on the next line(s). If there are 
+    not triple backticks, the returns are 'txt' and the unchanged 
+    input. If there are triple backticks and no syntax is 
+    specified, the returns will be 'txt' and the unwrapped code 
+    block. The result is not dedented. Closing triple backticks 
+    are optional.
     """
-    syntax = None
-    if statement.startswith('```'):
-        statement = statement[3:]
+    if not statement.startswith('```'):
+        return 'txt', statement
 
-        # Find the syntax used, if any.
-        i = statement.find('\n')
-        if i != -1:
-            syntax = statement[:i].strip()
+    statement = statement[3:]
+
+    # Find the syntax name if one is given.
+    syntax = 'txt'
+    i = statement.find('\n')
+    if i != -1:
+        first_line = statement[:i].strip()
+        if len(first_line):
+            syntax = first_line
             statement = statement[i:]
 
-        if statement.startswith('\n'):
-            statement = statement[1:]
+    if statement.startswith('\n'):
+        statement = statement[1:]
 
-        if statement.endswith('\n```'):
-            statement = statement[:-4]
-        if statement.endswith('\n'):
-            statement = statement[:-1]
+    if statement.endswith('\n```'):
+        statement = statement[:-4]
+    if statement.endswith('\n'):
+        statement = statement[:-1]
 
     return syntax, statement
 

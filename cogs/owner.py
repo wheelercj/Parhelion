@@ -8,7 +8,7 @@ import aiohttp
 from textwrap import dedent
 
 # internal imports
-from common import unwrap_codeblock, escape_json, get_14_digit_timestamp
+from common import unwrap_code_block, escape_json, get_14_digit_timestamp
 
 
 class Owner(commands.Cog):
@@ -57,8 +57,8 @@ class Owner(commands.Cog):
             await ctx.send('Server not found.')
 
 
-    @commands.command(name='gist')
-    async def _gist(self, ctx, *, content: str):
+    @commands.command()
+    async def gist(self, ctx, *, content: str):
         """Creates a new private gist on GitHub and gives you the link
         
         You can use a code block and specify syntax. You cannot
@@ -68,9 +68,7 @@ class Owner(commands.Cog):
         # This command currently creates the gists with my own GitHub
         # account, so it should not be made available to others.
         async with ctx.typing():
-            syntax = 'txt'
-            if content.startswith('```'):
-                syntax, content = await unwrap_codeblock(content)
+            syntax, content = await unwrap_code_block(content)
             content = await escape_json(dedent(content))
             file_name = await get_14_digit_timestamp()
             url = 'https://api.github.com/gists'
@@ -216,7 +214,7 @@ class Owner(commands.Cog):
         # This command must never be made available to anyone
         # besides this bot's developers because Python's exec
         # function is not safe.
-        _, statement = await unwrap_codeblock(statement)
+        _, statement = await unwrap_code_block(statement)
         env = {
             'ctx': ctx,
             'bot': self.bot,
