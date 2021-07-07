@@ -76,20 +76,19 @@ class Other(commands.Cog):
 
 
     @commands.command(name='mystbin')
-    async def _mystbin(self, ctx, syntax: str, *, content: str):
+    async def _mystbin(self, ctx, *, content: str):
         """Creates a new paste on Mystb.in and gives you the link
         
-        You can use a code block! The pastes are public and
+        You can use a code block and specify syntax. You cannot
+        specify syntax without a triple-backtick code block. The
+        default syntax is `txt`. The pastes are public and
         cannot be edited or deleted once they are posted.
         """
         async with ctx.typing():
-            if syntax.startswith('```'):
-                syntax = syntax[3:]
-                if content.endswith('```'):
-                    content = content[:-3]
-
+            syntax = 'txt'
+            if content.startswith('```'):
+                syntax, content = await unwrap_codeblock(content)
             content = dedent(content)
-
             mystbin_client = mystbin.Client(session=self.bot.session)
             paste = await mystbin_client.post(content, syntax=syntax)
 
