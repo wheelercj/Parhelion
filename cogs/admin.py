@@ -1,6 +1,10 @@
 # external imports
+import discord
 from discord.ext import commands
-import asyncio
+from typing import Optional
+
+# internal imports
+from common import get_member
 
 
 class Admin(commands.Cog):
@@ -18,34 +22,23 @@ class Admin(commands.Cog):
 
     @commands.command(name='bulk-delete', aliases=['bulkdelete'])
     @commands.bot_has_guild_permissions(read_message_history=True, manage_messages=True)
-    async def bulk_delete(self, ctx, n: int, confirm: str = None):
+    async def bulk_delete(self, ctx, n: int, user_id: Optional[int], *, name: str = None):
         """Deletes the previous n messages in the current channel
 
-        This cannot be undone or stopped once it begins.
-        You cannot delete messages more than 14 days old.
-        If the bot has the `manage messages` permission, messages from anyone
-        will be deleted. If more than 100 messages are being deleted at once, 
-        there will be a short delay between the deletion of each hundred
-        messages.
+        If a user is chosen (with either their user ID, nickname, or username),
+        only their messages will be deleted and only the ones within the previous 
+        n messages (possibly fewer than n messages will be deleted). This cannot 
+        be undone or stopped once it begins. You may not be able to delete
+        messages more than 14 days old.
         """
-        if confirm != 'CONFIRM':
-            await ctx.send(f'Are you sure you want to bulk-delete the last {n} messages in this channel? This cannot be undone or stopped once it begins. Use `{ctx.prefix}{ctx.invoked_with} {n} CONFIRM` to confirm.')
-            return
+        if user_id is None and name is None:
+            check = None
+        else:
+            member: discord.Member = await get_member(ctx, user_id, name)
+            check = lambda m: m.author == member
 
-        # discord.Channel.delete_messages can delete up to 100
-        # messages each time it is called. If there are more than
-        # 100 messages to delete, it will need to be called
-        # multiple times.
-        hundreds = n // 100
-        remainder = n % 100
-
-        for _ in range(hundreds):
-            messages = await ctx.channel.history(limit=101).flatten()
-            await ctx.channel.delete_messages(messages[1:])
-            await asyncio.sleep(n/250)
-        
-        messages = await ctx.channel.history(limit=remainder+1).flatten()
-        await ctx.channel.delete_messages(messages[1:])
+        deleted = await ctx.channel.purge(limit=n, check=check)
+        await ctx.send(f':thumbsup: Deleted {len(deleted)} messages.', delete_after=8)
 
 
 def setup(bot):
