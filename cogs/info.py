@@ -2,11 +2,9 @@
 import discord
 from discord.ext import commands
 from datetime import datetime
-import typing
 from typing import List, Tuple, Union
 
-# internal imports
-from common import get_member, get_role
+from common import get_member
 
 
 def y_n(boolean: bool) -> str:
@@ -194,14 +192,16 @@ class Info(commands.Cog):
 
     @commands.command(name='permissions', aliases=['perms'])
     @commands.guild_only()
-    async def server_permissions(self, ctx, ID: typing.Optional[int], *, name: str = None):
-        """Shows the server and channel permissions of a user or role
+    async def server_permissions(self, ctx, member_or_role: Union[discord.Member, discord.Role] = None):
+        """Shows the server and channel permissions of a member or role
 
-        Use either an ID or a name. If a user and role have the same ID and/or name,
-        the permissions for the user will be shown. User permissions include the
+        If a user and role have the same ID and/or name, the permissions
+        for the user will be shown. User permissions include the
         permissions for all roles that user has.
         """
-        server_perms, overwrites, title = await self.get_perms(ctx, ID, name)
+        if member_or_role is None:
+            member_or_role = ctx.author
+        server_perms, overwrites, title = await self.get_perms(ctx, member_or_role)
         if server_perms is None:
             await ctx.send('Could not find the user or role.')
             return
@@ -243,16 +243,16 @@ class Info(commands.Cog):
         return await self.perm_list_message(perm_list)
 
 
-    async def get_perms(self, ctx, ID: typing.Optional[int], name: str = None) -> Tuple[str, str, str]:
+    async def get_perms(self, ctx, member_or_role: Union[discord.Member, discord.Role]) -> Tuple[str, str, str]:
         """Gets the formatted server perms, channel overwrites, and embed title"""
-        member = await get_member(ctx, ID, name)
-        if member is not None:
+        if isinstance(member_or_role, discord.Member):
+            member = member_or_role
             server_perms = await self.format_perms(member.guild_permissions)
             overwrites = await self.get_perm_overwrites(ctx, member)
             title = f'{member.name}#{member.discriminator}\'s permissions'
             return server_perms, overwrites, title
-        else:
-            role = await get_role(ctx, ID, name)
+        elif isinstance(member_or_role, discord.Role):
+            role = member_or_role
             if role is not None:
                 server_perms = await self.format_perms(role.permissions)
                 overwrites = await self.get_perm_overwrites(ctx, role)
