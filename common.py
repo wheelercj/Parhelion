@@ -196,34 +196,3 @@ async def create_task_key(task_type: str = '', author_id: int = 0, target_time: 
             return f'task:{task_type} '
         return f'task:{task_type} {author_id} '
     return f'task:{task_type} {author_id} {target_time}'
-
-
-async def parse_time(self, Time: str) -> float:
-    """Converts a str of one or multiple units of time to a float of seconds
-    
-    The str must be in a certain format. Valid examples:
-        2h45m
-        30s
-        2d5h30m
-    """
-    seconds = 0.0
-    while True:
-        unit_match = re.search(r'[dhms]', Time)
-        if not unit_match:
-            return seconds
-        else:
-            unit = unit_match[0]
-            index = unit_match.start()
-            value = Time[:index]
-            Time = Time[index+1:]
-
-            if unit == 'd':
-                seconds += float(value) * 24 * 60 * 60
-            elif unit == 'h':
-                seconds += float(value) * 60 * 60
-            elif unit == 'm':
-                seconds += float(value) * 60
-            elif unit == 's':
-                seconds += float(value)
-            else:
-                raise SyntaxError
