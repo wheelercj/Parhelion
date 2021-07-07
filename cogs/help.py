@@ -42,7 +42,7 @@ class Help(commands.Cog):
         await ctx.send(f'My current prefixes are {prefixes}')
 
 
-    @commands.command(aliases=['i', 'info', 'stats', 'uptime', 'invite', 'support', 'owner', 'privacy-policy', 'privacy'])
+    @commands.command(aliases=['stats', 'uptime', 'invite', 'support', 'owner', 'privacy-policy', 'privacy'])
     async def about(self, ctx):
         """Shows general info about this bot"""
         embed = discord.Embed(title=f'{self.bot.user.name}#{self.bot.user.discriminator}')

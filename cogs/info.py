@@ -28,7 +28,14 @@ class Info(commands.Cog):
         await ctx.send(f'The current time is {current_time} UTC')
 
 
-    @commands.command(name='server-info', aliases=['si', 'gi', 'serverinfo', 'guild-info', 'guildinfo'])
+    @commands.group(aliases=['i'], invoke_without_command=True)
+    @commands.guild_only()
+    async def info(self, ctx):
+        """Shows info about various topics. Use one of the subcommands listed below."""
+        await ctx.send_help('info')
+
+
+    @info.command(name='server', aliases=['s', 'g', 'guild'])
     @commands.guild_only()
     async def server_info(self, ctx):
         """Shows info about the current server"""
@@ -91,12 +98,12 @@ class Info(commands.Cog):
         return features
 
 
-    @commands.command(name='user-info', aliases=['ui', 'mi', 'whois', 'who-is', 'userinfo', 'member-info', 'memberinfo'])
+    @info.command(name='user', aliases=['u', 'm', 'member'])
     @commands.guild_only()
     async def user_info(self, ctx, member: discord.Member):
         """Shows info about a member of the current server
         
-        To see user permissions, use the `perms` command.
+        To see member permissions, use the `info perms` command.
         """
         embed = discord.Embed()
         embed.add_field(name=f'{member.name}#{member.discriminator}\n\u2800',
@@ -160,12 +167,12 @@ class Info(commands.Cog):
             return ''
 
 
-    @commands.command(name='role-info', aliases=['ri', 'roleinfo'])
+    @info.command(name='role', aliases=['r'])
     @commands.guild_only()
     async def role_info(self, ctx, role: discord.Role):
         """Shows info about a role on the current server
         
-        To see role permissions, use the `perms` command.
+        To see role permissions, use the `info perms` command.
         """
         managing_bot = None
         if role.tags is not None:
@@ -188,7 +195,7 @@ class Info(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.command(name='permissions', aliases=['perms'])
+    @info.command(name='perms', aliases=['permissions'])
     @commands.guild_only()
     async def server_permissions(self, ctx, member_or_role: Union[discord.Member, discord.Role] = None):
         """Shows the server and channel permissions of a member or role
