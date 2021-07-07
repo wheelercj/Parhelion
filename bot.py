@@ -39,6 +39,7 @@ class Bot(commands.Bot):
             'cogs.admin',
             'cogs.help',
             'cogs.info',
+            'cogs.mod',
             'cogs.music',
             'cogs.other',
             'cogs.owner',
