@@ -166,16 +166,11 @@ class Info(commands.Cog):
 
     @commands.command(name='role-info', aliases=['ri', 'roleinfo'])
     @commands.guild_only()
-    async def role_info(self, ctx, role_id: typing.Optional[int], *, role_name: str = None):
+    async def role_info(self, ctx, role: discord.Role):
         """Shows info about a role on the current server
         
-        Use either the role name or ID. To see role permissions, use the `permissions` command.
+        To see role permissions, use the `perms` command.
         """
-        role = await get_role(ctx, role_id, role_name)
-        if role is None:
-            await ctx.send('Role not found.')
-            return
-
         managing_bot = None
         if role.tags is not None:
             if role.tags.bot_id is not None:
