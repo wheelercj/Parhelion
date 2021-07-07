@@ -24,7 +24,7 @@ class Reminders(commands.Cog):
         self.bot = bot
 
 
-    @commands.command(aliases=['r', 'add-r', 'reminder', 'remindme'])
+    @commands.group(aliases=['reminder', 'remindme', 'timer'], invoke_without_command=True)
     async def remind(self, ctx, *, time_and_message: str):
         """Sends you a reminder
         
@@ -63,7 +63,7 @@ class Reminders(commands.Cog):
                 await send_traceback(ctx, e)
 
 
-    @commands.command(name='list-r', aliases=['list-reminders'])
+    @remind.command(name='list')
     async def list_reminders(self, ctx):
         """Shows all of your reminders"""
         task_key_prefix = await create_task_key('reminder', ctx.author.id)
@@ -93,9 +93,9 @@ class Reminders(commands.Cog):
             await ctx.send(embed=embed)
 
 
-    @commands.command(name='del-r', aliases=['del-reminder', 'delete-reminder'])
-    async def del_r(self, ctx, index: int):
-        """Deletes a reminder by its index shown in the `list-r` command
+    @remind.command(name='delete', aliases=['del'])
+    async def delete_reminder(self, ctx, index: int):
+        """Deletes a reminder by its index shown in the `remind list` command
         
         Currently, this only deletes a reminder from the
         database, not from the program. A deleted reminder will then only be cancelled if the bot is restarted.
@@ -116,13 +116,13 @@ class Reminders(commands.Cog):
                 await ctx.send('Reminder not found.')
 
         
-    @del_r.error
-    async def del_r_error(self, ctx, error):
+    @delete_reminder.error
+    async def delete_reminder_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("Error: missing argument. Use the reminder's index number shown in the `list-r` command.")
+            await ctx.send("Error: missing argument. Use the reminder's index number shown in the `remind list` command.")
             await ctx.send(error)
         elif isinstance(error, commands.BadArgument):
-            await ctx.send("Error: use the reminder's index number shown in the `list-r` command.")
+            await ctx.send("Error: use the reminder's index number shown in the `remind list` command.")
 
 
 def setup(bot):
