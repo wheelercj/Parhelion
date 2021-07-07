@@ -97,16 +97,11 @@ class Info(commands.Cog):
 
     @commands.command(name='user-info', aliases=['ui', 'mi', 'whois', 'who-is', 'userinfo', 'member-info', 'memberinfo'])
     @commands.guild_only()
-    async def user_info(self, ctx, user_id: typing.Optional[int], *, name: str = None):
+    async def user_info(self, ctx, member: discord.Member):
         """Shows info about a member of the current server
         
-        Use either their user ID, nickname, or username. To see user permissions, use the `permissions` command.
+        To see user permissions, use the `perms` command.
         """
-        member: discord.Member = await get_member(ctx, user_id, name)
-        if member is None:
-            await ctx.send('User not found.')
-            return
-
         embed = discord.Embed()
         embed.add_field(name=f'{member.name}#{member.discriminator}\n\u2800',
             value=f'**display name:** {member.display_name}\n'
