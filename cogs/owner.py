@@ -58,17 +58,19 @@ class Owner(commands.Cog):
 
 
     @commands.command(name='gist')
-    async def _gist(self, ctx, syntax: str, *, content: str):
+    async def _gist(self, ctx, *, content: str):
         """Creates a new private gist on GitHub and gives you the link
         
-        You can use a code block.
+        You can use a code block and specify syntax. You cannot
+        specify syntax without a triple-backtick code block. The
+        default syntax is `txt`.
         """
         # This command currently creates the gists with my own GitHub
         # account, so it should not be made available to others.
         async with ctx.typing():
-            if syntax.startswith('```'):
-                syntax, content = await unwrap_codeblock(syntax + '\n' + content)
-
+            syntax = 'txt'
+            if content.startswith('```'):
+                syntax, content = await unwrap_codeblock(content)
             content = await escape_json(dedent(content))
             file_name = await get_14_digit_timestamp()
             url = 'https://api.github.com/gists'
