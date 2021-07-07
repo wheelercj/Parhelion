@@ -15,15 +15,17 @@ class Other(commands.Cog):
 
 
     @commands.command(aliases=['calc', 'solve', 'maths'])
-    @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.cooldown(25, 216, commands.BucketType.default)
     async def math(self, ctx, *, expression: str):
         """Evaluates a math expression
         
-        Evaluates multiple expressions if they're on separate lines, and supports code blocks.
-        Uses the math.js API: https://mathjs.org/docs/expressions/syntax.html
+        Evaluates multiple expressions if they're on separate lines, and
+        allows you to use a code block. Uses the math.js API:
+        https://mathjs.org/docs/expressions/syntax.html
         """
-        # The math.js API allows a maximum of 10,000 requests per
-        # day with a 10 second duration per evaluation.
+        # The math.js API has a 10 second duration limit per evaluation and 
+        # allows a maximum of 10,000 requests per day (or 25 requests per 216
+        # seconds).
         try:
             _, expression = await unwrap_codeblock(expression)
             if '**' in expression:
