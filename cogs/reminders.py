@@ -1,6 +1,5 @@
 # external imports
 from replit import db
-import re
 import asyncio
 from datetime import datetime
 import discord
