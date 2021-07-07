@@ -18,7 +18,7 @@ dev_settings = Dev_Settings()
 
 
 async def escape_json(text: str) -> str:
-    """Escapes all chars that have meaning in JSON"""
+    """Escapes slashes, backslashes, double quotes, and all JSON escape sequences"""
     text = text.replace('\\', '\\\\').replace('"', r'\"').replace('\n', r'\n').replace('\t', r'\t').replace('\r', r'\r').replace('\b', r'\b').replace('\f', r'\f').replace(r'\u', r'\\u').replace('/', '\/')
     return text
 
