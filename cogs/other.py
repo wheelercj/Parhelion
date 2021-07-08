@@ -77,8 +77,8 @@ class Other(commands.Cog):
         await ctx.send(new_string)
 
 
-    @commands.command(name='mystbin')
-    async def _mystbin(self, ctx, *, content: str):
+    @commands.command(aliases=['mystbin'])
+    async def paste(self, ctx, *, content: str):
         """Creates a new paste on Mystb.in and gives you the link
         
         You can use a code block and specify syntax. You cannot
