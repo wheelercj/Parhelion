@@ -45,6 +45,7 @@ class Bot(commands.Bot):
             'cogs.owner',
             'cogs.rand',
             'cogs.reminders',
+            'jishaku',
         ]
 
         for extension in default_extensions:
