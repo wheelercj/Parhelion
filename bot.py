@@ -24,14 +24,15 @@ class Bot(commands.Bot):
 
         self.load_default_extensions()
 
+        self.add_check(self.check_global_cooldown, call_once=True)
+
         self.app_info: commands.Bot.AppInfo = None
         self.owner_id: int = None
         self.launch_time = datetime.utcnow()
         self.global_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.previous_command_ctxs: List[commands.Context] = []
-        
-        self.add_check(self.check_global_cooldown, call_once=True)
+        self.command_use_count = 0
 
 
     def load_default_extensions(self):
@@ -135,6 +136,7 @@ class Bot(commands.Bot):
 
 
     async def on_command(self, ctx):
+        self.command_use_count += 1
         await self.save_owners_command(ctx)
 
 
