@@ -14,12 +14,6 @@ class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    
-    @commands.command()
-    async def ping(self, ctx):
-        """Pings the server"""
-        await ctx.send(f'Pong! It took {round(self.bot.latency, 2)} ms.')
-
 
     @commands.command(name='time', aliases=['clock', 'UTC', 'utc'])
     async def _time(self, ctx):
