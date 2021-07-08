@@ -42,8 +42,9 @@ class Info(commands.Cog):
         cat_count = len(guild.categories)
 
         embed = discord.Embed(title='server info')
-        embed.add_field(name=guild.name,
-            value=f'owner: {guild.owner.name}#{guild.owner.discriminator}\n'
+        embed.add_field(name='\u200b',
+            value=f'name: {guild.name}\n'
+                + f'owner: {guild.owner.name}#{guild.owner.discriminator}\n'
                 + f'description: {guild.description}\n'
                 + f'created: {guild.created_at}\n'
                 + f'region: {guild.region}\n'
