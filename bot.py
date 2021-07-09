@@ -6,6 +6,8 @@ import aiohttp
 import os
 import re
 import sys
+import logging
+from logging.handlers import RotatingFileHandler
 import traceback
 from copy import copy
 from typing import List
@@ -31,6 +33,7 @@ class Bot(commands.Bot):
         self.launch_time = datetime.utcnow()
         self.global_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
         self.session = aiohttp.ClientSession(loop=self.loop)
+        self.logger = self.set_up_logger(__name__, logging.INFO)
         self.previous_command_ctxs: List[commands.Context] = []
         self.command_use_count = 0
 
@@ -51,6 +54,22 @@ class Bot(commands.Bot):
 
         for extension in default_extensions:
             self.load_extension(extension)
+
+
+    def set_up_logger(self, name: str, level: int):
+        """Sets up a logger for this module"""
+        # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
+        # Python's intro to logging: https://docs.python.org/3/howto/logging.html#logging-basic-tutorial
+        # Documentation for RotatingFileHandler: https://docs.python.org/3/library/logging.handlers.html?#logging.handlers.RotatingFileHandler
+        logger = logging.getLogger(name)
+        logger.setLevel(level)
+        max_bytes = 1024 * 1024  # 1 MiB
+        handler = RotatingFileHandler(filename='bot.log', encoding='utf-8', mode='a', maxBytes=max_bytes, backupCount=1)
+        formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s%(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+
+        return logger
 
 
     def get_command_prefixes(self, bot, message: discord.Message) -> List[str]:
@@ -136,6 +155,9 @@ class Bot(commands.Bot):
 
 
     async def on_command(self, ctx):
+        log_message = f'[author {ctx.author.display_name}][guild {ctx.guild}][command {ctx.message.content}]'
+        self.logger.info(log_message)
+
         self.command_use_count += 1
         await self.save_owners_command(ctx)
 
