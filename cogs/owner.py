@@ -98,5 +98,17 @@ class Owner(commands.Cog):
                     pass
 
 
+    @commands.command(aliases=['SQL'])
+    async def sql(self, ctx, *, statement: str):
+        """Execute a PostgreSQL statement"""
+        _, statement = await unwrap_code_block(statement)
+        try:
+            await self.bot.db.execute(statement)
+            await ctx.message.add_reaction('✅')
+        except Exception as e:
+            await ctx.message.add_reaction('❗')
+            await ctx.reply(f'PostgreSQL error: {e}')
+
+
 def setup(bot):
     bot.add_cog(Owner(bot))

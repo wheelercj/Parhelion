@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 import aiohttp
+import asyncpg
 import os
 import re
 import sys
@@ -33,6 +34,7 @@ class Bot(commands.Bot):
         self.launch_time = datetime.utcnow()
         self.global_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
         self.session = aiohttp.ClientSession(loop=self.loop)
+        self.db: asyncpg.Pool = None
         self.logger = self.set_up_logger(__name__, logging.INFO)
         self.previous_command_ctxs: List[commands.Context] = []
         self.command_use_count = 0
@@ -49,6 +51,7 @@ class Bot(commands.Bot):
             'cogs.owner',
             'cogs.rand',
             'cogs.reminders',
+            'cogs.tags',
             'jishaku',
         ]
 
@@ -91,15 +94,31 @@ class Bot(commands.Bot):
 
 
     async def close(self):
+        await self.db.close()
         await super().close()
     
 
     async def on_connect(self):
         print('Loading . . . ')
         await self.wait_until_ready()
-        self.app_info: commands.Bot.AppInfo = await self.application_info()
+
+        self.app_info = await self.application_info()
         self.owner_id = self.app_info.owner.id
+        self.db = await self.get_db_connection()
+
         await continue_tasks(self)
+
+
+    async def get_db_connection(self):
+        """Connects to the PostgreSQL database"""
+        user = os.environ['PostgreSQL user']
+        password = os.environ['PostgreSQL password']
+        database = os.environ['PostgreSQL database']
+        host = os.environ['PostgreSQL host']
+
+        credentials = {'user': user, 'password': password, 'database': database, 'host': host}
+
+        return await asyncpg.create_pool(**credentials, command_timeout=60)
 
 
     async def on_resumed(self):
