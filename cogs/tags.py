@@ -3,7 +3,9 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 import asyncpg
-from typing import Tuple
+
+# internal imports
+from common import split_input
 
 
 '''
@@ -48,25 +50,6 @@ class Tags(commands.Cog):
             await ctx.send(content)
 
 
-    async def split_tag_input(self, message: str) -> Tuple[str,str]:
-        """Splits the name and content of a tag
-        
-        The tag name must either have no spaces or be surrounded by double quotes.
-        """
-        name = None
-        if message.startswith('"'):
-            i = message.find('"', 2)
-            if i != -1:
-                name = message[1:i]
-                content = message[i+1:].strip()
-
-        if name is None:
-            name = message.split()[0]
-            content = ' '.join(message.split()[1:])
-
-        return name, content
-
-
     async def count_authors_tags(self, ctx) -> int:
         """Counts how many tags ctx.author has globally"""
         records = await self.bot.db.fetch('''
@@ -86,7 +69,7 @@ class Tags(commands.Cog):
         The maximum tag name length is 30 characters, and the maximum tag
         body length is 1500 characters. Currently, images are not supported.
         """
-        name, content = await self.split_tag_input(content)
+        name, content = await split_input(content)
         now = datetime.now()
 
         if not len(content):
@@ -200,7 +183,7 @@ class Tags(commands.Cog):
         The maximum tag length is 1500 characters. Currently, images are
         not supported.
         """
-        name, content = await self.split_tag_input(content)        
+        name, content = await split_input(content)        
 
         if not await self.authors_tag_exists(ctx, name):
             return

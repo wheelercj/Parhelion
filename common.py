@@ -77,6 +77,25 @@ async def unwrap_code_block(statement: str) -> Tuple[str, str]:
     return syntax, statement
 
 
+async def split_input(message: str) -> Tuple[str,str]:
+        """Splits a string into two strings
+        
+        If the input string begins with double quotes and has another double quotes later, the contents of those double quotes will be the first string returned. Otherwise, the first string returned will be the first word of the input string. The second string returned will be what remains of the input string.
+        """
+        name = None
+        if message.startswith('"'):
+            i = message.find('"', 2)
+            if i != -1:
+                name = message[1:i]
+                content = message[i+1:].strip()
+
+        if name is None:
+            name = message.split()[0]
+            content = ' '.join(message.split()[1:])
+
+        return name, content
+
+
 async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
     """Sends a private message to the bot owner"""
     user = await bot.fetch_user(bot.owner_id)
