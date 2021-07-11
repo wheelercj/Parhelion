@@ -37,7 +37,7 @@ class Bot(commands.Bot):
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.db: asyncpg.Pool = None
         self.custom_prefixes: Dict[int, List[str]] = self.load_all_custom_prefixes()
-        self.logger = self.set_up_logger(__name__, logging.INFO)
+        self.logger: logging.Logger = None
         self.previous_command_ctxs: List[commands.Context] = []
         self.command_use_count = 0
 
@@ -61,7 +61,7 @@ class Bot(commands.Bot):
             self.load_extension(extension)
 
 
-    def set_up_logger(self, name: str, level: int):
+    async def set_up_logger(self, name: str, level: int) -> logging.Logger:
         """Sets up a logger for this module"""
         # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
         # Python's intro to logging: https://docs.python.org/3/howto/logging.html#logging-basic-tutorial
@@ -146,6 +146,7 @@ class Bot(commands.Bot):
         self.app_info = await self.application_info()
         self.owner_id = self.app_info.owner.id
         self.db = await self.get_db_connection()
+        self.logger = await self.set_up_logger(__name__, logging.INFO)
 
         await continue_tasks(self)
 
@@ -246,7 +247,7 @@ class Bot(commands.Bot):
         if isinstance(error, commands.DisabledCommand):
             await ctx.send('This command has been disabled.')
         elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(f'Command on cooldown. Please try again in {error.retry_after:.2f} seconds.')
+            await ctx.send(f'Commands on cooldown. Please try again in {error.retry_after:.2f} seconds.')
         elif isinstance(error, commands.UserInputError):
             await ctx.send(error)
         elif isinstance(error, commands.NotOwner):
