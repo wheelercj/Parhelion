@@ -24,22 +24,13 @@ from common import send_traceback, parse_time_message
 '''
 
 
-async def save_reminder_to_db(ctx, bot, start_time: datetime, target_time: datetime, message: str) -> None:
-    """Saves one reminder to the database"""
-    if ctx.guild:
-        is_dm = False
-        guild_id = ctx.guild.id
-        channel_id = ctx.channel.id
-    else:
-        is_dm = True
-        guild_id = 0
-        channel_id = 0
-
+async def delete_reminder_from_db(bot, author_id: int, start_time: datetime) -> None:
+    """Deletes a row of the reminder table"""
     await bot.db.execute('''
-        INSERT INTO reminders
-        (author_id, start_time, target_time, message, is_dm, guild_id, channel_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7);
-        ''', ctx.author.id, start_time, target_time, message, is_dm, guild_id, channel_id)
+        DELETE FROM reminders
+        WHERE author_id = $1,
+            AND start_time = $2;
+        ''', author_id, start_time)
 
 
 class Reminders(commands.Cog):
@@ -62,7 +53,7 @@ class Reminders(commands.Cog):
                 if target_time < start_time:
                     raise commands.BadArgument('Please choose a time in the future.')
 
-                await save_reminder_to_db(ctx, self.bot, start_time, target_time, message)
+                await self.save_reminder_to_db(ctx, start_time, target_time, message)
 
                 await ctx.reply(f'Reminder set! At {datetime.isoformat(target_time)}, I will remind you: {message}')
 
@@ -75,30 +66,11 @@ class Reminders(commands.Cog):
                 raise ValueError('Reminder sleep failed.')
 
             await ctx.reply(f'{ctx.author.mention}, here is your reminder: {message}')
-            await self.delete_reminder_from_db(ctx.author.id, start_time)
+            await delete_reminder_from_db(self.bot, ctx.author.id, start_time)
         except Exception as e:
             await ctx.reply(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
             if await ctx.bot.is_owner(ctx.author):
                 await send_traceback(ctx, e)
-
-
-    async def delete_reminder_from_db(self, author_id: int, start_time: datetime) -> None:
-        """Deletes a row of the reminder table"""
-        await self.bot.db.execute('''
-            DELETE FROM reminders
-            WHERE author_id = $1,
-                AND start_time = $2;
-            ''', author_id, start_time)
-            
-
-    async def get_reminder_list(self, author_id: int) -> List[asyncpg.Record]:
-        """Gets a list of reminder records belonging to one person"""
-        return self.bot.db.fetch('''
-            SELECT *
-            FROM reminders
-            WHERE author_id = $1
-            ORDER BY target_time;
-            ''', author_id)
 
 
     @remind.command(name='list')
@@ -121,7 +93,7 @@ class Reminders(commands.Cog):
                     + f'\ntarget time: {target_time}' \
                     + f'\ntime remaining: {str(remaining)}'
             except Exception as e:
-                await self.delete_reminder_from_db(ctx.author.id, r['start_time'])
+                await delete_reminder_from_db(self.bot, ctx.author.id, r['start_time'])
                 await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
 
         embed = discord.Embed(description=r_list)
@@ -137,7 +109,7 @@ class Reminders(commands.Cog):
         try:
             reminders = await self.get_reminder_list(ctx.author.id)
             reminder_message = reminders[index-1]['message']
-            await self.delete_reminder_from_db(ctx.author.id, reminders[index-1]['start_time'])
+            await delete_reminder_from_db(self.bot, ctx.author.id, reminders[index-1]['start_time'])
             await ctx.send(f'Reminder deleted: "{reminder_message}"')
         except KeyError:
             await ctx.send('Reminder not found.')
@@ -150,6 +122,34 @@ class Reminders(commands.Cog):
             await ctx.send(error)
         elif isinstance(error, commands.BadArgument):
             await ctx.send("Error: use the reminder's index number shown in the `remind list` command.")
+
+
+    async def save_reminder_to_db(self, ctx, start_time: datetime, target_time: datetime, message: str) -> None:
+        """Saves one reminder to the database"""
+        if ctx.guild:
+            is_dm = False
+            guild_id = ctx.guild.id
+            channel_id = ctx.channel.id
+        else:
+            is_dm = True
+            guild_id = 0
+            channel_id = 0
+
+        await self.bot.db.execute('''
+            INSERT INTO reminders
+            (author_id, start_time, target_time, message, is_dm, guild_id, channel_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7);
+            ''', ctx.author.id, start_time, target_time, message, is_dm, guild_id, channel_id)
+
+
+    async def get_reminder_list(self, author_id: int) -> List[asyncpg.Record]:
+        """Gets a list of reminder records belonging to one person"""
+        return self.bot.db.fetch('''
+            SELECT *
+            FROM reminders
+            WHERE author_id = $1
+            ORDER BY target_time;
+            ''', author_id)
 
 
 def setup(bot):

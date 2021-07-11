@@ -1,12 +1,13 @@
 # external imports
-from datetime import datetime, timedelta
+from datetime import datetime
 import asyncio
 import asyncpg
 from typing import Tuple
 
 # internal imports
 from common import send_traceback
-from cogs.rand import send_quote
+from cogs.rand import send_quote, update_quote_day
+from cogs.reminders import delete_reminder_from_db
 
 
 async def continue_tasks(bot) -> None:
@@ -79,31 +80,6 @@ async def get_destination(bot, task_record: asyncpg.Record) -> object:
     return await guild.get_member(task_record['author_id'])
 
 
-async def target_tomorrow(old_datetime: datetime) -> datetime:
-    """Changes the target day to tomorrow without changing the time"""
-    tomorrow = datetime.utcnow() + timedelta(days=1)
-    return old_datetime.replace(day=tomorrow.day)
-
-
-async def update_daily_quote_target_time(bot, task_record: asyncpg.Record, new_target_time: str) -> None:
-    """Updates the database"""
-    author_id = task_record['author_id']
-    await bot.db.execute('''
-        UPDATE daily_quotes
-        SET target_time = $1
-        WHERE author_id = $2
-        ''', new_target_time, author_id)
-
-
-async def delete_reminder(bot, task_record: asyncpg.Record) -> None:
-    """Deletes a reminder from the database"""
-    await bot.db.execute('''
-        DELETE FROM reminders
-        WHERE author_id = $1
-            AND start_time = $2
-        ''', task_record['author_id'], task_record['start_time'])
-
-
 async def continue_daily_quote(bot, task_record: asyncpg.Record, destination: object, remaining_seconds: int) -> None:
     """Continues a daily quote that had been stopped by a server restart
     
@@ -113,8 +89,10 @@ async def continue_daily_quote(bot, task_record: asyncpg.Record, destination: ob
         await asyncio.sleep(remaining_seconds)
 
     await send_quote(destination, bot)
-    new_target_time = await target_tomorrow(task_record['target_time'])
-    await update_daily_quote_target_time(bot, task_record, new_target_time)
+
+    author_id = task_record['author_id']
+    target_time = task_record['target_time']
+    await update_quote_day(bot, author_id, target_time)
 
 
 async def continue_reminder(bot, task_record: asyncpg.Record, destination: object, remaining_seconds: int) -> None:
@@ -122,27 +100,24 @@ async def continue_reminder(bot, task_record: asyncpg.Record, destination: objec
     
     destination can be ctx, a channel object, or a user object.
     """
+    author_id = task_record['author_id']
+    message = task_record['message']
+    start_time = task_record['start_time']
+    target_time = task_record['target_time']
+
     try:
         if remaining_seconds > 0:
             await asyncio.sleep(remaining_seconds)
-            
-            author_id = task_record['author_id']
-            message = task_record['message']
             await destination.send(f'<@!{author_id}>, here is your reminder: {message}')
-            await delete_reminder(bot, task_record)
+            await delete_reminder_from_db(bot, author_id, start_time)
         else:
-            author_id = task_record['author_id']
-            message = task_record['message']
-            target_time = task_record['target_time']
-
             await destination.send(f'<@!{author_id}>, an error delayed your reminder: {message}\n' \
             f'The reminder had been set for {target_time} UTC')
-            await delete_reminder(bot, task_record)
+            await delete_reminder_from_db(bot, author_id, start_time)
 
     except Exception as e:
-        author_id = task_record['author_id']
         await destination.send(f'<@!{author_id}>, your reminder was cancelled because of an error: {e}')
         if await bot.is_owner(author_id):
             await send_traceback(destination, e)
-        await delete_reminder(bot, task_record)
+        await delete_reminder_from_db(bot, author_id, start_time)
         raise e

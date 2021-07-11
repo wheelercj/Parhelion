@@ -7,8 +7,19 @@ import asyncio
 from aiohttp.client_exceptions import ContentTypeError
 
 # internal imports
-from tasks import target_tomorrow
-from common import dev_mail
+from common import dev_mail, target_tomorrow
+
+
+'''
+    CREATE TABLE IF NOT EXISTS daily_quotes (
+        author_id BIGINT PRIMARY KEY,
+        start_time TIMESTAMP NOT NULL,
+        target_time TIMESTAMP NOT NULL,
+        is_dm BOOLEAN NOT NULL,
+        guild_id BIGINT,
+        channel_id BIGINT
+    )
+'''
 
 
 async def send_quote(destination, bot, author_id: int = None):
@@ -30,7 +41,12 @@ async def send_quote(destination, bot, author_id: int = None):
         await destination.send(embed=embed)
         if author_id is not None:
             # Change the target time to tomorrow in the database.
-            await update_quote_time(bot, author_id)
+            old_target_time = await bot.db.fetchval('''
+                SELECT target_time
+                FROM daily_quotes
+                WHERE author_id = $1;
+                ''', author_id)
+            await update_quote_day(bot, author_id, old_target_time)
     except ContentTypeError as error:
         print(f'forismatic {error = }')
         params = {
@@ -44,19 +60,15 @@ async def send_quote(destination, bot, author_id: int = None):
             await dev_mail(bot, 'forismatic is requesting a CAPTCHA.')
 
 
-async def update_quote_time(bot, author_id):
-    """Changes a daily quote's target time to tomorrow in the db"""
-    old_target_time = await bot.db.fetchval('''
-        SELECT target_time
-        FROM daily_quotes
-        WHERE author_id = $1;
-        ''', author_id)
+async def update_quote_day(bot, author_id: int, old_target_time: datetime) -> None:
+    """Changes a daily quote's target datetime in the database to tomorrow"""
     new_target_time = await target_tomorrow(old_target_time)
     await bot.db.execute('''
         UPDATE daily_quotes
         SET target_time = $1
-        WHERE author_id = $2;
+        WHERE author_id = $2
         ''', new_target_time, author_id)
+
 
 class Random(commands.Cog):
     def __init__(self, bot):
@@ -74,7 +86,7 @@ class Random(commands.Cog):
             await ctx.send(str(random.randint(high, low)))
 
 
-    @commands.command(name='flip-coin', aliases=['flip', 'coin-flip'])
+    @commands.command(name='flip-coin', aliases=['flip', 'flipcoin'])
     async def flip_coin(self, ctx):
         """Flips a coin"""
         n = random.randint(1, 2)
@@ -84,7 +96,26 @@ class Random(commands.Cog):
             await ctx.send('tails')
 
 
-    async def begin_daily_quote(self, destination, target_time: datetime, author_id: int):
+    @commands.command()
+    async def choose(self, ctx, choice_count: int, *choices: str):
+        """Chooses randomly from multiple choices"""
+        choices_made = []
+        for _ in range(0, choice_count):
+            choices_made.append(random.choice(choices))
+        await ctx.send(''.join(choices_made))
+
+
+    @choose.error
+    async def choose_error(self, ctx, error):
+        if isinstance(error, commands.errors.BadArgument) \
+        or isinstance(error, commands.errors.CommandInvokeError) \
+        or isinstance(error, commands.errors.MissingRequiredArgument):
+            await ctx.send(f'Error: the first argument must be the number of choices you want to be made. Following arguments must be the choices to choose from.')
+        else:
+            await ctx.send(error)
+
+
+    async def begin_daily_quote(self, destination, target_time: datetime, author_id: int) -> None:
         def error_callback(running_task):
             # Tasks fail silently without this function.
             if running_task.exception():
@@ -92,35 +123,6 @@ class Random(commands.Cog):
         
         running_task = asyncio.create_task(self.daily_quote_loop(destination, self.bot, target_time, author_id))
         running_task.add_done_callback(error_callback)
-
-
-    async def daily_quote_loop(self, destination, bot, target_time: datetime, author_id: int):
-        """Send a quote once a day at a specific time
-        
-        destination can be ctx, a channel object, or a user object.
-        """
-        while True:
-            target_time = datetime.fromisoformat(target_time)
-            now = datetime.utcnow()
-            if now > target_time:
-                date = now.date() + timedelta(days=1)
-            else:
-                date = now.date()
-            target_time = datetime.combine(date, target_time.time())
-            await discord.utils.sleep_until(target_time)
-            await send_quote(destination, bot, author_id)
-
-
-    '''
-        CREATE TABLE IF NOT EXISTS daily_quotes (
-            author_id BIGINT PRIMARY KEY,
-            start_time TIMESTAMP NOT NULL,
-            target_time TIMESTAMP NOT NULL,
-            is_dm BOOLEAN NOT NULL,
-            guild_id BIGINT,
-            channel_id BIGINT
-        )
-    '''
 
 
     @commands.command()
@@ -173,23 +175,21 @@ class Random(commands.Cog):
         await self.begin_daily_quote(ctx, target_time, ctx.author.id)
 
 
-    @commands.command()
-    async def choose(self, ctx, choice_count: int, *choices: str):
-        """Chooses randomly from multiple choices"""
-        choices_made = []
-        for _ in range(0, choice_count):
-            choices_made.append(random.choice(choices))
-        await ctx.send(''.join(choices_made))
-
-
-    @choose.error
-    async def choose_error(self, ctx, error):
-        if isinstance(error, commands.errors.BadArgument) \
-        or isinstance(error, commands.errors.CommandInvokeError) \
-        or isinstance(error, commands.errors.MissingRequiredArgument):
-            await ctx.send(f'Error: the first argument must be the number of choices you want to be made. Following arguments must be the choices to choose from.')
-        else:
-            await ctx.send(error)
+    async def daily_quote_loop(self, destination, bot, target_time: datetime, author_id: int) -> None:
+        """Send a quote once a day at a specific time
+        
+        destination can be ctx, a channel object, or a user object.
+        """
+        while True:
+            target_time = datetime.fromisoformat(target_time)
+            now = datetime.utcnow()
+            if now > target_time:
+                date = now.date() + timedelta(days=1)
+            else:
+                date = now.date()
+            target_time = datetime.combine(date, target_time.time())
+            await discord.utils.sleep_until(target_time)
+            await send_quote(destination, bot, author_id)
 
 
 def setup(bot):

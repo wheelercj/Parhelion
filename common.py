@@ -3,7 +3,7 @@ import traceback
 import discord
 from discord.ext import commands
 from typing import List, Tuple
-from datetime import datetime
+from datetime import datetime, timedelta
 import dateparser
 
 
@@ -31,7 +31,7 @@ async def get_14_digit_timestamp() -> str:
     return now
 
 
-async def send_traceback(ctx, error: BaseException):
+async def send_traceback(ctx, error: BaseException) -> None:
     """Sends the traceback of an exception to ctx"""
     etype = type(error)
     trace = error.__traceback__
@@ -40,7 +40,7 @@ async def send_traceback(ctx, error: BaseException):
     await ctx.send(f'```\n{traceback_text}\n```')
 
 
-async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
+async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail') -> None:
     """Sends a private message to the bot owner"""
     user = await bot.fetch_user(bot.owner_id)
     if use_embed:
@@ -48,6 +48,12 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
         await user.send(embed=embed)
     else:
         await user.send(message)
+
+
+async def target_tomorrow(old_datetime: datetime) -> datetime:
+    """Changes a datetime to tomorrow without changing anything else"""
+    tomorrow = datetime.utcnow() + timedelta(days=1)
+    return old_datetime.replace(day=tomorrow.day)
 
 
 async def unwrap_code_block(statement: str) -> Tuple[str, str]:
@@ -207,18 +213,3 @@ async def get_prefixes_message(bot, message: discord.Message, display_prefixes: 
         return 'prefix is ' + prefixes_str
     else:
         raise ValueError
-
-
-async def create_task_key(task_type: str = '', author_id: int = 0, target_time: str = '') -> str:
-    """Creates a task key
-    
-    If one or more of the last arguments are missing, a key
-    prefix will be returned.
-    """
-    if not len(target_time):
-        if not author_id:
-            if not len(task_type):
-                return 'task:'
-            return f'task:{task_type} '
-        return f'task:{task_type} {author_id} '
-    return f'task:{task_type} {author_id} {target_time}'
