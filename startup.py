@@ -1,77 +1,123 @@
 # external imports
-from replit import db
-from datetime import datetime
+from datetime import datetime, timedelta
 import asyncio
-import copy
-from typing import List, Callable
+import asyncpg
+from typing import Tuple
 
 # internal imports
-from common import send_traceback, create_task_key
-from task import Task, Reminder, Daily_Quote
-from tasks import delete_task, eval_task, target_tomorrow
+from common import send_traceback
 from cogs.rand import send_quote
 
 
-async def continue_tasks(bot):
+async def continue_tasks(bot) -> None:
     """Runs all saved tasks, one at a time
     
     This function processes only one task at a time,
     which is one of the reasons the tasks must be
     sorted by target time.
     """
-    task_keys = await sorted_task_keys()
-    while len(task_keys):
-        await continue_task(bot, task_keys[0])
-        task_keys = await sorted_task_keys()
+    while True:
+        table_name, task_record = await get_first_global_task(bot)
+        if task_record is None:
+            return
+        await continue_task(bot, table_name, task_record)
 
 
-async def continue_task(bot, task_key: str):
+async def get_first_global_task(bot) -> Tuple[str, asyncpg.Record]:
+    """Gets the task with the earliest target time
+    
+    The first value returned is the name of the table the task is from. The second value is the task's record.
+    """
+    table_names = ['reminders', 'daily_quotes']
+    first_record = await get_first_local_task(bot, table_names[0])
+    first_table_name = table_names[0]
+
+    for name in table_names[1:]:
+        record = await get_first_local_task(bot, name)
+        if record is None:
+            continue
+        if first_record is None \
+                or record['target_time'] < first_record['target_time']:
+            first_record = record
+            first_table_name = name
+
+    return first_table_name, first_record
+
+
+async def get_first_local_task(bot, table_name: str) -> asyncpg.Record:
+    """Gets a table's record with the earliest target time"""
+    print(f'{table_name = }')
+    return await bot.db.fetchrow('''
+        SELECT *
+        FROM $1
+        ORDER BY target_time
+        LIMIT 1;
+        ''', table_name)
+
+
+async def continue_task(bot, table_name: str, task_record: asyncpg.Record) -> None:
     """Continues a task that had been stopped by a server restart"""
-    task = await eval_task(db[task_key])
-    destination = await task.get_destination(bot)
-
-    current_time = datetime.utcnow()
-    target_time = datetime.fromisoformat(task.target_time)
-    remaining_time = target_time - current_time
+    destination: object = await get_destination(bot, task_record)
+    now = datetime.utcnow()
+    remaining_time = task_record['target_time'] - now
     remaining_seconds = remaining_time.total_seconds()
 
-    if task.task_type == 'reminder':
-        await continue_reminder(bot, task, destination, remaining_seconds)
-    elif task.task_type == 'daily_quote':
-        await continue_daily_quote(bot, task, destination, remaining_seconds)
+    if table_name == 'reminders':
+        await continue_reminder(bot, task_record, destination, remaining_seconds)
+    elif table_name == 'daily_quotes':
+        await continue_daily_quote(bot, task_record, destination, remaining_seconds)
 
 
-async def sorted_task_keys() -> List[str]:
-    """Returns all task keys, sorted by target time"""
-    prefix = await create_task_key()
-    task_keys = db.prefix(prefix)
-    return sorted(task_keys, key=lambda x: x.split()[2])
-
-
-async def update_task_target_time(task: Task, constructor: Callable, new_target_time: str):
-    """Updates the database"""
-    new_task_key = await create_task_key(task.task_type, task.author_id, new_target_time)
-    new_task = copy.deepcopy(task)
-    new_task.target_time = new_target_time
+async def get_destination(bot, task_record: asyncpg.Record) -> object:
+    """Gets the destination of a task
     
-    db[new_task_key] = repr(new_task)
-    await delete_task(task=task)
+    The destination can be a channel object or a user object.
+    """
+    if task_record['is_dm']:
+        return await bot.get_user(task_record['author_id'])
+    guild = await bot.get_guild(task_record['guild_id'])
+    return await guild.get_member(task_record['author_id'])
 
 
-async def continue_daily_quote(bot, daily_quote: Daily_Quote, destination, remaining_seconds: int):
+async def target_tomorrow(old_datetime: datetime) -> datetime:
+    """Changes the target day to tomorrow without changing the time"""
+    tomorrow = datetime.utcnow() + timedelta(days=1)
+    return old_datetime.replace(day=tomorrow.day)
+
+
+async def update_daily_quote_target_time(bot, task_record: asyncpg.Record, new_target_time: str) -> None:
+    """Updates the database"""
+    author_id = task_record['author_id']
+    await bot.db.execute('''
+        UPDATE daily_quotes
+        SET target_time = $1
+        WHERE author_id = $2
+        ''', new_target_time, author_id)
+
+
+async def delete_reminder(bot, task_record: asyncpg.Record) -> None:
+    """Deletes a reminder from the database"""
+    await bot.db.execute('''
+        DELETE FROM reminders
+        WHERE author_id = $1
+            AND start_time = $2
+        ''', task_record['author_id'], task_record['start_time'])
+
+
+async def continue_daily_quote(bot, task_record: asyncpg.Record, destination: object, remaining_seconds: int) -> None:
     """Continues a daily quote that had been stopped by a server restart
     
-    destination can be ctx, a channel object, or a user object
+    destination can be ctx, a channel object, or a user object.
     """
     if remaining_seconds > 0:
         await asyncio.sleep(remaining_seconds)
 
     await send_quote(destination, bot)
-    new_target_time = await target_tomorrow(daily_quote)
-    await update_task_target_time(daily_quote, Daily_Quote, new_target_time)
-    
+    new_target_time = await target_tomorrow(task_record['target_time'])
+    await update_daily_quote_target_time(bot, task_record, new_target_time)
 
-async def continue_reminder(bot, reminder: Reminder, destination, remaining_seconds: int):
+
+async def continue_reminder(bot, task_record: asyncpg.Record, destination: object, remaining_seconds: int) -> None:
     """Continues a reminder that had been stopped by a server restart
     
     destination can be ctx, a channel object, or a user object.
@@ -79,22 +125,24 @@ async def continue_reminder(bot, reminder: Reminder, destination, remaining_seco
     try:
         if remaining_seconds > 0:
             await asyncio.sleep(remaining_seconds)
-
-            now = datetime.utcnow()
-            if now < datetime.fromisoformat(reminder.target_time):
-                raise ValueError('Reminder sleep failed.')
-
-            await destination.send(f'<@!{reminder.author_id}>, here is your reminder: {reminder.message}')
-            await delete_task(task=reminder)
+            
+            author_id = task_record['author_id']
+            message = task_record['message']
+            await destination.send(f'<@!{author_id}>, here is your reminder: {message}')
+            await delete_reminder(bot, task_record)
         else:
-            await destination.send(f'<@!{reminder.author_id}>, an error delayed your reminder: {reminder.message}')
-            target_time = datetime.fromisoformat(reminder.target_time)
-            await destination.send(f'The reminder had been set for {target_time.year}-{target_time.month}-{target_time.day} at {target_time.hour}:{target_time.minute} UTC')
-            await delete_task(task=reminder)
+            author_id = task_record['author_id']
+            message = task_record['message']
+            target_time = task_record['target_time']
+
+            await destination.send(f'<@!{author_id}>, an error delayed your reminder: {message}\n' \
+            f'The reminder had been set for {target_time} UTC')
+            await delete_reminder(bot, task_record)
 
     except Exception as e:
-        await destination.send(f'<@!{reminder.author_id}>, your reminder was cancelled because of an error: {e}')
-        if await bot.is_owner(reminder.author_id):
+        author_id = task_record['author_id']
+        await destination.send(f'<@!{author_id}>, your reminder was cancelled because of an error: {e}')
+        if await bot.is_owner(author_id):
             await send_traceback(destination, e)
-        await delete_task(task=reminder)
+        await delete_reminder(bot, task_record)
         raise e
