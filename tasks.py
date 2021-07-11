@@ -5,7 +5,7 @@ from typing import Any
 
 # internal imports
 from common import create_task_key
-from task import Task, Reminder, Daily_Quote
+from task import Reminder, Daily_Quote
 
 
 async def save_task(ctx, task_type: str, target_time: str, duration: str, constructor, *args) -> Any:
