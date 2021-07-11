@@ -15,7 +15,7 @@ from copy import copy
 from typing import List, Dict
 
 # internal imports
-from common import dev_settings, dev_mail, get_prefixes_message, get_display_prefixes
+from common import dev_settings, dev_mail, get_prefixes_message, get_prefixes_list
 from startup import continue_tasks
 
 
@@ -77,11 +77,10 @@ class Bot(commands.Bot):
 
 
     def get_command_prefixes(self, bot, message: discord.Message) -> List[str]:
-        """Returns the bot's command prefixes
-        
-        This function is called each time a command is invoked,
-        and so the prefixes can be customized based on where
-        the message is from.
+        """Returns the bot's server-aware unrendered command prefixes
+
+        This function is called each time a command is invoked, so the prefixes can be customized based on where the message is from.
+        This function is intended to only be used when initializing the bot; to get unrendered prefixes elsewhere, it may be safer to use `bot.command_prefix(bot, message)`.
         """
         prefixes = copy(dev_settings.default_bot_prefixes)
 
@@ -275,10 +274,10 @@ class Bot(commands.Bot):
 
     async def answer_mention(self, message: discord.Message):
         """Shows a list of the bot's command prefixes"""
-        display_prefixes = await get_display_prefixes(self, message)
-        prefixes_message = await get_prefixes_message(self, message, display_prefixes)
+        prefixes = await get_prefixes_list(self, message)
+        prefixes_message = await get_prefixes_message(self, message, prefixes)
         
-        await message.channel.send(f'Hello {message.author.display_name}! My command {prefixes_message}. Use `{display_prefixes[0]}help` to get help with commands.')
+        await message.channel.send(f'Hello {message.author.display_name}! My command {prefixes_message}. Use `{prefixes[0]}help` to get help with commands.')
 
 
     async def check_global_cooldown(self, ctx):

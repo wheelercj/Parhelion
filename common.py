@@ -59,14 +59,7 @@ async def target_tomorrow(old_datetime: datetime) -> datetime:
 async def unwrap_code_block(statement: str) -> Tuple[str, str]:
     """Removes triple backticks and a syntax name around a code block
     
-    Returns any syntax name found and the unwrapped code. Any 
-    syntax name must be on the same line as the leading triple 
-    backticks, and code must be on the next line(s). If there are 
-    not triple backticks, the returns are 'txt' and the unchanged 
-    input. If there are triple backticks and no syntax is 
-    specified, the returns will be 'txt' and the unwrapped code 
-    block. The result is not dedented. Closing triple backticks 
-    are optional.
+    Returns any syntax name found and the unwrapped code. Any syntax name must be on the same line as the leading triple backticks, and code must be on the next line(s). If there are not triple backticks, the returns are 'txt' and the unchanged input. If there are triple backticks and no syntax is specified, the returns will be 'txt' and the unwrapped code block. The result is not dedented. Closing triple backticks are optional.
     """
     if not statement.startswith('```'):
         return 'txt', statement
@@ -158,10 +151,10 @@ async def split_time_message(user_input: str) -> Tuple[datetime, str]:
     return date_time, time_description
 
 
-async def get_display_prefixes(bot, message: discord.Message) -> List[str]:
-    """Lists the prefixes as they appear in Discord
+async def get_prefixes_list(bot, message: discord.Message) -> List[str]:
+    """Returns a list of the bot's rendered server-aware command prefixes
     
-    The prefixes are sorted from shortest to longest.
+    The prefixes are sorted from shortest to longest. Use `bot.command_prefix(bot, message)` if you want the unrendered prefixes.
     """
     raw_prefixes: List[str] = bot.command_prefix(bot, message)
     if '' in raw_prefixes:
@@ -183,29 +176,23 @@ async def get_display_prefixes(bot, message: discord.Message) -> List[str]:
 
 
 async def get_prefixes_str(bot, message: discord.Message, display_prefixes: List[str] = None) -> str:
-    """Returns a string with all prefixes, comma separated
+    """Returns a string of the bot's rendered server-aware command prefixes, comma separated
     
-    The prefixes should be sorted from shortest to longest.
-    If display_prefixes is not provided, it will
-    be retrieved.
+    The prefixes should be sorted from shortest to longest. If display_prefixes is not provided, it will be retrieved.
     """
     if display_prefixes is None:
-        display_prefixes = await get_display_prefixes(bot, message)
+        display_prefixes = await get_prefixes_list(bot, message)
     prefixes = [f'`{x}`' for x in display_prefixes]
     return ', '.join(prefixes)
 
 
 async def get_prefixes_message(bot, message: discord.Message, display_prefixes: List[str] = None) -> str:
-    """Returns a message that explains the command prefixes
+    """Returns a message of the bot's rendered server-aware command prefixes
     
-    The message starts with `prefixes are` or `prefix is`,
-    depending on how many there are.
-    The prefixes should be sorted from shortest to longest.
-    If display_prefixes is not provided, it will
-    be retrieved.
+    The message starts with `prefixes are` or `prefix is`, depending on how many there are. The prefixes should be sorted from shortest to longest. If display_prefixes is not provided, it will be retrieved.
     """
     if display_prefixes is None:
-        display_prefixes = await get_display_prefixes(bot, message)
+        display_prefixes = await get_prefixes_list(bot, message)
     prefixes_str = await get_prefixes_str(bot, message, display_prefixes)
     if len(display_prefixes) > 1:
         return 'prefixes are ' + prefixes_str
