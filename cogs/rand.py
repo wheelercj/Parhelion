@@ -7,23 +7,15 @@ import asyncio
 from aiohttp.client_exceptions import ContentTypeError
 
 # internal imports
-from task import Daily_Quote
-from tasks import save_task, delete_task, target_tomorrow
+from tasks import target_tomorrow
 from common import dev_mail
 
 
-async def save_daily_quote(ctx, target_time: str) -> Daily_Quote:
-    """Saves one daily quote task to the database"""
-    daily_quote = await save_task(ctx, 'daily_quote', target_time, '', Daily_Quote)
-    return daily_quote
-
-
-async def send_quote(destination, bot, daily_quote: Daily_Quote = None):
+async def send_quote(destination, bot, author_id: int = None):
     """Send a random quote to destination
     
     destination can be ctx, a channel object, or a user object.
-    If a daily_quote is received, its target time will be updated to
-    the same time the following day.
+    If an author_id is received, their daily quote's target time will be updated to the same time the following day.
     """
     params = {
         'lang': 'en',
@@ -36,8 +28,9 @@ async def send_quote(destination, bot, daily_quote: Daily_Quote = None):
         quote, author = json_text['quoteText'], json_text['quoteAuthor']
         embed = discord.Embed(description=f'"{quote}"\n — {author}')
         await destination.send(embed=embed)
-        if daily_quote is not None:
-            await target_tomorrow(daily_quote)
+        if author_id is not None:
+            # Change the target time to tomorrow in the database.
+            await update_quote_time(bot, author_id)
     except ContentTypeError as error:
         print(f'forismatic {error = }')
         params = {
@@ -50,6 +43,20 @@ async def send_quote(destination, bot, daily_quote: Daily_Quote = None):
         if 'Why do I have to complete a CAPTCHA?' in text:
             await dev_mail(bot, 'forismatic is requesting a CAPTCHA.')
 
+
+async def update_quote_time(bot, author_id):
+    """Changes a daily quote's target time to tomorrow in the db"""
+    old_target_time = await bot.db.fetchval('''
+        SELECT target_time
+        FROM daily_quotes
+        WHERE author_id = $1;
+        ''', author_id)
+    new_target_time = await target_tomorrow(old_target_time)
+    await bot.db.execute('''
+        UPDATE daily_quotes
+        SET target_time = $1
+        WHERE author_id = $2;
+        ''', new_target_time, author_id)
 
 class Random(commands.Cog):
     def __init__(self, bot):
@@ -77,24 +84,23 @@ class Random(commands.Cog):
             await ctx.send('tails')
 
 
-    async def begin_daily_quote(self, destination, target_time: str, daily_quote: Daily_Quote):
+    async def begin_daily_quote(self, destination, target_time: datetime, author_id: int):
         def error_callback(running_task):
             # Tasks fail silently without this function.
             if running_task.exception():
                 running_task.print_stack()
         
-        running_task = asyncio.create_task(self.daily_quote_loop(destination, self.bot, target_time, daily_quote))
+        running_task = asyncio.create_task(self.daily_quote_loop(destination, self.bot, target_time, author_id))
         running_task.add_done_callback(error_callback)
 
 
-    async def daily_quote_loop(self, destination, bot, target_time: str, daily_quote: Daily_Quote):
+    async def daily_quote_loop(self, destination, bot, target_time: datetime, author_id: int):
         """Send a quote once a day at a specific time
         
         destination can be ctx, a channel object, or a user object.
         """
         while True:
-            if isinstance(target_time, str):
-                target_time = datetime.fromisoformat(target_time)
+            target_time = datetime.fromisoformat(target_time)
             now = datetime.utcnow()
             if now > target_time:
                 date = now.date() + timedelta(days=1)
@@ -102,7 +108,19 @@ class Random(commands.Cog):
                 date = now.date()
             target_time = datetime.combine(date, target_time.time())
             await discord.utils.sleep_until(target_time)
-            await send_quote(destination, bot, daily_quote)
+            await send_quote(destination, bot, author_id)
+
+
+    '''
+        CREATE TABLE IF NOT EXISTS daily_quotes (
+            author_id BIGINT PRIMARY KEY,
+            start_time TIMESTAMP NOT NULL,
+            target_time TIMESTAMP NOT NULL,
+            is_dm BOOLEAN NOT NULL,
+            guild_id BIGINT,
+            channel_id BIGINT
+        )
+    '''
 
 
     @commands.command()
@@ -118,12 +136,15 @@ class Random(commands.Cog):
             await send_quote(ctx, self.bot)
             return
 
-        # Allow only one daily quote task per user.
+        # Allow only one daily quote per user.
         try:
-            await delete_task(author_id=ctx.author.id)
-        except:
-            pass
-        
+            self.bot.db.execute('''
+                DELETE FROM daily_quotes
+                WHERE author_id = $1;
+                ''', ctx.author.id)
+        except Exception as e:
+            print('sql delete from error: ', e)
+
         if daily_utc_time == 'stop':
             return
 
@@ -132,11 +153,24 @@ class Random(commands.Cog):
         target_time = datetime(now.year, now.month, now.day, int(hour), int(minute))
         if target_time < now:
             target_time = target_time + timedelta(days=1)
-        target_time = target_time.isoformat()
-        daily_quote = await save_daily_quote(ctx, target_time)
+
+        if ctx.guild:
+            is_dm = False
+            guild_id = ctx.guild.id
+            channel_id = ctx.channel.id
+        else:
+            is_dm = True
+            guild_id = 0
+            channel_id = 0
+
+        self.bot.db.execute('''
+            INSERT INTO daily_quotes
+            (author_id, start_time, target_time, is_dm, guild_id, channel_id)
+            VALUES ($1, $2, $3, $4, $5, $6);
+            ''', ctx.author.id, now, target_time, is_dm, guild_id, channel_id)
 
         await ctx.send(f'Time set! At {daily_utc_time} UTC each day, I will send you a random quote.')
-        await self.begin_daily_quote(ctx, target_time, daily_quote)
+        await self.begin_daily_quote(ctx, target_time, ctx.author.id)
 
 
     @commands.command()

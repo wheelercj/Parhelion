@@ -114,12 +114,7 @@ async def eval_task(string: str) -> Any:
     return task
 
 
-async def target_tomorrow(task: Task) -> str:
+async def target_tomorrow(old_datetime: datetime) -> datetime:
     """Changes the target day to tomorrow without changing the time"""
     tomorrow = datetime.utcnow() + timedelta(days=1)
-    old_target_time = datetime.fromisoformat(task.target_time)
-    hour = old_target_time.hour
-    minute = old_target_time.minute
-    new_target_time = datetime(tomorrow.year, tomorrow.month, tomorrow.day, int(hour), int(minute))
-
-    return new_target_time.isoformat()
+    return old_datetime.replace(day=tomorrow.day)
