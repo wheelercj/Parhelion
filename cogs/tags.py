@@ -147,8 +147,10 @@ class Tags(commands.Cog):
             await ctx.send('Tag not found.')
             return
 
-        author = ctx.guild.get_member(record['author_id']).display_name
-        if author is None:
+        author = ctx.guild.get_member(record['author_id'])
+        if author is not None:
+            author = author.display_name
+        else:
             author = record['author_id']
 
         embed = discord.Embed()
