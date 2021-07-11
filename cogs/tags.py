@@ -50,17 +50,6 @@ class Tags(commands.Cog):
             await ctx.send(content)
 
 
-    async def count_authors_tags(self, ctx) -> int:
-        """Counts how many tags ctx.author has globally"""
-        records = await self.bot.db.fetch('''
-            SELECT *
-            FROM tags
-            WHERE author_id = $1;
-            ''', ctx.author.id)
-
-        return len(records)
-
-
     @tag.command(name='create')
     async def create_tag(self, ctx, *, content: str):
         """Creates a new tag
@@ -144,38 +133,6 @@ class Tags(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    async def get_tag_author(self, ctx, tag_name: str) -> int:
-        """Gets the ID of a tag's author
-        
-        Returns None if the tag does not exist at ctx.guild.
-        """
-        author_id = await self.bot.db.fetchval('''
-            SELECT author_id
-            FROM tags
-            WHERE name = $1
-                AND server_id = $2;
-        ''', tag_name, ctx.guild.id)
-        
-        return author_id
-
-
-    async def authors_tag_exists(self, ctx, tag_name: str) -> bool:
-        """Confirms whether a tag exists at ctx.guild and belongs to ctx.author
-        
-        Sends ctx an error message if False will be returned.
-        """
-        author_id = await self.get_tag_author(ctx, tag_name)
-
-        if author_id is None:
-            await ctx.send('Tag not found.')
-            return False
-        if author_id != ctx.author.id:
-            await ctx.send('This tag does not belong to you.')
-            return False
-
-        return True
-
-
     @tag.command(name='edit')
     async def edit_tag(self, ctx, *, content: str):
         """Rewrites one of your tags
@@ -238,6 +195,49 @@ class Tags(commands.Cog):
             ''', ctx.author.id, name, ctx.guild.id)
 
         await ctx.reply(f'Tag "{name}" now belongs to you!')
+
+
+    async def count_authors_tags(self, ctx) -> int:
+        """Counts how many tags ctx.author has globally"""
+        records = await self.bot.db.fetch('''
+            SELECT *
+            FROM tags
+            WHERE author_id = $1;
+            ''', ctx.author.id)
+
+        return len(records)
+
+
+    async def get_tag_author(self, ctx, tag_name: str) -> int:
+        """Gets the ID of a tag's author
+        
+        Returns None if the tag does not exist at ctx.guild.
+        """
+        author_id = await self.bot.db.fetchval('''
+            SELECT author_id
+            FROM tags
+            WHERE name = $1
+                AND server_id = $2;
+        ''', tag_name, ctx.guild.id)
+        
+        return author_id
+
+
+    async def authors_tag_exists(self, ctx, tag_name: str) -> bool:
+        """Confirms whether a tag exists at ctx.guild and belongs to ctx.author
+        
+        Sends ctx an error message if False will be returned.
+        """
+        author_id = await self.get_tag_author(ctx, tag_name)
+
+        if author_id is None:
+            await ctx.send('Tag not found.')
+            return False
+        if author_id != ctx.author.id:
+            await ctx.send('This tag does not belong to you.')
+            return False
+
+        return True
 
 
 def setup(bot):

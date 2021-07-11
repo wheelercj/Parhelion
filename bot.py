@@ -44,7 +44,6 @@ class Bot(commands.Bot):
 
     def load_default_extensions(self):
         default_extensions = [
-            # 'cogs.admin',
             'cogs.help',
             'cogs.info',
             'cogs.mod',

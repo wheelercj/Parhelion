@@ -40,6 +40,16 @@ async def send_traceback(ctx, error: BaseException):
     await ctx.send(f'```\n{traceback_text}\n```')
 
 
+async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
+    """Sends a private message to the bot owner"""
+    user = await bot.fetch_user(bot.owner_id)
+    if use_embed:
+        embed = discord.Embed(title=embed_title, description=message)
+        await user.send(embed=embed)
+    else:
+        await user.send(message)
+
+
 async def unwrap_code_block(statement: str) -> Tuple[str, str]:
     """Removes triple backticks and a syntax name around a code block
     
@@ -94,16 +104,6 @@ async def split_input(message: str) -> Tuple[str,str]:
             content = ' '.join(message.split()[1:])
 
         return name, content
-
-
-async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail'):
-    """Sends a private message to the bot owner"""
-    user = await bot.fetch_user(bot.owner_id)
-    if use_embed:
-        embed = discord.Embed(title=embed_title, description=message)
-        await user.send(embed=embed)
-    else:
-        await user.send(message)
 
 
 async def parse_time_message(ctx, user_input: str) -> Tuple[datetime, str]:
