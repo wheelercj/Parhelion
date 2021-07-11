@@ -62,7 +62,7 @@ class Reminders(commands.Cog):
             # The maximum reliable sleep duration is 24.85 days.
             # For details, see https://bugs.python.org/issue20493
 
-            if datetime.utcnow() < target_time:
+            if ctx.message.created_at < target_time:
                 raise ValueError('Reminder sleep failed.')
 
             await ctx.reply(f'{ctx.author.mention}, here is your reminder: {message}')
@@ -85,7 +85,7 @@ class Reminders(commands.Cog):
         r_list = 'Here are your in-progress reminders:'
         for i, r in enumerate(reminders):
             try:
-                remaining = r['target_time'] - datetime.utcnow()
+                remaining = r['target_time'] - ctx.message.created_at
                 message = r['message']
                 target_time = r['target_time']
 

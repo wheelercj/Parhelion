@@ -59,7 +59,7 @@ class Tags(commands.Cog):
         body length is 1500 characters. Currently, images are not supported.
         """
         name, content = await split_input(content)
-        now = datetime.now()
+        now = ctx.message.created_at
 
         if not len(content):
             await ctx.send('Cannot create an empty tag.')

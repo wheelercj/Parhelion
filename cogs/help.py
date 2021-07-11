@@ -81,7 +81,7 @@ class Help(commands.Cog):
 
     async def uptime(self, ctx) -> str:
         """Returns the amount of time the bot has been running"""
-        _uptime = datetime.utcnow() - self.bot.launch_time
+        _uptime = ctx.message.created_at - self.bot.launch_time
         hours, remainder = divmod(int(_uptime.total_seconds()), 3600)
         minutes, seconds = divmod(remainder, 60)
         days, hours = divmod(hours, 24)

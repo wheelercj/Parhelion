@@ -151,7 +151,7 @@ class Random(commands.Cog):
             return
 
         hour, minute = daily_utc_time.split(':')
-        now = datetime.utcnow()
+        now = ctx.message.created_at
         target_time = datetime(now.year, now.month, now.day, int(hour), int(minute))
         if target_time < now:
             target_time = target_time + timedelta(days=1)

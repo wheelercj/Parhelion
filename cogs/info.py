@@ -1,7 +1,6 @@
 # external imports
 import discord
 from discord.ext import commands
-from datetime import datetime
 from typing import List, Tuple, Union
 
 
@@ -18,7 +17,7 @@ class Info(commands.Cog):
     @commands.command(name='time', aliases=['clock', 'UTC', 'utc'])
     async def _time(self, ctx):
         """Shows the current time in UTC"""
-        current_time = datetime.utcnow()
+        current_time = ctx.message.created_at
         await ctx.send(f'The current time is {current_time} UTC')
 
 
