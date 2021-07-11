@@ -4,6 +4,7 @@ from discord.ext import commands
 from datetime import datetime
 import aiohttp
 import asyncpg
+import json
 import os
 import re
 import sys
@@ -11,7 +12,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import traceback
 from copy import copy
-from typing import List
+from typing import List, Dict
 
 # internal imports
 from common import dev_settings, dev_mail, get_prefixes_message, get_display_prefixes
@@ -35,6 +36,7 @@ class Bot(commands.Bot):
         self.global_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.db: asyncpg.Pool = None
+        self.custom_prefixes: Dict[int, List[str]] = self.load_all_custom_prefixes()
         self.logger = self.set_up_logger(__name__, logging.INFO)
         self.previous_command_ctxs: List[commands.Context] = []
         self.command_use_count = 0
@@ -42,7 +44,7 @@ class Bot(commands.Bot):
 
     def load_default_extensions(self):
         default_extensions = [
-            'cogs.admin',
+            # 'cogs.admin',
             'cogs.help',
             'cogs.info',
             'cogs.mod',
@@ -83,14 +85,53 @@ class Bot(commands.Bot):
         the message is from.
         """
         prefixes = copy(dev_settings.default_bot_prefixes)
-        # TODO: after changing hosts and setting up a new
-        # database, allow server-side prefix customization
-        # here.
-        
+
         if not message.guild:
             prefixes.append('')
-        
+        else:
+            try:
+                server_prefixes = copy(self.custom_prefixes[message.guild.id])
+                for p in server_prefixes:
+                    if p.startswith('␝'):
+                        prefixes.remove(p[1:])
+                    else:
+                        prefixes.append(p)
+            except KeyError:
+                pass
+
+        if message.guild and '' in prefixes:
+            prefixes.remove('')
         return commands.when_mentioned_or(*prefixes)(bot, message)
+
+
+    def load_all_custom_prefixes(self) -> Dict[int, List[str]]:
+        """Gets all the custom prefixes for all servers
+        
+        Returns an empty dict if there are none.
+        """
+        with open('custom_prefixes.json', 'r') as file:
+            try:
+                string_key_dict = json.load(file)
+                return self.str_keys_to_ints(string_key_dict)
+            except json.decoder.JSONDecodeError:
+                return dict()
+
+
+    def str_keys_to_ints(self, string_key_dict: Dict[str, List[str]]) -> Dict[int, List[str]]:
+        """Converts a dict's keys from strings to ints"""
+        correct_dict = dict()
+        for key, value in string_key_dict.items():
+            correct_dict[int(key)] = value
+
+        return correct_dict
+
+
+    async def save_all_custom_prefixes(self):
+        """Saves all the custom prefixes for all servers"""
+        with open('custom_prefixes.json', 'w') as file:
+            json.dump(self.custom_prefixes, file)
+            # This converts all the integer keys to strings
+            # because JSON dict keys cannot be ints.
 
 
     async def close(self):
@@ -200,9 +241,9 @@ class Bot(commands.Bot):
             error = error.original
 
         # Exception hierarchy: https://discordpy.readthedocs.io/en/latest/ext/commands/api.html?highlight=permissions#exception-hierarchy
-        if isinstance(error, commands.CommandNotFound):
-            await ctx.send(f'Command not found.')
-        elif isinstance(error, commands.DisabledCommand):
+        # if isinstance(error, commands.CommandNotFound):
+        #     await ctx.send(f'Command not found.')
+        if isinstance(error, commands.DisabledCommand):
             await ctx.send('This command has been disabled.')
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.send(f'Command on cooldown. Please try again in {error.retry_after:.2f} seconds.')
