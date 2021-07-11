@@ -103,7 +103,12 @@ class Owner(commands.Cog):
         """Execute a PostgreSQL statement"""
         _, statement = await unwrap_code_block(statement)
         try:
-            await self.bot.db.execute(statement)
+            if statement.upper().startswith('SELECT'):
+                ret = await self.bot.db.fetch(statement)
+            else:
+                ret = await self.bot.db.execute(statement)
+
+            await ctx.send(ret)
             await ctx.message.add_reaction('✅')
         except Exception as e:
             await ctx.message.add_reaction('❗')
