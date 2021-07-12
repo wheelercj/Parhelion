@@ -1,12 +1,66 @@
 # external imports
+import os
 from datetime import datetime
 import asyncio
 import asyncpg
-from typing import Tuple
+from typing import Tuple, Dict, List
+import json
+import logging
+from logging.handlers import RotatingFileHandler
 
 # internal imports
 from cogs.rand import send_quote, update_quote_day
 from cogs.reminders import delete_reminder_from_db
+
+
+def load_all_custom_prefixes() -> Dict[int, List[str]]:
+    """Gets all the custom prefixes for all servers
+    
+    Returns an empty dict if there are none.
+    """
+    with open('custom_prefixes.json', 'r') as file:
+        try:
+            string_key_dict = json.load(file)
+            return str_keys_to_ints(string_key_dict)
+        except json.decoder.JSONDecodeError:
+            return dict()
+
+
+def str_keys_to_ints(string_key_dict: Dict[str, List[str]]) -> Dict[int, List[str]]:
+    """Converts a dict's keys from strings to ints"""
+    correct_dict = dict()
+    for key, value in string_key_dict.items():
+        correct_dict[int(key)] = value
+
+    return correct_dict
+
+
+async def get_db_connection():
+    """Connects to the PostgreSQL database"""
+    user = os.environ['PostgreSQL user']
+    password = os.environ['PostgreSQL password']
+    database = os.environ['PostgreSQL database']
+    host = os.environ['PostgreSQL host']
+
+    credentials = {'user': user, 'password': password, 'database': database, 'host': host}
+
+    return await asyncpg.create_pool(**credentials, command_timeout=60)
+
+
+async def set_up_logger(name: str, level: int) -> logging.Logger:
+    """Sets up a logger for this module"""
+    # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
+    # Python's intro to logging: https://docs.python.org/3/howto/logging.html#logging-basic-tutorial
+    # Documentation for RotatingFileHandler: https://docs.python.org/3/library/logging.handlers.html?#logging.handlers.RotatingFileHandler
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    max_bytes = 1024 * 1024  # 1 MiB
+    handler = RotatingFileHandler(filename='bot.log', encoding='utf-8', mode='a', maxBytes=max_bytes, backupCount=1)
+    formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s%(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    return logger
 
 
 async def continue_tasks(bot) -> None:

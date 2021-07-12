@@ -9,14 +9,13 @@ import os
 import re
 import sys
 import logging
-from logging.handlers import RotatingFileHandler
 import traceback
 from copy import copy
 from typing import List, Dict
 
 # internal imports
 from common import dev_settings, dev_mail, get_prefixes_message, get_prefixes_list
-from startup import continue_tasks
+from startup import continue_tasks, load_all_custom_prefixes, set_up_logger, get_db_connection
 
 
 class Bot(commands.Bot):
@@ -36,7 +35,7 @@ class Bot(commands.Bot):
         self.global_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.db: asyncpg.Pool = None
-        self.custom_prefixes: Dict[int, List[str]] = self.load_all_custom_prefixes()
+        self.custom_prefixes: Dict[int, List[str]] = load_all_custom_prefixes()
         self.logger: logging.Logger = None
         self.previous_command_ctxs: List[commands.Context] = []
         self.command_use_count = 0
@@ -58,22 +57,6 @@ class Bot(commands.Bot):
 
         for extension in default_extensions:
             self.load_extension(extension)
-
-
-    async def set_up_logger(self, name: str, level: int) -> logging.Logger:
-        """Sets up a logger for this module"""
-        # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
-        # Python's intro to logging: https://docs.python.org/3/howto/logging.html#logging-basic-tutorial
-        # Documentation for RotatingFileHandler: https://docs.python.org/3/library/logging.handlers.html?#logging.handlers.RotatingFileHandler
-        logger = logging.getLogger(name)
-        logger.setLevel(level)
-        max_bytes = 1024 * 1024  # 1 MiB
-        handler = RotatingFileHandler(filename='bot.log', encoding='utf-8', mode='a', maxBytes=max_bytes, backupCount=1)
-        formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s%(message)s')
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-
-        return logger
 
 
     def get_command_prefixes(self, bot, message: discord.Message) -> List[str]:
@@ -102,28 +85,6 @@ class Bot(commands.Bot):
         return commands.when_mentioned_or(*prefixes)(bot, message)
 
 
-    def load_all_custom_prefixes(self) -> Dict[int, List[str]]:
-        """Gets all the custom prefixes for all servers
-        
-        Returns an empty dict if there are none.
-        """
-        with open('custom_prefixes.json', 'r') as file:
-            try:
-                string_key_dict = json.load(file)
-                return self.str_keys_to_ints(string_key_dict)
-            except json.decoder.JSONDecodeError:
-                return dict()
-
-
-    def str_keys_to_ints(self, string_key_dict: Dict[str, List[str]]) -> Dict[int, List[str]]:
-        """Converts a dict's keys from strings to ints"""
-        correct_dict = dict()
-        for key, value in string_key_dict.items():
-            correct_dict[int(key)] = value
-
-        return correct_dict
-
-
     async def save_all_custom_prefixes(self):
         """Saves all the custom prefixes for all servers"""
         with open('custom_prefixes.json', 'w') as file:
@@ -143,22 +104,10 @@ class Bot(commands.Bot):
 
         self.app_info = await self.application_info()
         self.owner_id = self.app_info.owner.id
-        self.db = await self.get_db_connection()
-        self.logger = await self.set_up_logger(__name__, logging.INFO)
+        self.db = await get_db_connection()
+        self.logger = await set_up_logger(__name__, logging.INFO)
 
         await continue_tasks(self)
-
-
-    async def get_db_connection(self):
-        """Connects to the PostgreSQL database"""
-        user = os.environ['PostgreSQL user']
-        password = os.environ['PostgreSQL password']
-        database = os.environ['PostgreSQL database']
-        host = os.environ['PostgreSQL host']
-
-        credentials = {'user': user, 'password': password, 'database': database, 'host': host}
-
-        return await asyncpg.create_pool(**credentials, command_timeout=60)
 
 
     async def on_resumed(self):
