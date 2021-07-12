@@ -201,7 +201,7 @@ class Info(commands.Cog):
         if member_or_role is None:
             member_or_role = ctx.author
         server_perms, overwrites, title = await self.get_perms(ctx, member_or_role)
-        if server_perms is None:
+        if not len(server_perms):
             await ctx.send('Could not find the user or role.')
             return
 
@@ -229,7 +229,7 @@ class Info(commands.Cog):
         return embed
 
 
-    async def format_perms(self, permissions: discord.Permissions) -> str:
+    async def format_perms(self, permissions: discord.Permissions) -> Union[str, bool]:
         """Converts a permissions object to a printable string
         
         Returns False if the permissions are for a hidden text
@@ -258,7 +258,7 @@ class Info(commands.Cog):
                 title = f'{role.name} role permissions'
                 return server_perms, overwrites, title
 
-        return None, None, None
+        return '', '', ''
 
 
     async def get_perm_overwrites(self, ctx, member_or_role: Union[discord.Member, discord.Role]) -> str:

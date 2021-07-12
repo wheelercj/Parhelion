@@ -41,7 +41,7 @@ class Bot(commands.Bot):
         self.command_use_count = 0
 
 
-    def load_default_extensions(self):
+    def load_default_extensions(self) -> None:
         default_extensions = [
             'cogs.help',
             'cogs.info',
@@ -85,7 +85,7 @@ class Bot(commands.Bot):
         return commands.when_mentioned_or(*prefixes)(bot, message)
 
 
-    async def save_all_custom_prefixes(self):
+    async def save_all_custom_prefixes(self) -> None:
         """Saves all the custom prefixes for all servers"""
         with open('custom_prefixes.json', 'w') as file:
             json.dump(self.custom_prefixes, file)
@@ -133,7 +133,7 @@ class Bot(commands.Bot):
             await self.process_commands(message)
 
 
-    async def detect_token(self, message: discord.Message):
+    async def detect_token(self, message: discord.Message) -> None:
         """Detects bot tokens and warns people about them"""
         token_regex = re.compile(r'([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})')
         match = token_regex.search(message.content)
@@ -141,7 +141,7 @@ class Bot(commands.Bot):
             await self.publish_token(match[0], message)
 
 
-    async def publish_token(self, discord_bot_token: str, message: discord.Message):
+    async def publish_token(self, discord_bot_token: str, message: discord.Message) -> None:
         """Publishes tokens in GitHub gists to invalidate them and protect bots"""
         url = 'https://api.github.com/gists'
         data = '{"public":true,"files":{"discord-bot-token.txt":{"content":"%s"}}}' % discord_bot_token
@@ -155,7 +155,7 @@ class Bot(commands.Bot):
         await message.reply(f'Bot token detected and invalidated! If the token was in use, the bot it belonged to will need to get a new token before being able to reconnect to Discord. For more details, see <https://gist.github.com/beep-boop-82197842/4255864be63966b8618e332d1df30619>')
 
 
-    async def is_only_bot_mention(self, message: discord.Message):
+    async def is_only_bot_mention(self, message: discord.Message) -> bool:
         """Returns True if the entire message is a bot mention"""
         if self.user.mention == message.content.replace('!', '', 1):
             return True
@@ -170,7 +170,7 @@ class Bot(commands.Bot):
         await self.save_owners_command(ctx)
 
 
-    async def save_owners_command(self, ctx):
+    async def save_owners_command(self, ctx) -> None:
         """Saves the owner's commands for easy reuse"""
         if ctx.author.id == self.owner_id:
             if 'reinvoke' not in ctx.command.aliases \
@@ -221,7 +221,7 @@ class Bot(commands.Bot):
         await dev_mail(self, message, use_embed=False)
 
 
-    async def answer_mention(self, message: discord.Message):
+    async def answer_mention(self, message: discord.Message) -> None:
         """Shows a list of the bot's command prefixes"""
         prefixes = await get_prefixes_list(self, message)
         prefixes_message = await get_prefixes_message(self, message, prefixes)
@@ -229,7 +229,7 @@ class Bot(commands.Bot):
         await message.channel.send(f'Hello {message.author.display_name}! My command {prefixes_message}. Use `{prefixes[0]}help` to get help with commands.')
 
 
-    async def check_global_cooldown(self, ctx):
+    async def check_global_cooldown(self, ctx) -> True:
         """Checks if ctx.author used any command recently
         
         If the user has not triggered the global cooldown, the global

@@ -1,9 +1,11 @@
 # external imports
+import discord
+from discord.ext import commands
 import os
 from datetime import datetime
 import asyncio
 import asyncpg
-from typing import Tuple, Dict, List
+from typing import Union, Tuple, Dict, List
 import json
 import logging
 from logging.handlers import RotatingFileHandler
@@ -35,7 +37,7 @@ def str_keys_to_ints(string_key_dict: Dict[str, List[str]]) -> Dict[int, List[st
     return correct_dict
 
 
-async def get_db_connection():
+async def get_db_connection() -> asyncpg.Pool:
     """Connects to the PostgreSQL database"""
     user = os.environ['PostgreSQL user']
     password = os.environ['PostgreSQL password']
@@ -131,22 +133,16 @@ async def continue_task(bot, table_name: str, task_record: asyncpg.Record) -> No
         await continue_daily_quote(bot, task_record, destination, remaining_seconds)
 
 
-async def get_destination(bot, task_record: asyncpg.Record) -> object:
-    """Gets the destination of a task
-    
-    The destination can be a channel object or a user object.
-    """
+async def get_destination(bot, task_record: asyncpg.Record) -> Union[discord.User, discord.Channel, None]:
+    """Gets the destination of a task"""
     if task_record['is_dm']:
         return bot.get_user(task_record['author_id'])
     guild = bot.get_guild(task_record['guild_id'])
     return guild.get_channel(task_record['channel_id'])
 
 
-async def continue_daily_quote(bot, task_record: asyncpg.Record, destination: object, remaining_seconds: int) -> None:
-    """Continues a daily quote that had been stopped by a server restart
-    
-    destination can be ctx, a channel object, or a user object.
-    """
+async def continue_daily_quote(bot, task_record: asyncpg.Record, destination: Union[discord.User, discord.Channel, commands.Context], remaining_seconds: int) -> None:
+    """Continues a daily quote that had been stopped by a server restart"""
     if remaining_seconds > 0:
         await asyncio.sleep(remaining_seconds)
 
@@ -157,11 +153,8 @@ async def continue_daily_quote(bot, task_record: asyncpg.Record, destination: ob
     await update_quote_day(bot, author_id, target_time)
 
 
-async def continue_reminder(bot, task_record: asyncpg.Record, destination: object, remaining_seconds: int) -> None:
-    """Continues a reminder that had been stopped by a server restart
-    
-    destination can be ctx, a channel object, or a user object.
-    """
+async def continue_reminder(bot, task_record: asyncpg.Record, destination: Union[discord.User, discord.Channel, commands.Context], remaining_seconds: int) -> None:
+    """Continues a reminder that had been stopped by a server restart"""
     author_id = task_record['author_id']
     message = task_record['message']
     start_time = task_record['start_time']

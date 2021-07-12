@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import asyncio
 from aiohttp.client_exceptions import ContentTypeError
 import json
+from typing import Union
 
 # internal imports
 from common import target_tomorrow
@@ -23,10 +24,9 @@ from common import target_tomorrow
 '''
 
 
-async def send_quote(destination, bot, author_id: int = None):
+async def send_quote(destination: Union[discord.User, discord.Channel, commands.Context], bot, author_id: int = None) -> None:
     """Send a random quote to destination
-    
-    destination can be ctx, a channel object, or a user object.
+
     If an author_id is received, their daily quote's target time will be updated to the same time the following day.
     """
     params = {
@@ -109,7 +109,8 @@ class Random(commands.Cog):
             await ctx.send(error)
 
 
-    async def begin_daily_quote(self, destination, target_time: datetime, author_id: int) -> None:
+    async def begin_daily_quote(self, destination: Union[discord.User, discord.Channel, commands.Context], target_time: datetime, author_id: int) -> None:
+        """Creates an asyncio task for a daily quote"""
         def error_callback(running_task):
             # Tasks fail silently without this function.
             if running_task.exception():
@@ -169,11 +170,8 @@ class Random(commands.Cog):
         await self.begin_daily_quote(ctx, target_time, ctx.author.id)
 
 
-    async def daily_quote_loop(self, destination, bot, target_time: datetime, author_id: int) -> None:
-        """Send a quote once a day at a specific time
-        
-        destination can be ctx, a channel object, or a user object.
-        """
+    async def daily_quote_loop(self, destination: Union[discord.User, discord.Channel, commands.Context], bot, target_time: datetime, author_id: int) -> None:
+        """Send a quote once a day at a specific time"""
         while True:
             now = datetime.utcnow()
             if now > target_time:
