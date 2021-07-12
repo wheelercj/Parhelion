@@ -133,7 +133,7 @@ async def continue_task(bot, table_name: str, task_record: asyncpg.Record) -> No
         await continue_daily_quote(bot, task_record, destination, remaining_seconds)
 
 
-async def get_destination(bot, task_record: asyncpg.Record) -> Union[discord.User, discord.Channel, None]:
+async def get_destination(bot, task_record: asyncpg.Record) -> Union[discord.User, discord.TextChannel, None]:
     """Gets the destination of a task"""
     if task_record['is_dm']:
         return bot.get_user(task_record['author_id'])
@@ -141,7 +141,7 @@ async def get_destination(bot, task_record: asyncpg.Record) -> Union[discord.Use
     return guild.get_channel(task_record['channel_id'])
 
 
-async def continue_daily_quote(bot, task_record: asyncpg.Record, destination: Union[discord.User, discord.Channel, commands.Context], remaining_seconds: int) -> None:
+async def continue_daily_quote(bot, task_record: asyncpg.Record, destination: Union[discord.User, discord.TextChannel, commands.Context], remaining_seconds: int) -> None:
     """Continues a daily quote that had been stopped by a server restart"""
     if remaining_seconds > 0:
         await asyncio.sleep(remaining_seconds)
@@ -153,7 +153,7 @@ async def continue_daily_quote(bot, task_record: asyncpg.Record, destination: Un
     await update_quote_day(bot, author_id, target_time)
 
 
-async def continue_reminder(bot, task_record: asyncpg.Record, destination: Union[discord.User, discord.Channel, commands.Context], remaining_seconds: int) -> None:
+async def continue_reminder(bot, task_record: asyncpg.Record, destination: Union[discord.User, discord.TextChannel, commands.Context], remaining_seconds: int) -> None:
     """Continues a reminder that had been stopped by a server restart"""
     author_id = task_record['author_id']
     message = task_record['message']
