@@ -1,13 +1,13 @@
 # external imports
 import asyncio
 import asyncpg
-from datetime import datetime
+from datetime import datetime, timedelta
 import discord
 from discord.ext import commands
 from typing import List
 
 # internal imports
-from common import send_traceback, parse_time_message
+from common import parse_time_message
 
 
 '''
@@ -28,7 +28,7 @@ async def delete_reminder_from_db(bot, author_id: int, start_time: datetime) -> 
     """Deletes a row of the reminder table"""
     await bot.db.execute('''
         DELETE FROM reminders
-        WHERE author_id = $1,
+        WHERE author_id = $1
             AND start_time = $2;
         ''', author_id, start_time)
 
@@ -44,7 +44,6 @@ class Reminders(commands.Cog):
         
         Enter a time (or duration) in front of your reminder message. All times must be in UTC; use the `time` command to see the current time in UTC.
         """
-        await ctx.send('the remind commands are being rewritten right now and are not working properly')
         try:
             async with ctx.typing():
                 start_time = ctx.message.created_at
@@ -55,46 +54,43 @@ class Reminders(commands.Cog):
 
                 await self.save_reminder_to_db(ctx, start_time, target_time, message)
 
-                await ctx.reply(f'Reminder set! At {datetime.isoformat(target_time)}, I will remind you: {message}')
+                await ctx.send(f'Reminder set! At {datetime.isoformat(target_time)}, I will remind you: {message}')
 
             seconds = (target_time - start_time).total_seconds()
             await asyncio.sleep(seconds)
             # The maximum reliable sleep duration is 24.85 days.
             # For details, see https://bugs.python.org/issue20493
 
-            if ctx.message.created_at < target_time:
+            if datetime.utcnow() < target_time:
                 raise ValueError('Reminder sleep failed.')
 
             await ctx.reply(f'{ctx.author.mention}, here is your reminder: {message}')
             await delete_reminder_from_db(self.bot, ctx.author.id, start_time)
         except Exception as e:
-            await ctx.reply(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
-            if await ctx.bot.is_owner(ctx.author):
-                await send_traceback(ctx, e)
+            await ctx.reply(f'{ctx.author.mention}, your reminder was canceled because of an error: {e}')
 
 
     @remind.command(name='list')
     async def list_reminders(self, ctx):
         """Shows all of your reminders"""
-        reminders = await self.get_reminder_list(ctx.author.id)
+        reminder_records = await self.get_reminder_list(ctx.author.id)
 
-        if reminders is None:
+        if not len(reminder_records):
             await ctx.send('You have no saved reminders.')
             return
 
         r_list = 'Here are your in-progress reminders:'
-        for i, r in enumerate(reminders):
+        for i, r in enumerate(reminder_records):
             try:
-                remaining = r['target_time'] - ctx.message.created_at
                 message = r['message']
-                target_time = r['target_time']
+                remaining = r['target_time'] - ctx.message.created_at
+                remaining = await self.format_time_remaining(remaining)
 
-                r_list += f'\n\n{i+1}. "{message}"' \
-                    + f'\ntarget time: {target_time}' \
-                    + f'\ntime remaining: {str(remaining)}'
+                r_list += f'\n\n{i+1}.) **in {remaining}**' \
+                    + f'\n{message}'
             except Exception as e:
                 await delete_reminder_from_db(self.bot, ctx.author.id, r['start_time'])
-                await ctx.send(f'{ctx.author.mention}, your reminder was cancelled because of an error: {e}')
+                await ctx.send(f'{ctx.author.mention}, your reminder was canceled because of an error: {e}')
 
         embed = discord.Embed(description=r_list)
         await ctx.send(embed=embed)
@@ -103,15 +99,18 @@ class Reminders(commands.Cog):
     @remind.command(name='delete', aliases=['del'])
     async def delete_reminder(self, ctx, index: int):
         """Deletes a reminder by its index shown in the `remind list` command
-        
-        Currently, this only deletes a reminder from the database, not from the program. A deleted reminder will then only be cancelled if the bot is restarted.
+
+        Currently, this only deletes a reminder from the database, not from the program. A deleted reminder will then only be canceled if the bot is restarted.
         """
+        if index < 1:
+            await ctx.send('Reminder not found.')
+            return
         try:
             reminders = await self.get_reminder_list(ctx.author.id)
             reminder_message = reminders[index-1]['message']
             await delete_reminder_from_db(self.bot, ctx.author.id, reminders[index-1]['start_time'])
             await ctx.send(f'Reminder deleted: "{reminder_message}"')
-        except KeyError:
+        except IndexError:
             await ctx.send('Reminder not found.')
 
 
@@ -144,12 +143,38 @@ class Reminders(commands.Cog):
 
     async def get_reminder_list(self, author_id: int) -> List[asyncpg.Record]:
         """Gets a list of reminder records belonging to one person"""
-        return self.bot.db.fetch('''
+        return await self.bot.db.fetch('''
             SELECT *
             FROM reminders
             WHERE author_id = $1
             ORDER BY target_time;
             ''', author_id)
+
+
+    async def format_time_remaining(self, remaining: timedelta) -> str:
+        """Makes an easier-to-read timedelta string"""
+        output = ''
+        if remaining.days > 1:
+            output = f'{remaining.days} days '
+        elif remaining.days == 1:
+            output = '1 day '
+
+        hours = remaining.seconds // 3600
+        if hours > 1:
+            output += f'{hours} hours '
+        elif hours == 1:
+            output += '1 hour '
+        
+        if 'day' in output:
+            return output
+
+        minutes = remaining.seconds % 3600 // 60
+        if minutes > 1:
+            output += f'{minutes} minutes'
+        elif minutes == 1:
+            output += '1 minute'
+
+        return output
 
 
 def setup(bot):

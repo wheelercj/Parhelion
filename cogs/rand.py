@@ -5,9 +5,10 @@ import random
 from datetime import datetime, timedelta
 import asyncio
 from aiohttp.client_exceptions import ContentTypeError
+import json
 
 # internal imports
-from common import dev_mail, target_tomorrow
+from common import target_tomorrow
 
 
 '''
@@ -49,15 +50,8 @@ async def send_quote(destination, bot, author_id: int = None):
             await update_quote_day(bot, author_id, old_target_time)
     except ContentTypeError as error:
         print(f'forismatic {error = }')
-        params = {
-            'lang': 'en',
-            'method': 'getQuote',
-            'format': 'text/html'
-        }
-        async with bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
-            text = await response.text()
-        if 'Why do I have to complete a CAPTCHA?' in text:
-            await dev_mail(bot, 'forismatic is requesting a CAPTCHA.')
+    except json.decoder.JSONDecodeError as error:
+        print(f'forismatic {error = }')
 
 
 async def update_quote_day(bot, author_id: int, old_target_time: datetime) -> None:
@@ -140,7 +134,7 @@ class Random(commands.Cog):
 
         # Allow only one daily quote per user.
         try:
-            self.bot.db.execute('''
+            await self.bot.db.execute('''
                 DELETE FROM daily_quotes
                 WHERE author_id = $1;
                 ''', ctx.author.id)
@@ -165,7 +159,7 @@ class Random(commands.Cog):
             guild_id = 0
             channel_id = 0
 
-        self.bot.db.execute('''
+        await self.bot.db.execute('''
             INSERT INTO daily_quotes
             (author_id, start_time, target_time, is_dm, guild_id, channel_id)
             VALUES ($1, $2, $3, $4, $5, $6);
@@ -181,7 +175,6 @@ class Random(commands.Cog):
         destination can be ctx, a channel object, or a user object.
         """
         while True:
-            target_time = datetime.fromisoformat(target_time)
             now = datetime.utcnow()
             if now > target_time:
                 date = now.date() + timedelta(days=1)

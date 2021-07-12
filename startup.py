@@ -5,7 +5,6 @@ import asyncpg
 from typing import Tuple
 
 # internal imports
-from common import send_traceback
 from cogs.rand import send_quote, update_quote_day
 from cogs.reminders import delete_reminder_from_db
 
@@ -47,13 +46,22 @@ async def get_first_global_task(bot) -> Tuple[str, asyncpg.Record]:
 
 async def get_first_local_task(bot, table_name: str) -> asyncpg.Record:
     """Gets a table's record with the earliest target time"""
-    print(f'{table_name = }')
-    return await bot.db.fetchrow('''
-        SELECT *
-        FROM $1
-        ORDER BY target_time
-        LIMIT 1;
-        ''', table_name)
+    if table_name == 'reminders':
+        return await bot.db.fetchrow('''
+            SELECT *
+            FROM reminders
+            ORDER BY target_time
+            LIMIT 1;
+            ''')
+    elif table_name == 'daily_quotes':
+        return await bot.db.fetchrow('''
+            SELECT *
+            FROM daily_quotes
+            ORDER BY target_time
+            LIMIT 1;
+            ''')
+    else:
+        raise ValueError('Unhandled table name.')
 
 
 async def continue_task(bot, table_name: str, task_record: asyncpg.Record) -> None:
@@ -75,9 +83,9 @@ async def get_destination(bot, task_record: asyncpg.Record) -> object:
     The destination can be a channel object or a user object.
     """
     if task_record['is_dm']:
-        return await bot.get_user(task_record['author_id'])
-    guild = await bot.get_guild(task_record['guild_id'])
-    return await guild.get_member(task_record['author_id'])
+        return bot.get_user(task_record['author_id'])
+    guild = bot.get_guild(task_record['guild_id'])
+    return guild.get_channel(task_record['channel_id'])
 
 
 async def continue_daily_quote(bot, task_record: asyncpg.Record, destination: object, remaining_seconds: int) -> None:
@@ -117,7 +125,5 @@ async def continue_reminder(bot, task_record: asyncpg.Record, destination: objec
 
     except Exception as e:
         await destination.send(f'<@!{author_id}>, your reminder was cancelled because of an error: {e}')
-        if await bot.is_owner(author_id):
-            await send_traceback(destination, e)
         await delete_reminder_from_db(bot, author_id, start_time)
         raise e
