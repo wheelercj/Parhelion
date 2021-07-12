@@ -84,7 +84,7 @@ class Reminders(commands.Cog):
             try:
                 message = r['message']
                 remaining = r['target_time'] - ctx.message.created_at
-                remaining = await self.format_time_remaining(remaining)
+                remaining = await self.format_timedelta(remaining)
 
                 r_list += f'\n\n{i+1}.) **in {remaining}**' \
                     + f'\n{message}'
@@ -151,8 +151,11 @@ class Reminders(commands.Cog):
             ''', author_id)
 
 
-    async def format_time_remaining(self, remaining: timedelta) -> str:
-        """Makes an easier-to-read timedelta string"""
+    async def format_timedelta(self, remaining: timedelta) -> str:
+        """Makes an easy-to-read timedelta string without perfect precision
+        
+        Only up to two units of time measurement will be returned.
+        """
         output = ''
         if remaining.days > 1:
             output = f'{remaining.days} days '
@@ -164,15 +167,26 @@ class Reminders(commands.Cog):
             output += f'{hours} hours '
         elif hours == 1:
             output += '1 hour '
-        
+
         if 'day' in output:
             return output
 
         minutes = remaining.seconds % 3600 // 60
         if minutes > 1:
-            output += f'{minutes} minutes'
+            output += f'{minutes} minutes '
         elif minutes == 1:
-            output += '1 minute'
+            output += '1 minute '
+
+        if 'hour' in output:
+            return output
+
+        seconds = remaining.seconds % 3600 % 60
+        if seconds > 1:
+            output += f'{seconds} seconds'
+        elif seconds == 1:
+            output += '1 second'
+        else:
+            output += '0 seconds'
 
         return output
 
