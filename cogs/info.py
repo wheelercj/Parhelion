@@ -102,20 +102,20 @@ class Info(commands.Cog):
         embed = discord.Embed()
         embed.add_field(name=f'{member.name}#{member.discriminator}\n\u2800',
             value=f'**display name:** {member.display_name}\n'
-                + await self.get_whether_bot(ctx, member)
+                + await self.get_whether_bot(member)
                 + f'**account created:** {member.created_at}\n'
                 + f'**joined server:** {member.joined_at}\n'
                 + f'**top server role:** {member.top_role}\n'
-                + await self.get_server_roles(ctx, member)
-                + await self.get_premium_since(ctx, member)
-                + await self.get_global_roles(ctx, member)
+                + await self.get_server_roles(member)
+                + await self.get_premium_since(member)
+                + await self.get_global_roles(member)
         )
         embed.set_thumbnail(url=member.avatar_url)
 
         await ctx.send(embed=embed)
 
 
-    async def get_whether_bot(self, ctx, member: discord.Member) -> str:
+    async def get_whether_bot(self, member: discord.Member) -> str:
         """Returns a message if member is a bot, otherwise returns an empty string"""
         if member.bot:
             return f'**{member.display_name} is a bot**\n'
@@ -123,7 +123,7 @@ class Info(commands.Cog):
             return ''
 
 
-    async def get_server_roles(self, ctx, member: discord.Member) -> str:
+    async def get_server_roles(self, member: discord.Member) -> str:
         """Returns a message listing all of a member's server roles, but only if they have 10 or fewer
         
         Otherwise returns an empty string.
@@ -134,7 +134,7 @@ class Info(commands.Cog):
             return ''
 
 
-    async def get_premium_since(self, ctx, member: discord.Member) -> str:
+    async def get_premium_since(self, member: discord.Member) -> str:
         """Gets the datetime of when a member's premium began
         
         Returns an empty string if the member does not have
@@ -147,7 +147,7 @@ class Info(commands.Cog):
             return ''
 
 
-    async def get_global_roles(self, ctx, member: discord.Member) -> str:
+    async def get_global_roles(self, member: discord.Member) -> str:
         """Gets the global Discord roles of a member
         
         E.g. Discord staff, bug hunter, verified bot, etc.
@@ -158,6 +158,16 @@ class Info(commands.Cog):
             return f'**global roles:**: {flags}\n'
         else:
             return ''
+
+
+    @info.command(name='bot', aliases=['b'])
+    @commands.guild_only()
+    async def _bot_info(self, ctx):
+        """Shows info about this bot"""
+        about_command = self.bot.get_command('about')
+        await ctx.invoke(about_command)
+        stats_command = self.bot.get_command('stats')
+        await ctx.invoke(stats_command)
 
 
     @info.command(name='role', aliases=['r'])
