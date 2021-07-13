@@ -39,6 +39,11 @@ async def send_quote(destination: Union[discord.User, discord.TextChannel, comma
         quote, author = json_text['quoteText'], json_text['quoteAuthor']
         embed = discord.Embed(description=f'"{quote}"\n — {author}')
         await destination.send(embed=embed)
+    except ContentTypeError as error:
+        print(f'forismatic {error = }')
+    except json.decoder.JSONDecodeError as error:
+        print(f'forismatic {error = }')
+    else:
         if author_id is not None:
             # Change the target time to tomorrow in the database.
             old_target_time = await bot.db.fetchval('''
@@ -47,10 +52,6 @@ async def send_quote(destination: Union[discord.User, discord.TextChannel, comma
                 WHERE author_id = $1;
                 ''', author_id)
             await update_quote_day(bot, author_id, old_target_time)
-    except ContentTypeError as error:
-        print(f'forismatic {error = }')
-    except json.decoder.JSONDecodeError as error:
-        print(f'forismatic {error = }')
 
 
 async def update_quote_day(bot, author_id: int, old_target_time: datetime) -> None:
