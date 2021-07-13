@@ -31,6 +31,31 @@ async def get_14_digit_timestamp() -> str:
     return now
 
 
+async def format_timedelta(td: timedelta) -> str:
+    """Makes an easy-to-read time duration message"""
+    total_seconds = int(td.total_seconds())
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    days, hours = divmod(hours, 24)
+
+    async def plural(n: int, msg: str) -> str:
+        if n > 1:
+            return f'{n} {msg}s'
+        return f'{n} {msg}'
+
+    output = []
+    if days:
+        output.append(await plural(days, 'day'))
+    if hours:
+        output.append(await plural(hours, 'hour'))
+    if minutes:
+        output.append(await plural(minutes, 'minute'))
+    if seconds:
+        output.append(await plural(seconds, 'second'))
+
+    return ', '.join(output)
+
+
 async def send_traceback(ctx, error: BaseException) -> None:
     """Sends the traceback of an exception to ctx"""
     etype = type(error)

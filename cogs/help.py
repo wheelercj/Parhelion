@@ -4,7 +4,7 @@ from discord.ext import commands
 import platform
 
 # internal imports
-from common import dev_settings, get_prefixes_str
+from common import dev_settings, get_prefixes_str, format_timedelta
 
 
 # Guide on subclassing HelpCommand: https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96
@@ -81,10 +81,8 @@ class Help(commands.Cog):
     async def uptime(self, ctx) -> str:
         """Returns the amount of time the bot has been running"""
         _uptime = ctx.message.created_at - self.bot.launch_time
-        hours, remainder = divmod(int(_uptime.total_seconds()), 3600)
-        minutes, seconds = divmod(remainder, 60)
-        days, hours = divmod(hours, 24)
-        return f'{days}d, {hours}h, {minutes}m, {seconds}s'
+        time_message = await format_timedelta(_uptime)
+        return time_message
 
 
     async def count_available_cmds(self, ctx) -> int:

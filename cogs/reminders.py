@@ -1,13 +1,13 @@
 # external imports
 import asyncio
 import asyncpg
-from datetime import datetime, timedelta
+from datetime import datetime
 import discord
 from discord.ext import commands
 from typing import List
 
 # internal imports
-from common import parse_time_message
+from common import parse_time_message, format_timedelta
 
 
 '''
@@ -88,7 +88,7 @@ class Reminders(commands.Cog):
         for r in reminder_records:
             message = r['message']
             remaining = r['target_time'] - ctx.message.created_at
-            remaining = await self.format_timedelta(remaining)
+            remaining = await format_timedelta(remaining)
 
             r_list += f'\n\n{r["id"]}.) **in {remaining}**' \
                 + f'\n{message}'
@@ -191,41 +191,6 @@ class Reminders(commands.Cog):
             WHERE author_id = $1
             ORDER BY target_time;
             ''', author_id)
-
-
-    async def format_timedelta(self, remaining: timedelta) -> str:
-        """Makes an easy-to-read timedelta string
-        
-        Some precision may be lost.
-        """
-        output = ''
-        if remaining.days > 1:
-            output = f'{remaining.days} days '
-        elif remaining.days == 1:
-            output = '1 day '
-
-        hours = remaining.seconds // 3600
-        if hours > 1:
-            output += f'{hours} hours '
-        elif hours == 1:
-            output += '1 hour '
-
-        minutes = remaining.seconds % 3600 // 60
-        if minutes > 1:
-            output += f'{minutes} minutes '
-        elif minutes == 1:
-            output += '1 minute '
-
-        if len(output) >= 25:
-            return output
-
-        seconds = remaining.seconds % 3600 % 60
-        if seconds > 1:
-            output += f'{seconds} seconds'
-        elif seconds == 1:
-            output += '1 second'
-
-        return output
 
 
 def setup(bot):
