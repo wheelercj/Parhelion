@@ -92,9 +92,9 @@ class Info(commands.Cog):
         return features
 
 
-    @info.command(name='user', aliases=['u', 'm', 'member'])
+    @info.command(name='member', aliases=['m', 'u', 'user'])
     @commands.guild_only()
-    async def user_info(self, ctx, member: discord.Member):
+    async def member_info(self, ctx, member: discord.Member):
         """Shows info about a member of the current server
         
         To see member permissions, use the `info perms` command.
@@ -106,8 +106,7 @@ class Info(commands.Cog):
                 + f'**account created:** {member.created_at}\n'
                 + f'**joined server:** {member.joined_at}\n'
                 + f'**top server role:** {member.top_role}\n'
-                + f'**server roles:** ' + ', '.join(x.name for x in member.roles) + '\n'
-                + await self.get_mutual_server_count(ctx, member)
+                + await self.get_server_roles(ctx, member)
                 + await self.get_premium_since(ctx, member)
                 + await self.get_global_roles(ctx, member)
         )
@@ -124,13 +123,13 @@ class Info(commands.Cog):
             return ''
 
 
-    async def get_mutual_server_count(self, ctx, member: discord.Member) -> str:
-        """Gets the number of servers in common between ctx.author and a member
+    async def get_server_roles(self, ctx, member: discord.Member) -> str:
+        """Returns a message listing all of a member's server roles, but only if they have 10 or fewer
         
-        Returns an empty string if member is ctx.author or a bot.
+        Otherwise returns an empty string.
         """
-        if ctx.author != member and not member.bot:
-            return f'**mutual servers with you:** {len(member.mutual_guilds)}\n'
+        if len(member.roles) <= 10:
+            return f'**server roles:** ' + ', '.join(x.name for x in member.roles)
         else:
             return ''
 
