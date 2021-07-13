@@ -120,29 +120,17 @@ class Random(commands.Cog):
         running_task.add_done_callback(error_callback)
 
 
-    @commands.command()
+    @commands.group(invoke_without_command=True)
     async def quote(self, ctx, daily_utc_time: str = ''):
         """Shows a random famous quote
         
         If a UTC time is provided in HH:mm format, a quote will be
-        sent each day at that time. You can use the time command
+        sent each day at that time. You can use the `time` command
         to see the current UTC time. You can cancel daily quotes
         with `quote stop`.
         """
         if not len(daily_utc_time):
             await send_quote(ctx, self.bot)
-            return
-
-        # Allow only one daily quote per user.
-        try:
-            await self.bot.db.execute('''
-                DELETE FROM daily_quotes
-                WHERE author_id = $1;
-                ''', ctx.author.id)
-        except Exception as e:
-            print('sql delete from error: ', e)
-
-        if daily_utc_time == 'stop':
             return
 
         hour, minute = daily_utc_time.split(':')
@@ -163,11 +151,47 @@ class Random(commands.Cog):
         await self.bot.db.execute('''
             INSERT INTO daily_quotes
             (author_id, start_time, target_time, is_dm, server_id, channel_id)
-            VALUES ($1, $2, $3, $4, $5, $6);
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (author_id)
+            DO
+                UPDATE
+                SET target_time = $3
+                WHERE daily_quotes.author_id = $1;
             ''', ctx.author.id, now, target_time, is_dm, server_id, channel_id)
 
         await ctx.send(f'Time set! At {daily_utc_time} UTC each day, I will send you a random quote.')
         await self.begin_daily_quote(ctx, target_time, ctx.author.id)
+
+
+    @quote.command(name='stop')
+    async def stop_daily_quote(self, ctx):
+        """Stops your daily quotes"""
+        try:
+            await self.bot.db.execute('''
+                DELETE FROM daily_quotes
+                WHERE author_id = $1;
+                ''', ctx.author.id)
+        except Exception as e:
+            print('sql delete from error: ', e)
+        else:
+            await ctx.send('Your daily quotes have been stopped.')
+
+
+    @quote.command(name='mod-delete', aliases=['moddelete'])
+    @commands.guild_only()
+    @commands.has_guild_permissions(manage_messages=True)
+    async def mod_delete_daily_quote(self, ctx, *, member: discord.Member):
+        """Stops the daily quotes of anyone on this server"""
+        try:
+            await self.bot.db.execute('''
+                DELETE FROM daily_quotes
+                WHERE author_id = $1
+                    AND server_id = $2;
+                ''', member.id, ctx.guild.id)
+        except Exception as e:
+            await ctx.send(f'Error: {e}')
+        else:
+            await ctx.send(f"{member.display_name}'s daily quotes have been stopped.")
 
 
     async def daily_quote_loop(self, destination: Union[discord.User, discord.TextChannel, commands.Context], bot, target_time: datetime, author_id: int) -> None:

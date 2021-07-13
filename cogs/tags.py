@@ -187,6 +187,22 @@ class Tags(commands.Cog):
         await ctx.send(f'Successfully deleted tag "{name}"')
 
 
+    @tag.command(name='mod-delete', aliases=['moddelete'])
+    @commands.has_guild_permissions(manage_messages=True)
+    async def mod_delete_tag(self, ctx, *, tag_name: str):
+        """Deletes one of anyone's tags"""
+        try:
+            await self.bot.db.execute('''
+                DELETE FROM tags
+                WHERE name = $1
+                    AND server_id = $2;
+                ''', tag_name, ctx.guild.id)
+        except Exception as e:
+            await ctx.send(f'Error: {e}')
+        else:
+            await ctx.send(f'Successfully deleted tag "{tag_name}"')
+
+
     @tag.command(name='claim')
     async def claim_tag(self, ctx, *, name: str):
         """Gives you ownership of a tag if its owner left the server"""
