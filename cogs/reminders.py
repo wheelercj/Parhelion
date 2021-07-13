@@ -43,7 +43,11 @@ class Reminders(commands.Cog):
     async def remind(self, ctx, *, time_and_message: str):
         """Sends you a reminder
         
-        Enter a time (or duration) in front of your reminder message. You can use natural language for this, such as `remind 2 days 3 hours continue project`. All times must be in UTC; use the `time` command to see the current time in UTC. The maximum reminder message length is 500 characters.
+        Enter a time (or duration) in front of your reminder message. You can use natural language for this, such as
+        `remind friday at noon buy oranges`
+        or
+        `remind in 2 days 3 hours continue the project`
+        or many more options. All times must be in UTC, and you can use the `time` command to see the current time in UTC.
         """
         if await self.count_authors_reminders(ctx) > 15:
             await ctx.send('The current limit to how many reminders each person can have is 15. This will increase in the future.')
@@ -73,6 +77,13 @@ class Reminders(commands.Cog):
             await delete_reminder_from_db(self.bot, ctx.author.id, start_time)
         except Exception as e:
             await ctx.reply(f'{ctx.author.mention}, your reminder was canceled because of an error: {e}')
+
+
+    @remind.command(name='create')
+    async def create_reminder(self, ctx, *, time_and_message: str):
+        """Sends you a reminder; this command is an alias for `remind`"""
+        remind_command = self.bot.get_command('remind')
+        await ctx.invoke(remind_command, time_and_message=time_and_message)
 
 
     @remind.command(name='list')
@@ -153,7 +164,7 @@ class Reminders(commands.Cog):
 
     async def count_authors_reminders(self, ctx) -> int:
         """Counts ctx.author's total reminders"""
-        records = self.bot.db.fetch('''
+        records = await self.bot.db.fetch('''
             SELECT *
             FROM reminders
             WHERE author_id = $1

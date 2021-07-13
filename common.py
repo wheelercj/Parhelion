@@ -135,7 +135,8 @@ async def parse_time_message(ctx, user_input: str) -> Tuple[datetime, str]:
 
     The time can be a date, duration, etc. written in natural language.
     """
-    user_input = f'in {user_input}'
+    if not user_input.strip().startswith('in '):
+        user_input = f'in {user_input}'
     date_time, time_description = await split_time_message(user_input)
 
     if date_time is None:
