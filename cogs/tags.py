@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 import asyncpg
 import io
-from typing import Union
+from typing import Optional
 
 # internal imports
 from common import split_input
@@ -158,33 +158,35 @@ class Tags(commands.Cog):
         if ctx.message.attachments:
             image_url = ctx.message.attachments[0].proxy_url
 
-        if not await self.authors_tag_exists(ctx, name):
-            return
-
-        await self.bot.db.execute('''
-            UPDATE tags
-            SET content = $1,
-                image_url = $2
-            WHERE name = $3
-                AND server_id = $4;
-            ''', content, image_url, name, ctx.guild.id)
-        
-        await ctx.send(f'Successfully edited tag "{name}"')
+        try:
+            await self.bot.db.execute('''
+                UPDATE tags
+                SET content = $1,
+                    image_url = $2
+                WHERE name = $3
+                    AND author_id = $4
+                    AND server_id = $5;
+                ''', content, image_url, name, ctx.author.id, ctx.guild.id)
+        except Exception as e:
+            await ctx.send(f'Error: {e}')
+        else:
+            await ctx.send(f'Successfully edited tag "{name}"')
 
 
     @tag.command(name='delete')
     async def delete_tag(self, ctx, *, name: str):
         """Deletes one of your tags"""
-        if not await self.authors_tag_exists(ctx, name):
-            return
-
-        await self.bot.db.execute('''
-            DELETE FROM tags
-            WHERE name = $1
-                AND server_id = $2;
-            ''', name, ctx.guild.id)
-
-        await ctx.send(f'Successfully deleted tag "{name}"')
+        try:
+            await self.bot.db.execute('''
+                DELETE FROM tags
+                WHERE name = $1
+                    AND author_id = $2
+                    AND server_id = $3;
+                ''', name, ctx.author.id, ctx.guild.id)
+        except Exception as e:
+            await ctx.send(f'Error: {e}')
+        else:
+            await ctx.send(f'Successfully deleted tag "{name}"')
 
 
     @tag.command(name='mod-delete', aliases=['moddelete'])
@@ -241,7 +243,7 @@ class Tags(commands.Cog):
         return len(records)
 
 
-    async def get_tag_author(self, ctx, tag_name: str) -> Union[int, None]:
+    async def get_tag_author(self, ctx, tag_name: str) -> Optional[int]:
         """Gets the ID of a tag's author
         
         Returns None if the tag does not exist at ctx.guild.
@@ -254,23 +256,6 @@ class Tags(commands.Cog):
         ''', tag_name, ctx.guild.id)
         
         return author_id
-
-
-    async def authors_tag_exists(self, ctx, tag_name: str) -> bool:
-        """Confirms whether a tag exists at ctx.guild and belongs to ctx.author
-        
-        Sends ctx an error message if False will be returned.
-        """
-        author_id = await self.get_tag_author(ctx, tag_name)
-
-        if author_id is None:
-            await ctx.send('Tag not found.')
-            return False
-        if author_id != ctx.author.id:
-            await ctx.send('This tag does not belong to you.')
-            return False
-
-        return True
 
 
 def setup(bot):
