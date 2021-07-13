@@ -18,7 +18,7 @@ from common import target_tomorrow
         start_time TIMESTAMP NOT NULL,
         target_time TIMESTAMP NOT NULL,
         is_dm BOOLEAN NOT NULL,
-        guild_id BIGINT,
+        server_id BIGINT,
         channel_id BIGINT
     )
 '''
@@ -153,18 +153,18 @@ class Random(commands.Cog):
 
         if ctx.guild:
             is_dm = False
-            guild_id = ctx.guild.id
+            server_id = ctx.guild.id
             channel_id = ctx.channel.id
         else:
             is_dm = True
-            guild_id = 0
+            server_id = 0
             channel_id = 0
 
         await self.bot.db.execute('''
             INSERT INTO daily_quotes
-            (author_id, start_time, target_time, is_dm, guild_id, channel_id)
+            (author_id, start_time, target_time, is_dm, server_id, channel_id)
             VALUES ($1, $2, $3, $4, $5, $6);
-            ''', ctx.author.id, now, target_time, is_dm, guild_id, channel_id)
+            ''', ctx.author.id, now, target_time, is_dm, server_id, channel_id)
 
         await ctx.send(f'Time set! At {daily_utc_time} UTC each day, I will send you a random quote.')
         await self.begin_daily_quote(ctx, target_time, ctx.author.id)
