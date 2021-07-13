@@ -137,8 +137,8 @@ async def get_destination(bot, task_record: asyncpg.Record) -> Union[discord.Use
     """Gets the destination of a task"""
     if task_record['is_dm']:
         return bot.get_user(task_record['author_id'])
-    guild = bot.get_guild(task_record['guild_id'])
-    return guild.get_channel(task_record['channel_id'])
+    server = bot.get_guild(task_record['server_id'])
+    return server.get_channel(task_record['channel_id'])
 
 
 async def continue_daily_quote(bot, task_record: asyncpg.Record, destination: Union[discord.User, discord.TextChannel, commands.Context], remaining_seconds: int) -> None:
