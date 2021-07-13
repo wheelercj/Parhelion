@@ -12,14 +12,15 @@ from common import parse_time_message
 
 '''
     CREATE TABLE IF NOT EXISTS reminders (
+        id SERIAL PRIMARY KEY,
         author_id BIGINT NOT NULL,
         start_time TIMESTAMP NOT NULL,
         target_time TIMESTAMP NOT NULL,
-        message VARCHAR(300) NOT NULL,
+        message VARCHAR(500) NOT NULL,
         is_dm BOOLEAN NOT NULL,
-        guild_id BIGINT,
+        server_id BIGINT,
         channel_id BIGINT,
-        PRIMARY KEY (author_id, start_time)
+        UNIQUE (author_id, start_time)
     )
 '''
 
@@ -42,7 +43,7 @@ class Reminders(commands.Cog):
     async def remind(self, ctx, *, time_and_message: str):
         """Sends you a reminder
         
-        Enter a time (or duration) in front of your reminder message. All times must be in UTC; use the `time` command to see the current time in UTC.
+        Enter a time (or duration) in front of your reminder message. You can use natural language for this, such as `remind 2 days 3 hours continue project`. All times must be in UTC; use the `time` command to see the current time in UTC. The maximum reminder message length is 500 characters.
         """
         try:
             async with ctx.typing():
@@ -80,69 +81,68 @@ class Reminders(commands.Cog):
             return
 
         r_list = 'Here are your in-progress reminders:'
-        for i, r in enumerate(reminder_records):
-            try:
-                message = r['message']
-                remaining = r['target_time'] - ctx.message.created_at
-                remaining = await self.format_timedelta(remaining)
+        for r in reminder_records:
+            message = r['message']
+            remaining = r['target_time'] - ctx.message.created_at
+            remaining = await self.format_timedelta(remaining)
 
-                r_list += f'\n\n{i+1}.) **in {remaining}**' \
-                    + f'\n{message}'
-            except Exception as e:
-                await delete_reminder_from_db(self.bot, ctx.author.id, r['start_time'])
-                await ctx.send(f'{ctx.author.mention}, your reminder was canceled because of an error: {e}')
+            r_list += f'\n\n{r["id"]}.) **in {remaining}**' \
+                + f'\n{message}'
 
         embed = discord.Embed(description=r_list)
         await ctx.send(embed=embed)
 
 
     @remind.command(name='delete', aliases=['del'])
-    async def delete_reminder(self, ctx, index: int):
-        """Deletes a reminder by its index shown in the `remind list` command
+    async def delete_reminder(self, ctx, ID: int):
+        """Deletes one of your reminders by its ID shown in the `remind list` command
 
         Currently, this only deletes a reminder from the database, not from the program. A deleted reminder will then only be canceled if the bot is restarted.
         """
-        if index < 1:
-            await ctx.send('Reminder not found.')
-            return
         try:
-            reminders = await self.get_reminder_list(ctx.author.id)
-            reminder_message = reminders[index-1]['message']
-            await delete_reminder_from_db(self.bot, ctx.author.id, reminders[index-1]['start_time'])
+            reminder_message = await self.bot.db.fetchval('''
+                DELETE FROM reminders
+                WHERE id = $1
+                    AND author_id = $2
+                RETURNING message
+                ''', ID, ctx.author.id)
             await ctx.send(f'Reminder deleted: "{reminder_message}"')
-        except IndexError:
-            await ctx.send('Reminder not found.')
+        except Exception as e:
+            await ctx.send(f'Error: {e}')
 
 
     @delete_reminder.error
     async def delete_reminder_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("Error: missing argument. Use the reminder's index number shown in the `remind list` command.")
+            await ctx.send("Error: missing argument. Use the reminder's ID shown in the `remind list` command.")
             await ctx.send(error)
         elif isinstance(error, commands.BadArgument):
-            await ctx.send("Error: use the reminder's index number shown in the `remind list` command.")
+            await ctx.send("Error: use the reminder's ID shown in the `remind list` command.")
 
 
     async def save_reminder_to_db(self, ctx, start_time: datetime, target_time: datetime, message: str) -> None:
         """Saves one reminder to the database"""
         if ctx.guild:
             is_dm = False
-            guild_id = ctx.guild.id
+            server_id = ctx.guild.id
             channel_id = ctx.channel.id
         else:
             is_dm = True
-            guild_id = 0
+            server_id = 0
             channel_id = 0
 
         await self.bot.db.execute('''
             INSERT INTO reminders
-            (author_id, start_time, target_time, message, is_dm, guild_id, channel_id)
+            (author_id, start_time, target_time, message, is_dm, server_id, channel_id)
             VALUES ($1, $2, $3, $4, $5, $6, $7);
-            ''', ctx.author.id, start_time, target_time, message, is_dm, guild_id, channel_id)
+            ''', ctx.author.id, start_time, target_time, message, is_dm, server_id, channel_id)
 
 
     async def get_reminder_list(self, author_id: int) -> List[asyncpg.Record]:
-        """Gets a list of reminder records belonging to one person"""
+        """Gets a list of reminder records belonging to one person
+        
+        Sorted by target time.
+        """
         return await self.bot.db.fetch('''
             SELECT *
             FROM reminders
@@ -152,9 +152,9 @@ class Reminders(commands.Cog):
 
 
     async def format_timedelta(self, remaining: timedelta) -> str:
-        """Makes an easy-to-read timedelta string without perfect precision
+        """Makes an easy-to-read timedelta string
         
-        Only up to two units of time measurement will be returned.
+        Some precision may be lost.
         """
         output = ''
         if remaining.days > 1:
@@ -168,16 +168,13 @@ class Reminders(commands.Cog):
         elif hours == 1:
             output += '1 hour '
 
-        if 'day' in output:
-            return output
-
         minutes = remaining.seconds % 3600 // 60
         if minutes > 1:
             output += f'{minutes} minutes '
         elif minutes == 1:
             output += '1 minute '
 
-        if 'hour' in output:
+        if len(output) >= 25:
             return output
 
         seconds = remaining.seconds % 3600 % 60
@@ -185,8 +182,6 @@ class Reminders(commands.Cog):
             output += f'{seconds} seconds'
         elif seconds == 1:
             output += '1 second'
-        else:
-            output += '0 seconds'
 
         return output
 
