@@ -49,7 +49,7 @@ class Bot(commands.Bot):
             'cogs.music',
             'cogs.other',
             'cogs.owner',
-            'cogs.rand',
+            'cogs.quotes',
             'cogs.reminders',
             'cogs.tags',
             'jishaku',

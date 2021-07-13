@@ -63,20 +63,9 @@ async def update_quote_day(bot, author_id: int, old_target_time: datetime) -> No
         ''', new_target_time, author_id)
 
 
-class Random(commands.Cog):
+class Quotes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-
-    async def begin_daily_quote(self, destination: Union[discord.User, discord.TextChannel, commands.Context], target_time: datetime, author_id: int) -> None:
-        """Creates an asyncio task for a daily quote"""
-        def error_callback(running_task):
-            # Tasks fail silently without this function.
-            if running_task.exception():
-                running_task.print_stack()
-        
-        running_task = asyncio.create_task(self.daily_quote_loop(destination, self.bot, target_time, author_id))
-        running_task.add_done_callback(error_callback)
 
 
     @commands.group(invoke_without_command=True)
@@ -153,6 +142,17 @@ class Random(commands.Cog):
             await ctx.send(f"{member.display_name}'s daily quotes have been stopped.")
 
 
+    async def begin_daily_quote(self, destination: Union[discord.User, discord.TextChannel, commands.Context], target_time: datetime, author_id: int) -> None:
+        """Creates an asyncio task for a daily quote"""
+        def error_callback(running_task):
+            # Tasks fail silently without this function.
+            if running_task.exception():
+                running_task.print_stack()
+        
+        running_task = asyncio.create_task(self.daily_quote_loop(destination, self.bot, target_time, author_id))
+        running_task.add_done_callback(error_callback)
+
+
     async def daily_quote_loop(self, destination: Union[discord.User, discord.TextChannel, commands.Context], bot, target_time: datetime, author_id: int) -> None:
         """Send a quote once a day at a specific time"""
         while True:
@@ -167,4 +167,4 @@ class Random(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Random(bot))
+    bot.add_cog(Quotes(bot))

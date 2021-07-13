@@ -4,6 +4,7 @@ from discord.ext import commands
 import json
 import mystbin
 from textwrap import dedent
+import random
 
 # internal imports
 from common import unwrap_code_block, send_traceback
@@ -12,6 +13,46 @@ from common import unwrap_code_block, send_traceback
 class Other(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+
+    @commands.command(aliases=['random'])
+    async def rand(self, ctx, low: int = 1, high: int = 6):
+        """Gives a random number (default bounds: 1 and 6)"""
+        low = int(low)
+        high = int(high)
+        if  low <= high:
+            await ctx.send(str(random.randint(low, high)))
+        else:
+            await ctx.send(str(random.randint(high, low)))
+
+
+    @commands.command(name='flip-coin', aliases=['flip', 'flipcoin'])
+    async def flip_coin(self, ctx):
+        """Flips a coin"""
+        n = random.randint(1, 2)
+        if n == 1:
+            await ctx.send('heads')
+        else:
+            await ctx.send('tails')
+
+
+    @commands.command()
+    async def choose(self, ctx, choice_count: int, *choices: str):
+        """Chooses randomly from multiple choices"""
+        choices_made = []
+        for _ in range(0, choice_count):
+            choices_made.append(random.choice(choices))
+        await ctx.send(''.join(choices_made))
+
+
+    @choose.error
+    async def choose_error(self, ctx, error):
+        if isinstance(error, commands.errors.BadArgument) \
+        or isinstance(error, commands.errors.CommandInvokeError) \
+        or isinstance(error, commands.errors.MissingRequiredArgument):
+            await ctx.send(f'Error: the first argument must be the number of choices you want to be made. Following arguments must be the choices to choose from.')
+        else:
+            await ctx.send(error)
 
 
     @commands.command(aliases=['calc', 'solve', 'maths'])
