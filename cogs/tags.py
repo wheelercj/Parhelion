@@ -2,6 +2,8 @@
 import discord
 from discord.ext import commands
 import asyncpg
+import io
+from typing import Union
 
 # internal imports
 from common import split_input
@@ -9,12 +11,14 @@ from common import split_input
 
 '''
     CREATE TABLE IF NOT EXISTS tags (
-        name VARCHAR(30) NOT NULL,
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(50) NOT NULL,
         content VARCHAR(1500) NOT NULL,
-        creation_date TIMESTAMP NOT NULL,
+        image_url TEXT,
+        created TIMESTAMP NOT NULL,
         author_id BIGINT NOT NULL,
         server_id BIGINT NOT NULL,
-        PRIMARY KEY (name, server_id)
+        UNIQUE (name, server_id)
     )
 '''
 
@@ -32,34 +36,39 @@ class Tags(commands.Cog):
 
     @commands.group(invoke_without_command=True)
     async def tag(self, ctx, *, name: str):
-        """Finds and shows a tag
+        """Finds and shows a tag's contents
         
         You can use tags to quickly save and share messages, such as for FAQs. Tags can be viewed by anyone on the server, but not other servers.
         """
-        content = await self.bot.db.fetchval('''
-            SELECT content
+        record = await self.bot.db.fetchrow('''
+            SELECT *
             FROM tags
             WHERE name = $1
                 AND server_id = $2;
             ''', name, ctx.guild.id)
 
-        if content is None:
+        if record is None:
             await ctx.send('Tag not found.')
+        elif record['image_url'] is None:
+            await ctx.send(record['content'])
         else:
-            await ctx.send(content)
+            async with self.bot.session.get(record['image_url']) as response:
+                if not response.ok:
+                    await ctx.send(record['content'])
+                    await ctx.send("This tag's image cannot be accessed for some reason. The message that created the tag may have been deleted.")
+                else:
+                    image_bytes = await response.read()
+            with io.BytesIO(image_bytes) as binary_stream:
+                file = discord.File(binary_stream, 'img.png')
+            await ctx.send(record['content'], file=file)
 
 
     @tag.command(name='create')
     async def create_tag(self, ctx, *, content: str):
         """Creates a new tag
-        
-        If the tag name has spaces, surround it with double quotes.
-        The maximum tag name length is 30 characters, and the maximum tag
-        body length is 1500 characters. Currently, images are not supported.
-        """
-        name, content = await split_input(content)
-        now = ctx.message.created_at
 
+        If the tag name has spaces, surround it with double quotes. The maximum tag name length is 50 characters, and the maximum tag body length is 1500 characters. If the tag contains an image, the message in which the tag was created must not be deleted, or the image will be lost.
+        """
         if not len(content):
             await ctx.send('Cannot create an empty tag.')
             return
@@ -68,11 +77,17 @@ class Tags(commands.Cog):
             return
 
         try:
+            name, content = await split_input(content)
+            now = ctx.message.created_at
+            image_url = None
+            if ctx.message.attachments:
+                image_url = ctx.message.attachments[0].proxy_url
+
             await self.bot.db.execute('''
                 INSERT INTO tags
-                (name, content, creation_date, author_id, server_id)
-                VALUES ($1, $2, $3, $4, $5)
-                ''', name, content, now, ctx.author.id, ctx.guild.id)
+                (name, content, image_url, created, author_id, server_id)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                ''', name, content, image_url, now, ctx.author.id, ctx.guild.id)
         except asyncpg.exceptions.UniqueViolationError:
             await ctx.send(f'A tag named "{name}" already exists.')
         else:
@@ -81,7 +96,7 @@ class Tags(commands.Cog):
 
     @tag.command(name='list')
     async def list_tags(self, ctx):
-        """Lists the names of your tags"""
+        """Lists the names of your tags on this server"""
         records = await self.bot.db.fetch('''
             SELECT *
             FROM tags
@@ -127,7 +142,7 @@ class Tags(commands.Cog):
         embed = discord.Embed()
         embed.add_field(name=record['name'],
             value=f'author: {author}\n'
-                + f'created on {record["creation_date"]}')
+                + f'created on {record["created"]}')
 
         await ctx.send(embed=embed)
 
@@ -135,21 +150,24 @@ class Tags(commands.Cog):
     @tag.command(name='edit')
     async def edit_tag(self, ctx, *, content: str):
         """Rewrites one of your tags
-        
-        The maximum tag length is 1500 characters. Currently, images are
-        not supported.
+
+        The maximum tag length is 1500 characters. If the tag contains an image, the message in which the tag was edited must not be deleted, or the image will be lost.
         """
-        name, content = await split_input(content)        
+        name, content = await split_input(content)
+        image_url = None
+        if ctx.message.attachments:
+            image_url = ctx.message.attachments[0].proxy_url
 
         if not await self.authors_tag_exists(ctx, name):
             return
 
         await self.bot.db.execute('''
             UPDATE tags
-            SET content = $1
-            WHERE name = $2
-                AND server_id = $3;
-            ''', content, name, ctx.guild.id)
+            SET content = $1,
+                image_url = $2
+            WHERE name = $3
+                AND server_id = $4;
+            ''', content, image_url, name, ctx.guild.id)
         
         await ctx.send(f'Successfully edited tag "{name}"')
 
@@ -207,7 +225,7 @@ class Tags(commands.Cog):
         return len(records)
 
 
-    async def get_tag_author(self, ctx, tag_name: str) -> int:
+    async def get_tag_author(self, ctx, tag_name: str) -> Union[int, None]:
         """Gets the ID of a tag's author
         
         Returns None if the tag does not exist at ctx.guild.
