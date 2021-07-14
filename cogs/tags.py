@@ -52,34 +52,28 @@ class Tags(commands.Cog):
         elif record['file_url'] is None:
             await ctx.send(record['content'])
         else:
-            async with self.bot.session.get(record['file_url']) as response:
-                if not response.ok:
-                    await ctx.send(record['content'])
-                    await ctx.send("This tag's attachment cannot be accessed for some reason. The message that created the tag may have been deleted.")
-                else:
-                    image_bytes = await response.read()
-            with io.BytesIO(image_bytes) as binary_stream:
-                file_type = record['file_url'].split('.')[-1]
-                file = discord.File(binary_stream, f'file.{file_type}')
-
-                await ctx.send(record['content'], file=file)
-
-
-    @tag.error
-    async def tag_error(self, ctx, error):
-        if isinstance(error, commands.CommandInvokeError):
-            error = error.original
-
-        if isinstance(error, discord.errors.HTTPException):
-            if 'empty message' in error.text:
-                await ctx.send("This tag is empty. It may contain a type of attachment that Discord doesn't provide working URLs to.")
+            try:
+                async with self.bot.session.get(record['file_url']) as response:
+                    if not response.ok:
+                        await ctx.send(record['content'])
+                        await ctx.send("This tag's attachment cannot be accessed for some reason. The message that created the tag may have been deleted.")
+                    else:
+                        image_bytes = await response.read()
+                with io.BytesIO(image_bytes) as binary_stream:
+                    file_name = record['file_url'].split('.')[-2]
+                    file_type = record['file_url'].split('.')[-1]
+                    file = discord.File(binary_stream, f'{file_name}.{file_type}')
+                    await ctx.send(record['content'], file=file)
+            except discord.errors.HTTPException as e:
+                if 'empty message' in e.text:
+                    await ctx.send("This tag is empty. It may contain a type of attachment that Discord doesn't provide working URLs to.")
 
 
     @tag.command(name='create')
     async def create_tag(self, ctx, *, content: str):
         """Creates a new tag
 
-        If the tag name has spaces, surround it with double quotes. The maximum tag name length is 50 characters, and the maximum tag body length is 1500 characters. If the tag contains an image, the message in which the tag was created must not be deleted, or the image will be lost.
+        If the tag name has spaces, surround it with double quotes. If the tag has an attachment, the message in which the tag was created must not be deleted, or the attachment will be lost.
         """
         if not len(content):
             await ctx.send('Cannot create an empty tag.')
@@ -91,14 +85,7 @@ class Tags(commands.Cog):
         try:
             name, content = await split_input(content)
             now = ctx.message.created_at
-            file_url = None
-            if ctx.message.attachments:
-                file_url = ctx.message.attachments[0].proxy_url
-                file_type = file_url.split('.')[-1]
-                file_type = file_url.split('.')[-1]
-                if await self.is_unsupported_type(file_type):
-                    await ctx.send(f'Tags cannot contain files of type {file_type}')
-                    return
+            file_url = await self.get_attachment_url(ctx)
 
             await self.bot.db.execute('''
                 INSERT INTO tags
@@ -107,6 +94,8 @@ class Tags(commands.Cog):
                 ''', name, content, file_url, now, ctx.author.id, ctx.guild.id)
         except asyncpg.exceptions.UniqueViolationError:
             await ctx.send(f'A tag named "{name}" already exists.')
+        except Exception as e:
+            await ctx.send(f'Error: {e}')
         else:
             await ctx.send(f'Successfully created tag "{name}"')
 
@@ -170,16 +159,10 @@ class Tags(commands.Cog):
     async def edit_tag(self, ctx, *, content: str):
         """Rewrites one of your tags
 
-        The maximum tag length is 1500 characters. If the tag contains an image, the message in which the tag was edited must not be deleted, or the image will be lost.
+        If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
         name, content = await split_input(content)
-        file_url = None
-        if ctx.message.attachments:
-            file_url = ctx.message.attachments[0].proxy_url
-            file_type = file_url.split('.')[-1]
-            if await self.is_unsupported_type(file_type):
-                await ctx.send(f'Tags cannot contain files of type {file_type}')
-                return
+        file_url = await self.get_attachment_url(ctx)
 
         try:
             await self.bot.db.execute('''
@@ -281,7 +264,22 @@ class Tags(commands.Cog):
         return author_id
 
 
-    async def is_unsupported_type(self, file_type: str) -> bool:
+    async def get_attachment_url(self, ctx) -> Optional[str]:
+        """Gets the proxy URL of an attachment if there is one
+
+        Attempts to filter out invalid URLs.
+        """
+        if ctx.message.attachments:
+            file_url = ctx.message.attachments[0].proxy_url
+            file_type = file_url.split('.')[-1]
+
+            if not await self.is_supported_type(file_type):
+                raise ValueError(f'Tags cannot contain files of type {file_type}')
+
+            return file_url
+
+
+    async def is_supported_type(self, file_type: str) -> bool:
         """Says whether the file type is supported by Discord's CDN
         
         This function is incomplete; more file types need to be tested.
@@ -289,8 +287,8 @@ class Tags(commands.Cog):
         unsupported_types = ['md', 'pdf']
         # TODO: find a complete list of supported file types and use that instead.
         if file_type in unsupported_types:
-            return True
-        return False
+            return False
+        return True
 
 
 def setup(bot):

@@ -106,8 +106,6 @@ class Reminders(commands.Cog):
             r_list = 'Here are your first 10 reminders:'
         for r in reminder_records:
             message = r['message']
-            # remaining = r['target_time'] - ctx.message.created_at
-            # remaining = await format_timedelta(remaining)
             remaining = await format_relative_timestamp(r['target_time'])
 
             r_list += f'\n\n{r["id"]}.) **{remaining}**' \
