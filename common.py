@@ -17,6 +17,16 @@ class Dev_Settings:
 dev_settings = Dev_Settings()
 
 
+def s(n: int, msg: str) -> str:
+    """Appends an 's' to a message if it should be plural
+    
+    The output is either `f'{n} {msg}s'` or `f'{n} {msg}'`.
+    """
+    if n > 1:
+        return f'{n} {msg}s'
+    return f'{n} {msg}'
+
+
 async def escape_json(text: str) -> str:
     """Escapes slashes, backslashes, double quotes, and all JSON escape sequences"""
     text = text.replace('\\', '\\\\').replace('"', r'\"').replace('\n', r'\n').replace('\t', r'\t').replace('\r', r'\r').replace('\b', r'\b').replace('\f', r'\f').replace(r'\u', r'\\u').replace('/', '\/')
@@ -57,22 +67,22 @@ async def format_timedelta(td: timedelta) -> str:
     minutes, seconds = divmod(remainder, 60)
     days, hours = divmod(hours, 24)
 
-    async def plural(n: int, msg: str) -> str:
-        if n > 1:
-            return f'{n} {msg}s'
-        return f'{n} {msg}'
-
     output = []
     if days:
-        output.append(await plural(days, 'day'))
+        output.append(s(days, 'day'))
     if hours:
-        output.append(await plural(hours, 'hour'))
+        output.append(s(hours, 'hour'))
     if minutes:
-        output.append(await plural(minutes, 'minute'))
+        output.append(s(minutes, 'minute'))
     if seconds:
-        output.append(await plural(seconds, 'second'))
+        output.append(s(seconds, 'second'))
 
     return ', '.join(output)
+
+
+async def format_relative_timestamp(dt: datetime) -> str:
+    """Creates an automatically-updating relative timestamp string"""
+    return f'<t:{dt.strftime("%s")}:R>'
 
 
 async def send_traceback(ctx, error: BaseException) -> None:

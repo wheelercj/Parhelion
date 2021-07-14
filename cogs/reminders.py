@@ -1,13 +1,11 @@
 # external imports
 import asyncio
-import asyncpg
 from datetime import datetime
 import discord
 from discord.ext import commands
-from typing import List
 
 # internal imports
-from common import parse_time_message, format_timedelta
+from common import parse_time_message, format_relative_timestamp, s
 
 
 '''
@@ -89,19 +87,30 @@ class Reminders(commands.Cog):
     @remind.command(name='list')
     async def list_reminders(self, ctx):
         """Shows all of your reminders"""
-        reminder_records = await self.get_reminder_list(ctx.author.id)
+        reminder_records = await self.bot.db.fetch('''
+            SELECT *
+            FROM reminders
+            WHERE author_id = $1
+            ORDER BY target_time
+            LIMIT 10;
+            ''', ctx.author.id)
 
         if not len(reminder_records):
             await ctx.send('You have no saved reminders.')
             return
 
-        r_list = 'Here are your in-progress reminders:'
+        n = len(reminder_records)
+        if n < 10:
+            r_list = f'You currently have {s(n, "reminder")}:'
+        elif n == 10:
+            r_list = 'Here are your first 10 reminders:'
         for r in reminder_records:
             message = r['message']
-            remaining = r['target_time'] - ctx.message.created_at
-            remaining = await format_timedelta(remaining)
+            # remaining = r['target_time'] - ctx.message.created_at
+            # remaining = await format_timedelta(remaining)
+            remaining = await format_relative_timestamp(r['target_time'])
 
-            r_list += f'\n\n{r["id"]}.) **in {remaining}**' \
+            r_list += f'\n\n{r["id"]}.) **{remaining}**' \
                 + f'\n{message}'
 
         embed = discord.Embed(description=r_list)
@@ -189,19 +198,6 @@ class Reminders(commands.Cog):
             (author_id, start_time, target_time, message, is_dm, server_id, channel_id)
             VALUES ($1, $2, $3, $4, $5, $6, $7);
             ''', ctx.author.id, start_time, target_time, message, is_dm, server_id, channel_id)
-
-
-    async def get_reminder_list(self, author_id: int) -> List[asyncpg.Record]:
-        """Gets a list of reminder records belonging to one person
-        
-        Sorted by target time.
-        """
-        return await self.bot.db.fetch('''
-            SELECT *
-            FROM reminders
-            WHERE author_id = $1
-            ORDER BY target_time;
-            ''', author_id)
 
 
 def setup(bot):
