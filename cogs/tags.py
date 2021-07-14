@@ -80,7 +80,7 @@ class Tags(commands.Cog):
         if not len(content):
             await ctx.send('Cannot create an empty tag.')
             return
-        if await self.count_authors_tags(ctx) >= 15:
+        if await self.count_members_tags(ctx.author) >= 15:
             await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
             return
 
@@ -103,7 +103,7 @@ class Tags(commands.Cog):
 
 
     @tag.command(name='list')
-    async def list_tags(self, ctx, *, member: discord.Member = None):
+    async def list_tags(self, ctx, member: discord.Member = None):
         """Lists the names of yours or someone else's tags on this server"""
         if member is None:
             member = ctx.author
@@ -220,7 +220,7 @@ class Tags(commands.Cog):
     @tag.command(name='claim')
     async def claim_tag(self, ctx, *, name: str):
         """Gives you ownership of a tag if its owner left the server"""
-        if await self.count_authors_tags(ctx) >= 15:
+        if await self.count_members_tags(ctx.author) >= 15:
             await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
             return
 
@@ -244,13 +244,33 @@ class Tags(commands.Cog):
         await ctx.reply(f'Tag "{name}" now belongs to you!')
 
 
-    async def count_authors_tags(self, ctx) -> int:
-        """Counts how many tags ctx.author has globally"""
+    @tag.command(name='transfer')
+    async def transfer_tag(self, ctx, member: discord.Member, *, tag_name: str):
+        """Gives a server member ownership of one of your tags"""
+        if await self.count_members_tags(member) >= 15:
+            await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
+            return
+
+        try:
+            await self.bot.db.execute('''
+                UPDATE tags
+                SET author_id = $1
+                WHERE name = $2
+                    AND server_id = $3;
+                ''', member.id, tag_name, ctx.guild.id)
+        except Exception as e:
+            await ctx.send(f'Error: {e}')
+        else:
+            await ctx.send(f'Tag "{tag_name}" now belongs to {member.name}#{member.discriminator}!')
+
+
+    async def count_members_tags(self, member: discord.Member) -> int:
+        """Counts how many tags a member has globally"""
         records = await self.bot.db.fetch('''
             SELECT *
             FROM tags
             WHERE author_id = $1;
-            ''', ctx.author.id)
+            ''', member.id)
 
         return len(records)
 
