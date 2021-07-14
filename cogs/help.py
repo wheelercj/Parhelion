@@ -4,7 +4,7 @@ from discord.ext import commands
 import platform
 
 # internal imports
-from common import dev_settings, get_prefixes_str, format_timedelta
+from common import dev_settings, format_timedelta, get_prefixes_message, get_prefixes_list
 
 
 # Guide on subclassing HelpCommand: https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96
@@ -13,7 +13,7 @@ class Embedded_Minimal_Help_Command(commands.MinimalHelpCommand):
         super().__init__()
         self.command_attrs = {
             'name': 'help',
-            'aliases': ['helps', 'command', 'commands']
+            'aliases': ['h', 'helps', 'command', 'commands']
         }
 
     async def send_pages(self):
@@ -35,15 +35,22 @@ class Help(commands.Cog):
         self.bot.help_command = self.old_help_command
 
 
-    @commands.command(aliases=['invite', 'support', 'owner', 'privacy-policy', 'privacy', 'prefixes'])
+    @commands.command()
+    async def prefixes(self, ctx):
+        """Lists the bot's current prefixes for this server"""
+        prefixes = await get_prefixes_message(self.bot, ctx.message)
+        await ctx.send(f'My current {prefixes}')
+
+
+    @commands.command(aliases=['invite', 'support', 'owner', 'privacy-policy', 'privacy'])
     async def about(self, ctx):
         """Shows general info about this bot"""
         embed = discord.Embed(title=f'{self.bot.user.name}#{self.bot.user.discriminator}')
-        prefixes = await get_prefixes_str(self.bot, ctx.message)
         owner = self.bot.get_user(self.bot.owner_id)
-        
-        embed.add_field(name='prefixes\u2800',
-            value=f'{prefixes}\u2800\n\u2800')
+        prefixes = await get_prefixes_list(self.bot, ctx.message)
+
+        embed.add_field(name='\u200b\u2800',
+            value=f'Use `{prefixes[0]}help` for help\nwith commands.\u2800\n\u2800')
         embed.add_field(name='\u2800owner\u2800',
             value=f'\u2800{owner.name}#{owner.discriminator}\u2800\n\u2800')
         embed.add_field(name='\u200b',
