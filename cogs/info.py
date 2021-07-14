@@ -36,62 +36,62 @@ class Info(commands.Cog):
     async def server_info(self, ctx):
         """Shows info about the current server"""
         if ctx.guild.unavailable:
-            await ctx.send('The server\'s data is unavailable.')
+            await ctx.send("The server's data is unavailable.")
             return
 
-        guild = self.bot.get_guild(ctx.guild.id)
-        bot_count = await self.get_bot_count(ctx, guild)
-        cat_count = len(guild.categories)
-        created = await format_datetime(guild.created_at)
+        server = self.bot.get_guild(ctx.guild.id)
+        bot_count = await self.get_bot_count(ctx, server)
+        cat_count = len(server.categories)
+        created = await format_datetime(server.created_at)
 
         embed = discord.Embed(title='server info')
         embed.add_field(name='\u200b',
-            value=f'name: {guild.name}\n'
-                + f'owner: {guild.owner.name}#{guild.owner.discriminator}\n'
-                + f'description: {guild.description}\n'
+            value=f'name: {server.name}\n'
+                + f'owner: {server.owner.name}#{server.owner.discriminator}\n'
+                + f'description: {server.description}\n'
                 + f'created: {created}\n'
-                + f'region: {guild.region}\n'
-                + f'preferred locale: {guild.preferred_locale}\n'
-                + f'total members: {guild.member_count}/{guild.max_members} ({bot_count} bots)\n'
-                + f'roles: {len(guild.roles)}\n'
-                + f'current boosts: {guild.premium_subscription_count}\n'
-                + f'boost level: {guild.premium_tier}\n'
-                + f'emojis: {len(guild.emojis)}/{guild.emoji_limit}\n'
-                + f'file size limit: {guild.filesize_limit/1000000:.2f} MB\n'
-                + f'bitrate limit: {guild.bitrate_limit/1000} kbps\n'
+                + f'region: {server.region}\n'
+                + f'preferred locale: {server.preferred_locale}\n'
+                + f'total members: {server.member_count}/{server.max_members} ({bot_count} bots)\n'
+                + f'roles: {len(server.roles)}\n'
+                + f'current boosts: {server.premium_subscription_count}\n'
+                + f'boost level: {server.premium_tier}\n'
+                + f'emojis: {len(server.emojis)}/{server.emoji_limit}\n'
+                + f'file size limit: {server.filesize_limit/1000000:.2f} MB\n'
+                + f'bitrate limit: {server.bitrate_limit/1000} kbps\n'
                 + '\n'
                 + '**channels**\n'
                 + f'categories: {cat_count}\n'
-                + f'total channels: {len(guild.channels) - cat_count}\n'
-                + f'text channels: {len(guild.text_channels)}\n'
-                + f'voice channels: {len(guild.voice_channels)}\n'
-                + f'stages: {len(guild.stage_channels)}\n'
-                + f'max video channel users: {guild.max_video_channel_users}\n'
+                + f'total channels: {len(server.channels) - cat_count}\n'
+                + f'text channels: {len(server.text_channels)}\n'
+                + f'voice channels: {len(server.voice_channels)}\n'
+                + f'stages: {len(server.stage_channels)}\n'
+                + f'max video channel users: {server.max_video_channel_users}\n'
         )
 
-        features = await self.get_server_features(ctx, guild)
+        features = await self.get_server_features(ctx, server)
         if len(features):
             embed.add_field(name='\u2800',
                 value='**features**\n' + features)
 
-        embed.set_thumbnail(url=guild.icon_url)
+        embed.set_thumbnail(url=server.icon_url)
 
         await ctx.send(embed=embed)
     
 
-    async def get_bot_count(self, ctx, guild: discord.Guild) -> int:
+    async def get_bot_count(self, ctx, server: discord.Guild) -> int:
         """Counts the bots in the server"""
         count = 0
-        for member in guild.members:
+        for member in server.members:
             if member.bot:
                 count += 1
         return count
 
 
-    async def get_server_features(self, ctx, guild: discord.Guild) -> str:
+    async def get_server_features(self, ctx, server: discord.Guild) -> str:
         """Gets the server's features or returns any empty string if there are none"""
         features = ''
-        for feature in sorted(guild.features):
+        for feature in sorted(server.features):
             features += f'\n• ' + feature.replace('_', ' ').lower()
         return features
 
