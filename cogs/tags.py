@@ -6,7 +6,7 @@ import io
 from typing import Optional
 
 # internal imports
-from common import split_input, format_datetime
+from common import split_input, format_datetime, get_attachment_url
 
 
 '''
@@ -85,7 +85,7 @@ class Tags(commands.Cog):
         try:
             name, content = await split_input(content)
             now = ctx.message.created_at
-            file_url = await self.get_attachment_url(ctx)
+            file_url = await get_attachment_url(ctx)
 
             await self.bot.db.execute('''
                 INSERT INTO tags
@@ -162,7 +162,7 @@ class Tags(commands.Cog):
         If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
         name, content = await split_input(content)
-        file_url = await self.get_attachment_url(ctx)
+        file_url = await get_attachment_url(ctx)
 
         try:
             await self.bot.db.execute('''
@@ -262,33 +262,6 @@ class Tags(commands.Cog):
         ''', tag_name, ctx.guild.id)
         
         return author_id
-
-
-    async def get_attachment_url(self, ctx) -> Optional[str]:
-        """Gets the proxy URL of an attachment if there is one
-
-        Attempts to filter out invalid URLs.
-        """
-        if ctx.message.attachments:
-            file_url = ctx.message.attachments[0].proxy_url
-            file_type = file_url.split('.')[-1]
-
-            if not await self.is_supported_type(file_type):
-                raise ValueError(f'Tags cannot contain files of type {file_type}')
-
-            return file_url
-
-
-    async def is_supported_type(self, file_type: str) -> bool:
-        """Says whether the file type is supported by Discord's CDN
-        
-        This function is incomplete; more file types need to be tested.
-        """
-        unsupported_types = ['md', 'pdf']
-        # TODO: find a complete list of supported file types and use that instead.
-        if file_type in unsupported_types:
-            return False
-        return True
 
 
 def setup(bot):

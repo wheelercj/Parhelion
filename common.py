@@ -2,7 +2,7 @@ import re
 import traceback
 import discord
 from discord.ext import commands
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from datetime import datetime, timedelta
 import dateparser
 
@@ -31,6 +31,33 @@ async def escape_json(text: str) -> str:
     """Escapes slashes, backslashes, double quotes, and all JSON escape sequences"""
     text = text.replace('\\', '\\\\').replace('"', r'\"').replace('\n', r'\n').replace('\t', r'\t').replace('\r', r'\r').replace('\b', r'\b').replace('\f', r'\f').replace(r'\u', r'\\u').replace('/', '\/')
     return text
+
+
+async def get_attachment_url(ctx) -> Optional[str]:
+    """Gets the proxy URL of an attachment if there is one
+
+    Attempts to filter out invalid URLs.
+    """
+    if ctx.message.attachments:
+        file_url = ctx.message.attachments[0].proxy_url
+        file_type = file_url.split('.')[-1]
+
+        if not await is_supported_type(file_type):
+            raise ValueError(f'Attachment links do not work for files of type {file_type}')
+
+        return file_url
+
+
+async def is_supported_type(file_type: str) -> bool:
+    """Says whether the file type is supported by Discord's CDN
+    
+    This function is incomplete; more file types need to be tested.
+    """
+    unsupported_types = ['md', 'pdf']
+    # TODO: find a complete list of supported file types and use that instead.
+    if file_type in unsupported_types:
+        return False
+    return True
 
     
 async def get_14_digit_timestamp() -> str:

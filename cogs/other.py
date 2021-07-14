@@ -7,7 +7,7 @@ from textwrap import dedent
 import random
 
 # internal imports
-from common import unwrap_code_block, send_traceback
+from common import unwrap_code_block, send_traceback, get_attachment_url
 
 
 class Other(commands.Cog):
@@ -118,22 +118,24 @@ class Other(commands.Cog):
         await ctx.send(new_string)
 
 
-    @commands.command(aliases=['mystbin'])
-    async def paste(self, ctx, *, content: str):
-        """Creates a new paste on Mystb.in and gives you the link
-        
-        You can use a code block and specify syntax. You cannot
-        specify syntax without a triple-backtick code block. The
-        default syntax is `txt`. The pastes are public and
-        cannot be edited or deleted once they are posted.
+    @commands.command(aliases=['publish', 'paste', 'mystbin'])
+    async def link(self, ctx, *, text: str = None):
+        """Gives you a URL to your text or attachment
+
+        Text is posted publicly on Mystb.in and cannot be edited or deleted once posted. Attachments stay on Discord's servers until deleted. For text, you can use a code block. Not all file types work for attachments.
         """
         async with ctx.typing():
-            syntax, content = await unwrap_code_block(content)
-            content = dedent(content)
-            mystbin_client = mystbin.Client(session=self.bot.session)
-            paste = await mystbin_client.post(content, syntax=syntax)
+            file_url = await get_attachment_url(ctx)
+            if file_url:
+                await ctx.send(f"Here's a link to the attachment: <{file_url}>")
 
-            await ctx.reply(f'New Mystb.in paste created at <{paste.url}>')
+            if text:
+                syntax, text = await unwrap_code_block(text)
+                text = dedent(text)
+                mystbin_client = mystbin.Client(session=self.bot.session)
+                paste = await mystbin_client.post(text, syntax=syntax)
+
+                await ctx.reply(f'New Mystb.in paste created at <{paste.url}>')
 
 
 def setup(bot):
