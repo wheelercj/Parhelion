@@ -14,7 +14,7 @@ from common import split_input, format_datetime
         id SERIAL PRIMARY KEY,
         name VARCHAR(50) NOT NULL,
         content VARCHAR(1500) NOT NULL,
-        image_url TEXT,
+        file_url TEXT,
         created TIMESTAMP NOT NULL,
         author_id BIGINT NOT NULL,
         server_id BIGINT NOT NULL,
@@ -49,18 +49,30 @@ class Tags(commands.Cog):
 
         if record is None:
             await ctx.send('Tag not found.')
-        elif record['image_url'] is None:
+        elif record['file_url'] is None:
             await ctx.send(record['content'])
         else:
-            async with self.bot.session.get(record['image_url']) as response:
+            async with self.bot.session.get(record['file_url']) as response:
                 if not response.ok:
                     await ctx.send(record['content'])
-                    await ctx.send("This tag's image cannot be accessed for some reason. The message that created the tag may have been deleted.")
+                    await ctx.send("This tag's attachment cannot be accessed for some reason. The message that created the tag may have been deleted.")
                 else:
                     image_bytes = await response.read()
             with io.BytesIO(image_bytes) as binary_stream:
-                file = discord.File(binary_stream, 'img.png')
-            await ctx.send(record['content'], file=file)
+                file_type = record['file_url'].split('.')[-1]
+                file = discord.File(binary_stream, f'file.{file_type}')
+
+                await ctx.send(record['content'], file=file)
+
+
+    @tag.error
+    async def tag_error(self, ctx, error):
+        if isinstance(error, commands.CommandInvokeError):
+            error = error.original
+
+        if isinstance(error, discord.errors.HTTPException):
+            if 'empty message' in error.text:
+                await ctx.send("This tag is empty. It may contain a type of attachment that Discord doesn't provide working URLs to.")
 
 
     @tag.command(name='create')
@@ -79,15 +91,15 @@ class Tags(commands.Cog):
         try:
             name, content = await split_input(content)
             now = ctx.message.created_at
-            image_url = None
+            file_url = None
             if ctx.message.attachments:
-                image_url = ctx.message.attachments[0].proxy_url
+                file_url = ctx.message.attachments[0].proxy_url
 
             await self.bot.db.execute('''
                 INSERT INTO tags
-                (name, content, image_url, created, author_id, server_id)
+                (name, content, file_url, created, author_id, server_id)
                 VALUES ($1, $2, $3, $4, $5, $6)
-                ''', name, content, image_url, now, ctx.author.id, ctx.guild.id)
+                ''', name, content, file_url, now, ctx.author.id, ctx.guild.id)
         except asyncpg.exceptions.UniqueViolationError:
             await ctx.send(f'A tag named "{name}" already exists.')
         else:
@@ -156,19 +168,19 @@ class Tags(commands.Cog):
         The maximum tag length is 1500 characters. If the tag contains an image, the message in which the tag was edited must not be deleted, or the image will be lost.
         """
         name, content = await split_input(content)
-        image_url = None
+        file_url = None
         if ctx.message.attachments:
-            image_url = ctx.message.attachments[0].proxy_url
+            file_url = ctx.message.attachments[0].proxy_url
 
         try:
             await self.bot.db.execute('''
                 UPDATE tags
                 SET content = $1,
-                    image_url = $2
+                    file_url = $2
                 WHERE name = $3
                     AND author_id = $4
                     AND server_id = $5;
-                ''', content, image_url, name, ctx.author.id, ctx.guild.id)
+                ''', content, file_url, name, ctx.author.id, ctx.guild.id)
         except Exception as e:
             await ctx.send(f'Error: {e}')
         else:
