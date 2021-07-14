@@ -6,7 +6,7 @@ import io
 from typing import Optional
 
 # internal imports
-from common import split_input, format_datetime, get_attachment_url
+from common import split_input, get_attachment_url, format_relative_timestamp
 
 
 '''
@@ -18,6 +18,7 @@ from common import split_input, format_datetime, get_attachment_url
         created TIMESTAMP NOT NULL,
         author_id BIGINT NOT NULL,
         server_id BIGINT NOT NULL,
+        views INT DEFAULT 0,
         UNIQUE (name, server_id)
     )
 '''
@@ -41,10 +42,11 @@ class Tags(commands.Cog):
         You can use tags to quickly save and share messages, such as for FAQs. Tags can be viewed by anyone on the server, but not other servers.
         """
         record = await self.bot.db.fetchrow('''
-            SELECT *
-            FROM tags
+            UPDATE tags
+            SET views = views + 1
             WHERE name = $1
-                AND server_id = $2;
+                AND server_id = $2
+            RETURNING *;
             ''', name, ctx.guild.id)
 
         if record is None:
@@ -141,16 +143,17 @@ class Tags(commands.Cog):
 
         author = ctx.guild.get_member(record['author_id'])
         if author is not None:
-            author = author.display_name
+            author = author.name + '#' + author.discriminator
         else:
             author = record['author_id']
 
-        created = await format_datetime(record["created"])
+        created = await format_relative_timestamp(record["created"])
 
         embed = discord.Embed()
         embed.add_field(name=record['name'],
             value=f'author: {author}\n'
-                + f'created on {created}')
+                + f'created: {created}\n'
+                + f'views: {record["views"]}')
 
         await ctx.send(embed=embed)
 
