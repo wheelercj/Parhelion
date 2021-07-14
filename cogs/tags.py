@@ -103,25 +103,28 @@ class Tags(commands.Cog):
 
 
     @tag.command(name='list')
-    async def list_tags(self, ctx):
-        """Lists the names of your tags on this server"""
+    async def list_tags(self, ctx, *, member: discord.Member = None):
+        """Lists the names of yours or someone else's tags on this server"""
+        if member is None:
+            member = ctx.author
+
         records = await self.bot.db.fetch('''
             SELECT *
             FROM tags
             WHERE author_id = $1
                 AND server_id = $2;
-            ''', ctx.author.id, ctx.guild.id)
+            ''', member.id, ctx.guild.id)
 
         if not len(records):
-            await ctx.send('You have no tags on this server.')
+            await ctx.send(f'{member.name}#{member.discriminator} has no tags on this server.')
             return
 
         output = ''
         for i, r in enumerate(records):
             output += f'{i+1}. {r["name"]}\n'
-        
+
         embed = discord.Embed()
-        embed.add_field(name=f"{ctx.author.display_name}'s tags",
+        embed.add_field(name=f"{member.name}#{member.discriminator}'s tags",
             value=output)
         
         await ctx.send(embed=embed)
