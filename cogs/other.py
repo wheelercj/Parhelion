@@ -118,8 +118,8 @@ class Other(commands.Cog):
         await ctx.send(new_string)
 
 
-    @commands.command(aliases=['publish', 'paste', 'mystbin'])
-    async def link(self, ctx, *, text: str = None):
+    @commands.command(aliases=['link', 'url', 'publish', 'post', 'paste', 'mystbin'])
+    async def share(self, ctx, *, text: str = None):
         """Gives you a URL to your text or attachment
 
         Text is posted publicly on Mystb.in and cannot be edited or deleted once posted. Attachments stay on Discord's servers until deleted. For text, you can use a code block. Not all file types work for attachments.
