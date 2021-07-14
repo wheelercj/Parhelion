@@ -31,6 +31,25 @@ async def get_14_digit_timestamp() -> str:
     return now
 
 
+async def format_date(dt: datetime) -> str:
+    """Makes an easy-to-read date message"""
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    return f'{dt.day} {months[dt.month+1]} {dt.year}'
+
+
+async def format_time(dt: datetime) -> str:
+    """Makes an easy-to-read time message"""
+    minute = str(dt.minute).zfill(2)
+    return f'{dt.hour}:{minute}'
+
+
+async def format_datetime(dt: datetime) -> str:
+    """Makes an easy-to-read date and time message"""
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    minute = str(dt.minute).zfill(2)
+    return f'{dt.hour}:{minute} on {dt.day} {months[dt.month-1]} {dt.year}'
+
+
 async def format_timedelta(td: timedelta) -> str:
     """Makes an easy-to-read time duration message"""
     total_seconds = int(td.total_seconds())

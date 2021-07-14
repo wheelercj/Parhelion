@@ -6,7 +6,7 @@ import io
 from typing import Optional
 
 # internal imports
-from common import split_input
+from common import split_input, format_datetime
 
 
 '''
@@ -139,10 +139,12 @@ class Tags(commands.Cog):
         else:
             author = record['author_id']
 
+        created = await format_datetime(record["created"])
+
         embed = discord.Embed()
         embed.add_field(name=record['name'],
             value=f'author: {author}\n'
-                + f'created on {record["created"]}')
+                + f'created on {created}')
 
         await ctx.send(embed=embed)
 

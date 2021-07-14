@@ -3,6 +3,9 @@ import discord
 from discord.ext import commands
 from typing import List, Tuple, Union
 
+# internal imports
+from common import format_datetime
+
 
 def y_n(boolean: bool) -> str:
     """Returns 'yes' or 'no'"""
@@ -17,8 +20,8 @@ class Info(commands.Cog):
     @commands.command(name='time', aliases=['clock', 'UTC', 'utc'])
     async def _time(self, ctx):
         """Shows the current time in UTC"""
-        current_time = ctx.message.created_at
-        await ctx.send(f'The current time is {current_time} UTC')
+        current_time = await format_datetime(ctx.message.created_at)
+        await ctx.send(f'The current time in UTC is {current_time}')
 
 
     @commands.group(aliases=['i'], invoke_without_command=True)
@@ -39,13 +42,14 @@ class Info(commands.Cog):
         guild = self.bot.get_guild(ctx.guild.id)
         bot_count = await self.get_bot_count(ctx, guild)
         cat_count = len(guild.categories)
+        created = await format_datetime(guild.created_at)
 
         embed = discord.Embed(title='server info')
         embed.add_field(name='\u200b',
             value=f'name: {guild.name}\n'
                 + f'owner: {guild.owner.name}#{guild.owner.discriminator}\n'
                 + f'description: {guild.description}\n'
-                + f'created: {guild.created_at}\n'
+                + f'created: {created}\n'
                 + f'region: {guild.region}\n'
                 + f'preferred locale: {guild.preferred_locale}\n'
                 + f'total members: {guild.member_count}/{guild.max_members} ({bot_count} bots)\n'
@@ -99,12 +103,15 @@ class Info(commands.Cog):
         
         To see member permissions, use the `info perms` command.
         """
+        created = await format_datetime(member.created_at)
+        joined = await format_datetime(member.joined_at)
+
         embed = discord.Embed()
         embed.add_field(name=f'{member.name}#{member.discriminator}\n\u2800',
             value=f'**display name:** {member.display_name}\n'
                 + await self.get_whether_bot(member)
-                + f'**account created:** {member.created_at}\n'
-                + f'**joined server:** {member.joined_at}\n'
+                + f'**account created:** {created}\n'
+                + f'**joined server:** {joined}\n'
                 + f'**top server role:** {member.top_role}\n'
                 + await self.get_server_roles(member)
                 + await self.get_premium_since(member)
@@ -178,6 +185,7 @@ class Info(commands.Cog):
         To see role permissions, use the `info perms` command.
         """
         managing_bot = None
+        created = await format_datetime(role.created_at)
         if role.tags is not None:
             if role.tags.bot_id is not None:
                 managing_bot = ctx.guild.get_member(role.tags.bot_id)
@@ -187,7 +195,7 @@ class Info(commands.Cog):
             value=f'name: {role.name}\n'
                 + f'members: {len(role.members)}\n'
                 + f'hierarcy position: {role.position}\n'
-                + f'created: {role.created_at}\n'
+                + f'created: {created}\n'
                 + f'mentionable: {y_n(role.mentionable)}\n'
                 + f'default: {y_n(role.is_default())}\n'
                 + f'premium: {y_n(role.is_premium_subscriber())}\n'

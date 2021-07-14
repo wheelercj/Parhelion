@@ -8,7 +8,7 @@ import json
 from typing import Union
 
 # internal imports
-from common import target_tomorrow
+from common import target_tomorrow, format_time
 
 
 '''
@@ -108,7 +108,8 @@ class Quotes(commands.Cog):
                 WHERE daily_quotes.author_id = $1;
             ''', ctx.author.id, now, target_time, is_dm, server_id, channel_id)
 
-        await ctx.send(f'Time set! At {daily_utc_time} UTC each day, I will send you a random quote.')
+        daily_time = await format_time(target_time)
+        await ctx.send(f'Time set! At {daily_time} UTC each day, I will send you a random quote.')
         await self.begin_daily_quote(ctx, target_time, ctx.author.id)
 
 
