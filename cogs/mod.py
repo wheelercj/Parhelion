@@ -22,9 +22,9 @@ class Mod(commands.Cog):
     @commands.group(invoke_without_command=True)
     @commands.has_guild_permissions(manage_guild=True)
     async def prefix(self, ctx):
-        """Allows you to modify the bot's prefixes for this server"""
+        """Shows the prefixes and a help message"""
         prefixes = await get_prefixes_message(self.bot, ctx.message)
-        await ctx.send(f"The bot's current {prefixes}")
+        await ctx.send(f"My current {prefixes}")
         await ctx.send_help('prefix')
 
 
@@ -33,7 +33,7 @@ class Mod(commands.Cog):
     async def list_prefixes(self, ctx):
         """Shows the bot's current command prefixes for this server"""
         prefixes = await get_prefixes_message(self.bot, ctx.message)
-        await ctx.send(f"The bot's current {prefixes}")
+        await ctx.send(f"My current {prefixes}")
 
 
     @prefix.command(name='add')
