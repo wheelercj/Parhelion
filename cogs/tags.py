@@ -94,6 +94,11 @@ class Tags(commands.Cog):
             file_url = None
             if ctx.message.attachments:
                 file_url = ctx.message.attachments[0].proxy_url
+                file_type = file_url.split('.')[-1]
+                file_type = file_url.split('.')[-1]
+                if await self.is_unsupported_type(file_type):
+                    await ctx.send(f'Tags cannot contain files of type {file_type}')
+                    return
 
             await self.bot.db.execute('''
                 INSERT INTO tags
@@ -171,6 +176,10 @@ class Tags(commands.Cog):
         file_url = None
         if ctx.message.attachments:
             file_url = ctx.message.attachments[0].proxy_url
+            file_type = file_url.split('.')[-1]
+            if await self.is_unsupported_type(file_type):
+                await ctx.send(f'Tags cannot contain files of type {file_type}')
+                return
 
         try:
             await self.bot.db.execute('''
@@ -270,6 +279,18 @@ class Tags(commands.Cog):
         ''', tag_name, ctx.guild.id)
         
         return author_id
+
+
+    async def is_unsupported_type(self, file_type: str) -> bool:
+        """Says whether the file type is supported by Discord's CDN
+        
+        This function is incomplete; more file types need to be tested.
+        """
+        unsupported_types = ['md', 'pdf']
+        # TODO: find a complete list of supported file types and use that instead.
+        if file_type in unsupported_types:
+            return True
+        return False
 
 
 def setup(bot):
