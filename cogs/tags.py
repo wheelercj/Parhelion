@@ -302,6 +302,48 @@ class Tags(commands.Cog):
             await ctx.send(content)
 
 
+    @tag.command(name='search', hidden=True)
+    async def tag_search(self, ctx):
+        """Searches for a tag"""
+        await ctx.send('This command is under construction.')
+
+    @tag.command(name='all', hidden=True)
+    async def list_all_tags(self, ctx):
+        """Lists all tags on this server"""
+        await ctx.send('This command is under construction.')
+
+    
+    @tag.command(name='alias', hidden=True)
+    async def create_tag_alias(self, ctx):
+        """Creates another name for an existing tag"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag.command(name='stats', hidden=True)
+    async def tag_stats(self, ctx):
+        """Shows tag statistics about a member or the server"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag.command(name='id-delete', aliases=['iddelete'], hidden=True)
+    async def delete_tag_by_id(self, ctx):
+        """Deletes one of your tags by its ID"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag.command(name='mod-id-delete', aliases=['modiddelete'], hidden=True)
+    @commands.has_guild_permissions(manage_messages=True)
+    async def mod_delete_tag_by_id(self, ctx):
+        """Deletes one of anyone's tags by its ID"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag.command(name='make', hidden=True)
+    async def make_tag(self, ctx):
+        """Interactively helps you create a tag"""
+        await ctx.send('This command is under construction.')
+
+
     async def count_members_tags(self, member: discord.Member) -> int:
         """Counts how many tags a member has globally"""
         records = await self.bot.db.fetch('''
