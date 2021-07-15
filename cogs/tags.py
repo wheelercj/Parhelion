@@ -71,7 +71,7 @@ class Tags(commands.Cog):
                     await ctx.send("This tag is empty. It may contain a type of attachment that Discord doesn't provide working URLs to.")
 
 
-    @tag.command(name='create')
+    @tag.command(name='create', aliases=['c'])
     async def create_tag(self, ctx, *, name_and_content: str):
         """Creates a new tag
 
@@ -194,7 +194,7 @@ class Tags(commands.Cog):
             await ctx.send(f'Successfully edited tag "{name}"')
 
 
-    @tag.command(name='delete')
+    @tag.command(name='delete', aliases=['del'])
     async def delete_tag(self, ctx, *, tag_name: str):
         """Deletes one of your tags"""
         returned_tag_name = await self.bot.db.fetchval('''
@@ -211,7 +211,7 @@ class Tags(commands.Cog):
             await ctx.send(f'Successfully deleted tag "{tag_name}"')
 
 
-    @tag.command(name='mod-delete', aliases=['moddelete'])
+    @tag.command(name='mod-delete', aliases=['mdel', 'moddelete'])
     @commands.has_guild_permissions(manage_messages=True)
     async def mod_delete_tag(self, ctx, *, tag_name: str):
         """Deletes one of anyone's tags"""
@@ -307,6 +307,7 @@ class Tags(commands.Cog):
         """Searches for a tag"""
         await ctx.send('This command is under construction.')
 
+
     @tag.command(name='all', hidden=True)
     async def list_all_tags(self, ctx):
         """Lists all tags on this server"""
@@ -325,22 +326,97 @@ class Tags(commands.Cog):
         await ctx.send('This command is under construction.')
 
 
-    @tag.command(name='id-delete', aliases=['iddelete'], hidden=True)
-    async def delete_tag_by_id(self, ctx):
-        """Deletes one of your tags by its ID"""
-        await ctx.send('This command is under construction.')
-
-
-    @tag.command(name='mod-id-delete', aliases=['modiddelete'], hidden=True)
-    @commands.has_guild_permissions(manage_messages=True)
-    async def mod_delete_tag_by_id(self, ctx):
-        """Deletes one of anyone's tags by its ID"""
-        await ctx.send('This command is under construction.')
-
-
     @tag.command(name='make', hidden=True)
     async def make_tag(self, ctx):
         """Interactively helps you create a tag"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag.command(name='random', hidden=True)
+    async def random_tag(self, ctx):
+        """Shows you a random tag"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag.command(name='view', hidden=True)
+    async def view_tag(self, ctx):
+        """An alias for `tag` in case a tag name conflicts with a subcommand"""
+        await ctx.send('This command is under construction.')
+
+
+################
+# tag_ID group #
+################
+
+
+    @tag.group(name='id', hidden=True)
+    async def tag_ID(self, ctx, tag_ID: int = None):
+        """A group of commands using tag IDs instead of tag names"""
+        await ctx.send('This command is under construction.')
+        # TODO: show a tag's contents if an ID is provided, else show help for this group.
+
+
+    @tag_ID.command(name='delete', aliases=['del'], hidden=True)
+    async def delete_tag_by_id(self, ctx, tag_ID: int):
+        """Deletes one of your tags"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag_ID.command(name='mod-delete', aliases=['mdel', 'moddelete'], hidden=True)
+    @commands.has_guild_permissions(manage_messages=True)
+    async def mod_delete_tag_by_id(self, ctx, tag_ID: int):
+        """Deletes one of anyone's tags"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag_ID.command(name='info', hidden=True)
+    async def tag_info_by_id(self, ctx, tag_ID: int):
+        """Shows info about a tag"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag_ID.command(name='edit', hidden=True)
+    async def edit_tag_by_id(self, ctx, tag_ID: int):
+        """Rewrites one of your tags
+
+        If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
+        """
+        await ctx.send('This command is under construction.')
+
+
+    @tag_ID.command(name='claim', hidden=True)
+    async def claim_tag_by_id(self, ctx, tag_ID: int):
+        """Gives you ownership of a tag if its owner left the server"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag_ID.command(name='transfer', hidden=True)
+    async def transfer_tag_by_id(self, ctx, tag_ID: int):
+        """Gives a server member ownership of one of your tags"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag_ID.command(name='raw', hidden=True)
+    async def get_raw_tag_by_id(self, ctx, tag_ID: int):
+        """Shows the unrendered text content of a tag"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag_ID.command(name='alias', hidden=True)
+    async def create_tag_alias_by_id(self, ctx, tag_ID: int):
+        """Creates another name for an existing tag"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag_ID.command(name='stats', hidden=True)
+    async def tag_stats_by_id(self, ctx, tag_ID: int):
+        """Shows tag statistics about a member or the server"""
+        await ctx.send('This command is under construction.')
+
+
+    @tag_ID.command(name='view', hidden=True)
+    async def view_tag_by_id(self, ctx, tag_ID: int):
+        """An alias for `tag id` in case a tag ID conflicts with a subcommand"""
         await ctx.send('This command is under construction.')
 
 
