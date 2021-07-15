@@ -85,6 +85,11 @@ class Help(commands.Cog):
         await ctx.send(embed=embed)
 
 
+    @commands.command(hidden=True)
+    async def source(self, ctx):
+        await ctx.send('I am closed source.')
+
+
     async def uptime(self, ctx) -> str:
         """Returns the amount of time the bot has been running"""
         _uptime = ctx.message.created_at - self.bot.launch_time
