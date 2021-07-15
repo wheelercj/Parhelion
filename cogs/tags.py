@@ -6,7 +6,7 @@ import io
 from typing import Optional
 
 # internal imports
-from common import split_input, get_attachment_url, format_relative_timestamp
+from common import split_input, get_attachment_url, format_timestamp
 
 
 '''
@@ -158,7 +158,7 @@ class Tags(commands.Cog):
         else:
             author = record['author_id']
 
-        created = await format_relative_timestamp(record["created"])
+        created = await format_timestamp(record["created"])
 
         embed = discord.Embed()
         embed.add_field(name=record['name'],

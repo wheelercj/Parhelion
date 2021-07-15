@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 
 # internal imports
-from common import parse_time_message, format_relative_timestamp, s
+from common import parse_time_message, format_timestamp, s
 
 
 '''
@@ -106,7 +106,7 @@ class Reminders(commands.Cog):
             r_list = 'Here are your first 10 reminders:'
         for r in reminder_records:
             message = r['message']
-            remaining = await format_relative_timestamp(r['target_time'])
+            remaining = await format_timestamp(r['target_time'])
 
             r_list += f'\n\n{r["id"]}.) **{remaining}**' \
                 + f'\n{message}'

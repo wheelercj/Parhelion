@@ -4,7 +4,7 @@ from discord.ext import commands
 from typing import List, Tuple, Union
 
 # internal imports
-from common import format_datetime
+from common import format_datetime, format_timestamp
 
 
 def y_n(boolean: bool) -> str:
@@ -42,7 +42,7 @@ class Info(commands.Cog):
         server = self.bot.get_guild(ctx.guild.id)
         bot_count = await self.get_bot_count(ctx, server)
         cat_count = len(server.categories)
-        created = await format_datetime(server.created_at)
+        created = await format_timestamp(server.created_at)
 
         embed = discord.Embed(title='server info')
         embed.add_field(name='\u200b',
@@ -103,8 +103,8 @@ class Info(commands.Cog):
         
         To see member permissions, use the `info perms` command.
         """
-        created = await format_datetime(member.created_at)
-        joined = await format_datetime(member.joined_at)
+        created = await format_timestamp(member.created_at)
+        joined = await format_timestamp(member.joined_at)
 
         embed = discord.Embed()
         embed.add_field(name=f'{member.name}#{member.discriminator}\n\u2800',
@@ -185,7 +185,7 @@ class Info(commands.Cog):
         To see role permissions, use the `info perms` command.
         """
         managing_bot = None
-        created = await format_datetime(role.created_at)
+        created = await format_timestamp(role.created_at)
         if role.tags is not None:
             if role.tags.bot_id is not None:
                 managing_bot = ctx.guild.get_member(role.tags.bot_id)
