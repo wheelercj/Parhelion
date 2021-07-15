@@ -16,7 +16,7 @@ from common import split_input, get_attachment_url, format_timestamp
         content VARCHAR(1500) NOT NULL,
         file_url TEXT,
         created TIMESTAMP NOT NULL,
-        author_id BIGINT NOT NULL,
+        owner_id BIGINT NOT NULL,
         server_id BIGINT NOT NULL,
         views INT DEFAULT 0,
         UNIQUE (name, server_id)
@@ -62,7 +62,7 @@ class Tags(commands.Cog):
 
             ret = await self.bot.db.execute('''
                 INSERT INTO tags
-                (name, content, file_url, created, author_id, server_id)
+                (name, content, file_url, created, owner_id, server_id)
                 VALUES ($1, $2, $3, $4, $5, $6)
                 ''', name, content, file_url, now, ctx.author.id, ctx.guild.id)
 
@@ -86,7 +86,7 @@ class Tags(commands.Cog):
         records = await self.bot.db.fetch('''
             SELECT *
             FROM tags
-            WHERE author_id = $1
+            WHERE owner_id = $1
                 AND server_id = $2;
             ''', member.id, ctx.guild.id)
 
@@ -126,17 +126,17 @@ class Tags(commands.Cog):
             await ctx.send('Tag not found.')
             return
 
-        author = ctx.guild.get_member(record['author_id'])
-        if author is not None:
-            author = author.name + '#' + author.discriminator
+        owner = ctx.guild.get_member(record['owner_id'])
+        if owner is not None:
+            owner = owner.name + '#' + owner.discriminator
         else:
-            author = record['author_id']
+            owner = record['owner_id']
 
         created = await format_timestamp(record["created"])
 
         embed = discord.Embed()
         embed.add_field(name=record['name'],
-            value=f'owner: {author}\n'
+            value=f'owner: {owner}\n'
                 + f'created: {created}\n'
                 + f'views: {record["views"]}')
 
@@ -157,7 +157,7 @@ class Tags(commands.Cog):
             SET content = $1,
                 file_url = $2
             WHERE name = $3
-                AND author_id = $4
+                AND owner_id = $4
                 AND server_id = $5
             RETURNING name;
             ''', content, file_url, name, ctx.author.id, ctx.guild.id)
@@ -174,7 +174,7 @@ class Tags(commands.Cog):
         returned_tag_name = await self.bot.db.fetchval('''
             DELETE FROM tags
             WHERE name = $1
-                AND author_id = $2
+                AND owner_id = $2
                 AND server_id = $3
             RETURNING name;
             ''', tag_name, ctx.author.id, ctx.guild.id)
@@ -209,22 +209,22 @@ class Tags(commands.Cog):
             await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
             return
 
-        author_id = await self.get_tag_author(ctx, tag_name)
-        member = ctx.guild.get_member(author_id)
+        owner_id = await self.get_tag_owner(ctx, tag_name)
+        owner = ctx.guild.get_member(owner_id)
 
-        if author_id is None:
+        if owner_id is None:
             await ctx.send('Tag not found.')
             return
-        if author_id == ctx.author.id:
+        if owner_id == ctx.author.id:
             await ctx.send('This tag already belongs to you.')
             return
-        if member is not None:
+        if owner is not None:
             await ctx.send("The tag's owner is still in this server.")
             return
 
         ret = await self.bot.db.fetchval('''
             UPDATE tags
-            SET author_id = $1
+            SET owner_id = $1
             WHERE name = $2
                 AND server_id = $3
             RETURNING name;
@@ -245,8 +245,8 @@ class Tags(commands.Cog):
 
         tag_name = await self.bot.db.fetchval('''
             UPDATE tags
-            SET author_id = $1
-            WHERE author_id = $2
+            SET owner_id = $1
+            WHERE owner_id = $2
                 AND name = $3
                 AND server_id = $4
             RETURNING name;
@@ -426,7 +426,7 @@ class Tags(commands.Cog):
         records = await self.bot.db.fetch('''
             SELECT *
             FROM tags
-            WHERE author_id = $1;
+            WHERE owner_id = $1;
             ''', member.id)
 
         if records:
@@ -434,19 +434,19 @@ class Tags(commands.Cog):
         return 0
 
 
-    async def get_tag_author(self, ctx, tag_name: str) -> Optional[int]:
-        """Gets the ID of a tag's author
-        
+    async def get_tag_owner(self, ctx, tag_name: str) -> Optional[int]:
+        """Gets the ID of a tag's owner
+
         Returns None if the tag does not exist at ctx.guild.
         """
-        author_id = await self.bot.db.fetchval('''
-            SELECT author_id
+        owner_id = await self.bot.db.fetchval('''
+            SELECT owner_id
             FROM tags
             WHERE name = $1
                 AND server_id = $2;
         ''', tag_name, ctx.guild.id)
         
-        return author_id
+        return owner_id
 
 
 def setup(bot):
