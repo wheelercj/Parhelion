@@ -61,7 +61,7 @@ class Reminders(commands.Cog):
 
                 await self.save_reminder_to_db(ctx, start_time, target_time, message)
 
-                await ctx.send(f'Reminder set! At {datetime.isoformat(target_time)}, I will remind you: {message}')
+                await ctx.send(f'Reminder set! {await format_timestamp(target_time)} I will remind you: {message}')
 
             seconds = (target_time - start_time).total_seconds()
             await asyncio.sleep(seconds)
