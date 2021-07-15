@@ -37,7 +37,7 @@ class Reminders(commands.Cog):
         self.bot = bot
 
 
-    @commands.group(aliases=['reminder', 'remindme', 'timer'], invoke_without_command=True)
+    @commands.group(aliases=['r', 'reminder', 'remindme', 'timer'], invoke_without_command=True)
     async def remind(self, ctx, *, time_and_message: str):
         """Sends you a reminder
         
