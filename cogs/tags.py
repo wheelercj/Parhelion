@@ -95,8 +95,9 @@ class Tags(commands.Cog):
             return
 
         output = ''
-        for i, r in enumerate(records):
-            output += f'{i+1}. {r["name"]}\n'
+        for r in records:
+            tag_name = r['name'].replace('`', '\`')
+            output += f'{r["id"]}.) `{tag_name}`\n'
 
         embed = discord.Embed()
         embed.add_field(name=f"{member.name}#{member.discriminator}'s tags",
@@ -105,7 +106,7 @@ class Tags(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def tags(self, ctx, member: discord.Member = None):
         """Lists the names of yours or someone else's tags on this server; this is an alias for `tag list`"""
         tag_list_command = self.bot.get_command('tag list')
@@ -138,7 +139,8 @@ class Tags(commands.Cog):
         embed.add_field(name=record['name'],
             value=f'owner: {owner}\n'
                 + f'created: {created}\n'
-                + f'views: {record["views"]}')
+                + f'views: {record["views"]}'
+                + f'ID: {record["id"]}')
 
         await ctx.send(embed=embed)
 
