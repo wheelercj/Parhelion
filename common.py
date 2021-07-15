@@ -131,12 +131,6 @@ async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str =
         await user.send(message)
 
 
-async def target_tomorrow(old_datetime: datetime) -> datetime:
-    """Changes a datetime to tomorrow without changing anything else"""
-    tomorrow = datetime.utcnow() + timedelta(days=1)
-    return old_datetime.replace(day=tomorrow.day)
-
-
 async def unwrap_code_block(statement: str) -> Tuple[str, str]:
     """Removes triple backticks and a syntax name around a code block
     

@@ -7,9 +7,6 @@ from aiohttp.client_exceptions import ContentTypeError
 import json
 from typing import Union
 
-# internal imports
-from common import target_tomorrow
-
 
 '''
     CREATE TABLE IF NOT EXISTS daily_quotes (
@@ -55,7 +52,7 @@ async def send_quote(destination: Union[discord.User, discord.TextChannel, comma
 
 async def update_quote_day(bot, author_id: int, old_target_time: datetime) -> None:
     """Changes a daily quote's target datetime in the database to tomorrow"""
-    new_target_time = await target_tomorrow(old_target_time)
+    new_target_time = old_target_time + timedelta(days=1)
     await bot.db.execute('''
         UPDATE daily_quotes
         SET target_time = $1
