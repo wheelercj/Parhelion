@@ -108,7 +108,7 @@ async def format_timedelta(td: timedelta) -> str:
 
 
 async def format_relative_timestamp(dt: datetime) -> str:
-    """Creates an automatically-updating relative timestamp string"""
+    """Creates a relative timestamp string"""
     return f'<t:{dt.strftime("%s")}:R>'
 
 
