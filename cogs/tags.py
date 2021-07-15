@@ -306,12 +306,6 @@ class Tags(commands.Cog):
         await ctx.send('This command is under construction.')
 
 
-    @tag.command(name='random', hidden=True)
-    async def random_tag(self, ctx):
-        """Shows you a random tag"""
-        await ctx.send('This command is under construction.')
-
-
     @tag.command(name='view')
     async def view_tag(self, ctx, *, tag_name: str):
         """An alias for `tag` in case a tag name conflicts with a subcommand"""
