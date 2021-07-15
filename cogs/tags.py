@@ -131,6 +131,13 @@ class Tags(commands.Cog):
         await ctx.send(embed=embed)
 
 
+    @commands.command()
+    async def tags(self, ctx, member: discord.Member = None):
+        """Lists the names of yours or someone else's tags on this server; this is an alias for `tag list`"""
+        tag_list_command = self.bot.get_command('tag list')
+        await ctx.invoke(tag_list_command, member=member)
+
+
     @tag.command(name='info')
     async def tag_info(self, ctx, *, tag_name: str):
         """Shows info about a tag"""
