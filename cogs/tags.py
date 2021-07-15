@@ -36,7 +36,7 @@ class Tags(commands.Cog):
 
 
     @commands.group(invoke_without_command=True)
-    async def tag(self, ctx, *, name: str):
+    async def tag(self, ctx, *, tag_name: str):
         """Finds and shows a tag's contents
         
         You can use tags to quickly save and share messages, such as for FAQs. Tags can be viewed by anyone on the server, but not other servers.
@@ -47,7 +47,7 @@ class Tags(commands.Cog):
             WHERE name = $1
                 AND server_id = $2
             RETURNING *;
-            ''', name, ctx.guild.id)
+            ''', tag_name, ctx.guild.id)
 
         if record is None:
             await ctx.send('Tag not found.')
@@ -282,6 +282,24 @@ class Tags(commands.Cog):
             await ctx.send(f'Tag not found.')
         else:
             await ctx.send(f'Tag "{tag_name}" now belongs to {member.name}#{member.discriminator}!')
+
+
+    @tag.command(name='raw')
+    async def get_raw_tag(self, ctx, *, tag_name: str):
+        """Shows the unrendered text content of a tag"""
+        record = await self.bot.db.fetchrow('''
+            UPDATE tags
+            SET views = views + 1
+            WHERE name = $1
+                AND server_id = $2
+            RETURNING *;
+            ''', tag_name, ctx.guild.id)
+
+        if record is None:
+            await ctx.send('Tag not found.')
+        else:
+            content = record['content'].replace('`', '\`')
+            await ctx.send(content)
 
 
     async def count_members_tags(self, member: discord.Member) -> int:
