@@ -72,28 +72,29 @@ class Tags(commands.Cog):
 
 
     @tag.command(name='create')
-    async def create_tag(self, ctx, *, content: str):
+    async def create_tag(self, ctx, *, name_and_content: str):
         """Creates a new tag
 
         If the tag name has spaces, surround it with double quotes. If the tag has an attachment, the message in which the tag was created must not be deleted, or the attachment will be lost.
         """
-        if not len(content):
-            await ctx.send('Cannot create an empty tag.')
-            return
         if await self.count_members_tags(ctx.author) >= 15:
             await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
             return
 
         try:
-            name, content = await split_input(content)
+            name, content = await split_input(name_and_content)
             now = ctx.message.created_at
             file_url = await get_attachment_url(ctx)
 
-            await self.bot.db.execute('''
+            ret = await self.bot.db.execute('''
                 INSERT INTO tags
                 (name, content, file_url, created, author_id, server_id)
                 VALUES ($1, $2, $3, $4, $5, $6)
                 ''', name, content, file_url, now, ctx.author.id, ctx.guild.id)
+
+            if ret == 'INSERT 0':
+                await ctx.send('Error. Unable to create tag.')
+                return
         except asyncpg.exceptions.UniqueViolationError:
             await ctx.send(f'A tag named "{name}" already exists.')
         except Exception as e:
@@ -115,7 +116,7 @@ class Tags(commands.Cog):
                 AND server_id = $2;
             ''', member.id, ctx.guild.id)
 
-        if not len(records):
+        if not records or not len(records):
             await ctx.send(f'{member.name}#{member.discriminator} has no tags on this server.')
             return
 
@@ -131,14 +132,14 @@ class Tags(commands.Cog):
 
 
     @tag.command(name='info')
-    async def tag_info(self, ctx, *, name: str):
+    async def tag_info(self, ctx, *, tag_name: str):
         """Shows info about a tag"""
         record = await self.bot.db.fetchrow('''
             SELECT *
             FROM tags
             WHERE name = $1
                 AND server_id = $2;
-            ''', name, ctx.guild.id)
+            ''', tag_name, ctx.guild.id)
 
         if record is None:
             await ctx.send('Tag not found.')
@@ -154,7 +155,7 @@ class Tags(commands.Cog):
 
         embed = discord.Embed()
         embed.add_field(name=record['name'],
-            value=f'author: {author}\n'
+            value=f'owner: {author}\n'
                 + f'created: {created}\n'
                 + f'views: {record["views"]}')
 
@@ -162,71 +163,77 @@ class Tags(commands.Cog):
 
 
     @tag.command(name='edit')
-    async def edit_tag(self, ctx, *, content: str):
+    async def edit_tag(self, ctx, *, name_and_content: str):
         """Rewrites one of your tags
 
         If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
-        name, content = await split_input(content)
+        name, content = await split_input(name_and_content)
         file_url = await get_attachment_url(ctx)
 
-        try:
-            await self.bot.db.execute('''
-                UPDATE tags
-                SET content = $1,
-                    file_url = $2
-                WHERE name = $3
-                    AND author_id = $4
-                    AND server_id = $5;
-                ''', content, file_url, name, ctx.author.id, ctx.guild.id)
-        except Exception as e:
-            await ctx.send(f'Error: {e}')
+        returned_tag_name = await self.bot.db.fetchval('''
+            UPDATE tags
+            SET content = $1,
+                file_url = $2
+            WHERE name = $3
+                AND author_id = $4
+                AND server_id = $5
+            RETURNING name;
+            ''', content, file_url, name, ctx.author.id, ctx.guild.id)
+
+        if returned_tag_name is None:
+            await ctx.send('Tag not found.')
         else:
             await ctx.send(f'Successfully edited tag "{name}"')
 
 
     @tag.command(name='delete')
-    async def delete_tag(self, ctx, *, name: str):
+    async def delete_tag(self, ctx, *, tag_name: str):
         """Deletes one of your tags"""
-        try:
-            await self.bot.db.execute('''
-                DELETE FROM tags
-                WHERE name = $1
-                    AND author_id = $2
-                    AND server_id = $3;
-                ''', name, ctx.author.id, ctx.guild.id)
-        except Exception as e:
-            await ctx.send(f'Error: {e}')
+        returned_tag_name = await self.bot.db.fetchval('''
+            DELETE FROM tags
+            WHERE name = $1
+                AND author_id = $2
+                AND server_id = $3
+            RETURNING name;
+            ''', tag_name, ctx.author.id, ctx.guild.id)
+
+        if returned_tag_name is None:
+            await ctx.send('Tag not found.')
         else:
-            await ctx.send(f'Successfully deleted tag "{name}"')
+            await ctx.send(f'Successfully deleted tag "{tag_name}"')
 
 
     @tag.command(name='mod-delete', aliases=['moddelete'])
     @commands.has_guild_permissions(manage_messages=True)
     async def mod_delete_tag(self, ctx, *, tag_name: str):
         """Deletes one of anyone's tags"""
-        try:
-            await self.bot.db.execute('''
-                DELETE FROM tags
-                WHERE name = $1
-                    AND server_id = $2;
-                ''', tag_name, ctx.guild.id)
-        except Exception as e:
-            await ctx.send(f'Error: {e}')
+        returned_tag_name = await self.bot.db.fetchval('''
+            DELETE FROM tags
+            WHERE name = $1
+                AND server_id = $2
+            RETURNING name;
+            ''', tag_name, ctx.guild.id)
+        
+        if returned_tag_name is None:
+            await ctx.send('Tag not found.')
         else:
             await ctx.send(f'Successfully deleted tag "{tag_name}"')
 
 
     @tag.command(name='claim')
-    async def claim_tag(self, ctx, *, name: str):
+    async def claim_tag(self, ctx, *, tag_name: str):
         """Gives you ownership of a tag if its owner left the server"""
         if await self.count_members_tags(ctx.author) >= 15:
             await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
             return
 
-        author_id = await self.get_tag_author(ctx, name)
+        author_id = await self.get_tag_author(ctx, tag_name)
         member = ctx.guild.get_member(author_id)
-        
+
+        if author_id is None:
+            await ctx.send('Tag not found.')
+            return
         if author_id == ctx.author.id:
             await ctx.send('This tag already belongs to you.')
             return
@@ -234,14 +241,18 @@ class Tags(commands.Cog):
             await ctx.send("The tag's owner is still in this server.")
             return
 
-        await self.bot.db.execute('''
+        ret = await self.bot.db.fetchval('''
             UPDATE tags
             SET author_id = $1
             WHERE name = $2
-                AND server_id = $3;
-            ''', ctx.author.id, name, ctx.guild.id)
+                AND server_id = $3
+            RETURNING name;
+            ''', ctx.author.id, tag_name, ctx.guild.id)
 
-        await ctx.reply(f'Tag "{name}" now belongs to you!')
+        if ret == 'UPDATE 0':
+            await ctx.send(f'Error. Unable to claim tag.')
+        else:
+            await ctx.reply(f'Tag "{tag_name}" now belongs to you!')
 
 
     @tag.command(name='transfer')
@@ -251,15 +262,17 @@ class Tags(commands.Cog):
             await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
             return
 
-        try:
-            await self.bot.db.execute('''
-                UPDATE tags
-                SET author_id = $1
-                WHERE name = $2
-                    AND server_id = $3;
-                ''', member.id, tag_name, ctx.guild.id)
-        except Exception as e:
-            await ctx.send(f'Error: {e}')
+        tag_name = await self.bot.db.fetchval('''
+            UPDATE tags
+            SET author_id = $1
+            WHERE author_id = $2
+                AND name = $3
+                AND server_id = $4
+            RETURNING name;
+            ''', member.id, ctx.author.id, tag_name, ctx.guild.id)
+
+        if tag_name is None:
+            await ctx.send(f'Tag not found.')
         else:
             await ctx.send(f'Tag "{tag_name}" now belongs to {member.name}#{member.discriminator}!')
 
@@ -272,7 +285,9 @@ class Tags(commands.Cog):
             WHERE author_id = $1;
             ''', member.id)
 
-        return len(records)
+        if records:
+            return len(records)
+        return 0
 
 
     async def get_tag_author(self, ctx, tag_name: str) -> Optional[int]:
