@@ -139,7 +139,7 @@ class Tags(commands.Cog):
         embed.add_field(name=record['name'],
             value=f'owner: {owner}\n'
                 + f'created: {created}\n'
-                + f'views: {record["views"]}'
+                + f'views: {record["views"]}\n'
                 + f'ID: {record["id"]}')
 
         await ctx.send(embed=embed)
