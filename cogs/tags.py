@@ -99,7 +99,7 @@ class Tags(commands.Cog):
         for i, r in enumerate(records):
             tag_name = r['name'].replace('`', '\`')
             paginator.add_line(f'{i+1}. `{tag_name}` (ID: {r["id"]})')
-            if (i+1) % 10 == 0:
+            if (i+1) % 15 == 0:
                 paginator.close_page()
 
         for i, page in enumerate(paginator.pages):
@@ -107,7 +107,7 @@ class Tags(commands.Cog):
             embed.add_field(
                 name=f"{member.name}#{member.discriminator}'s tags",
                 value=page)
-            embed.set_footer(text=f'page {i+1}/{len(paginator.pages)} ({len(records)} tags in total)')
+            embed.set_footer(text=f'\u200b\npage {i+1}/{len(paginator.pages)} \u2800 ({len(records)} tags in total)')
             await ctx.send(embed=embed)
 
 
