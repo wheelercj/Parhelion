@@ -94,17 +94,21 @@ class Tags(commands.Cog):
             await ctx.send(f'{member.name}#{member.discriminator} has no tags on this server.')
             return
 
-        output = ''
+        paginator = commands.Paginator(prefix='', suffix='')
         records = sorted(records, key=lambda x: x['name'])
         for i, r in enumerate(records):
             tag_name = r['name'].replace('`', '\`')
-            output += f'{i+1}. `{tag_name}` (ID: {r["id"]})\n'
+            paginator.add_line(f'{i+1}. `{tag_name}` (ID: {r["id"]})')
+            if (i+1) % 10 == 0:
+                paginator.close_page()
 
-        embed = discord.Embed()
-        embed.add_field(name=f"{member.name}#{member.discriminator}'s tags",
-            value=output)
-        
-        await ctx.send(embed=embed)
+        for i, page in enumerate(paginator.pages):
+            embed = discord.Embed()
+            embed.add_field(
+                name=f"{member.name}#{member.discriminator}'s tags",
+                value=page)
+            embed.set_footer(text=f'page {i+1}/{len(paginator.pages)} ({len(records)} tags in total)')
+            await ctx.send(embed=embed)
 
 
     @commands.command(hidden=True)
