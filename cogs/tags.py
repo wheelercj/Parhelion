@@ -1,9 +1,10 @@
 # external imports
 import discord
 from discord.ext import commands
+import asyncio
 import asyncpg
 import io
-from typing import Optional
+from typing import Optional, List
 
 # internal imports
 from common import split_input, get_attachment_url, format_timestamp
@@ -102,13 +103,64 @@ class Tags(commands.Cog):
             if (i+1) % 15 == 0:
                 paginator.close_page()
 
-        for i, page in enumerate(paginator.pages):
-            embed = discord.Embed()
-            embed.add_field(
-                name=f"{member.name}#{member.discriminator}'s tags",
-                value=page)
-            embed.set_footer(text=f'\u200b\npage {i+1}/{len(paginator.pages)} \u2800 ({len(records)} tags in total)')
-            await ctx.send(embed=embed)
+        embed = discord.Embed()
+        page = 0
+        embed.add_field(
+            name=f"{member.name}#{member.discriminator}'s tags",
+            value=paginator.pages[page])
+        embed.set_footer(text=f'\u200b\npage {page+1}/{len(paginator.pages)} \u2800 ({len(records)} tags in total)')
+
+        message = await ctx.send(embed=embed)
+        reactions = ['⏮', '◀', '⏹', '▶', '⏭']
+        for r in reactions:
+            await message.add_reaction(r)
+
+        def page_check(reaction, user):
+            return user != message.author and str(reaction.emoji) in reactions
+
+        try:
+            while True:
+                reaction, user = await self.bot.wait_for('reaction_add', timeout=60, check=page_check)
+
+                if str(reaction.emoji) == '⏮':
+                    page = 0
+                    embed = await self.get_tag_list_page(page, paginator, member, records)
+                    await message.edit(embed=embed)
+                if str(reaction.emoji) == '◀':
+                    if page:
+                        page -= 1
+                        embed = await self.get_tag_list_page(page, paginator, member, records)
+                        await message.edit(embed=embed)
+                elif str(reaction.emoji) == '⏹':
+                    try:
+                        await message.delete()
+                    except:
+                        pass
+                    return
+                elif str(reaction.emoji) == '▶':
+                    if page < len(paginator.pages) - 1:
+                        page += 1
+                        embed = await self.get_tag_list_page(page, paginator, member, records)
+                        await message.edit(embed=embed)
+                elif str(reaction.emoji) == '⏭':
+                    page = len(paginator.pages) - 1
+                    embed = await self.get_tag_list_page(page, paginator, member, records)
+                    await message.edit(embed=embed)
+        except asyncio.TimeoutError:
+            try:
+                await message.clear_reactions()
+            except:
+                pass
+
+
+    async def get_tag_list_page(self, page: int, paginator: commands.Paginator, member: discord.Member, records: List[asyncpg.Record]) -> discord.Embed:
+        embed = discord.Embed()
+        embed.add_field(
+            name=f"{member.name}#{member.discriminator}'s tags",
+            value=paginator.pages[page])
+        embed.set_footer(text=f'\u200b\npage {page+1}/{len(paginator.pages)} \u2800 ({len(records)} tags in total)')
+
+        return embed
 
 
     @commands.command(hidden=True)
