@@ -104,11 +104,10 @@ class Tags(commands.Cog):
                 paginator.close_page()
 
         embed = discord.Embed()
-        page = 0
-        embed.add_field(
-            name=f"{member.name}#{member.discriminator}'s tags",
-            value=paginator.pages[page])
-        embed.set_footer(text=f'\u200b\npage {page+1}/{len(paginator.pages)} \u2800 ({len(records)} tags in total)')
+        total_entries = len(records)
+        page_title = f"{member.name}#{member.discriminator}'s tags"
+        page_number = 0
+        embed = await self.get_embed_page(page_number, paginator, page_title, total_entries)
 
         message = await ctx.send(embed=embed)
         reactions = ['⏮', '◀', '⏹', '▶', '⏭']
@@ -125,15 +124,15 @@ class Tags(commands.Cog):
                     continue
 
                 if str(reaction.emoji) == '⏮':
-                    page = 0
-                    embed = await self.get_tag_list_page(page, paginator, member, records)
+                    page_number = 0
+                    embed = await self.get_embed_page(page_number, paginator, page_title, total_entries)
                     await message.edit(embed=embed)
                     try: await message.remove_reaction('⏮', user)
                     except: pass
                 if str(reaction.emoji) == '◀':
-                    if page:
-                        page -= 1
-                        embed = await self.get_tag_list_page(page, paginator, member, records)
+                    if page_number:
+                        page_number -= 1
+                        embed = await self.get_embed_page(page_number, paginator, page_title, total_entries)
                         await message.edit(embed=embed)
                     try: await message.remove_reaction('◀', user)
                     except: pass
@@ -141,15 +140,15 @@ class Tags(commands.Cog):
                     await message.delete()
                     return
                 elif str(reaction.emoji) == '▶':
-                    if page < len(paginator.pages) - 1:
-                        page += 1
-                        embed = await self.get_tag_list_page(page, paginator, member, records)
+                    if page_number < len(paginator.pages) - 1:
+                        page_number += 1
+                        embed = await self.get_embed_page(page_number, paginator, page_title, total_entries)
                         await message.edit(embed=embed)
                     try: await message.remove_reaction('▶', user)
                     except: pass
                 elif str(reaction.emoji) == '⏭':
-                    page = len(paginator.pages) - 1
-                    embed = await self.get_tag_list_page(page, paginator, member, records)
+                    page_number = len(paginator.pages) - 1
+                    embed = await self.get_embed_page(page_number, paginator, page_title, total_entries)
                     await message.edit(embed=embed)
                     try: await message.remove_reaction('⏭', user)
                     except: pass
@@ -158,12 +157,10 @@ class Tags(commands.Cog):
             except: pass
 
 
-    async def get_tag_list_page(self, page: int, paginator: commands.Paginator, member: discord.Member, records: List[asyncpg.Record]) -> discord.Embed:
+    async def get_embed_page(self, page_number: int, paginator: commands.Paginator, page_title: str, total_entries: int) -> discord.Embed:
         embed = discord.Embed()
-        embed.add_field(
-            name=f"{member.name}#{member.discriminator}'s tags",
-            value=paginator.pages[page])
-        embed.set_footer(text=f'\u200b\npage {page+1}/{len(paginator.pages)} \u2800 ({len(records)} tags in total)')
+        embed.add_field(name=page_title, value=paginator.pages[page_number])
+        embed.set_footer(text=f'\u200b\npage {page_number+1}/{len(paginator.pages)} \u2800 ({total_entries} entries in total)')
 
         return embed
 
