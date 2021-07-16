@@ -95,13 +95,8 @@ class Tags(commands.Cog):
             await ctx.send(f'{member.name}#{member.discriminator} has no tags on this server.')
             return
 
-        paginator = commands.Paginator(prefix='', suffix='')
-        records = sorted(records, key=lambda x: x['name'])
-        for i, r in enumerate(records):
-            tag_name = r['name'].replace('`', '\`')
-            paginator.add_line(f'{i+1}. `{tag_name}` (ID: {r["id"]})')
-            if (i+1) % 15 == 0:
-                paginator.close_page()
+        tags_per_page = 15
+        paginator = await self.create_tag_list_pages(records, tags_per_page)
 
         embed = discord.Embed()
         total_entries = len(records)
@@ -127,7 +122,7 @@ class Tags(commands.Cog):
 
                 if str(reaction.emoji) == '⏮':
                     page_number = await self.turn_embed_page(0, '⏮', *args)
-                if str(reaction.emoji) == '◀':
+                elif str(reaction.emoji) == '◀':
                     page_number = await self.turn_embed_page(page_number-1, '◀', *args)
                 elif str(reaction.emoji) == '⏹':
                     await message.delete()
@@ -140,6 +135,20 @@ class Tags(commands.Cog):
         except asyncio.TimeoutError:
             try: await message.clear_reactions()
             except: pass
+
+
+    async def create_tag_list_pages(self, records: List[asyncpg.Record], tags_per_page: int) -> commands.Paginator:
+        """Creates a paginator filled with the tag list content"""
+        paginator = commands.Paginator(prefix='', suffix='')
+        records = sorted(records, key=lambda x: x['name'])
+
+        for i, r in enumerate(records):
+            tag_name = r['name'].replace('`', '\`')
+            paginator.add_line(f'{i+1}. `{tag_name}` (ID: {r["id"]})')
+            if (i+1) % tags_per_page == 0:
+                paginator.close_page()
+
+        return paginator
 
 
     async def turn_embed_page(self, page_number: int, reaction_emoji: str, paginator: commands.Paginator, page_title: str, total_entries: int, embed_message: discord.Message, user: discord.User) -> int:
