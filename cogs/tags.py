@@ -121,36 +121,41 @@ class Tags(commands.Cog):
         try:
             while True:
                 reaction, user = await self.bot.wait_for('reaction_add', timeout=60, check=page_check)
+                if user != ctx.author:
+                    continue
 
                 if str(reaction.emoji) == '⏮':
                     page = 0
                     embed = await self.get_tag_list_page(page, paginator, member, records)
                     await message.edit(embed=embed)
+                    try: await message.remove_reaction('⏮', user)
+                    except: pass
                 if str(reaction.emoji) == '◀':
                     if page:
                         page -= 1
                         embed = await self.get_tag_list_page(page, paginator, member, records)
                         await message.edit(embed=embed)
+                    try: await message.remove_reaction('◀', user)
+                    except: pass
                 elif str(reaction.emoji) == '⏹':
-                    try:
-                        await message.delete()
-                    except:
-                        pass
+                    await message.delete()
                     return
                 elif str(reaction.emoji) == '▶':
                     if page < len(paginator.pages) - 1:
                         page += 1
                         embed = await self.get_tag_list_page(page, paginator, member, records)
                         await message.edit(embed=embed)
+                    try: await message.remove_reaction('▶', user)
+                    except: pass
                 elif str(reaction.emoji) == '⏭':
                     page = len(paginator.pages) - 1
                     embed = await self.get_tag_list_page(page, paginator, member, records)
                     await message.edit(embed=embed)
+                    try: await message.remove_reaction('⏭', user)
+                    except: pass
         except asyncio.TimeoutError:
-            try:
-                await message.clear_reactions()
-            except:
-                pass
+            try: await message.clear_reactions()
+            except: pass
 
 
     async def get_tag_list_page(self, page: int, paginator: commands.Paginator, member: discord.Member, records: List[asyncpg.Record]) -> discord.Embed:
