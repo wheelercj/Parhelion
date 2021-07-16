@@ -107,7 +107,7 @@ class Tags(commands.Cog):
         total_entries = len(records)
         page_title = f"{member.name}#{member.discriminator}'s tags"
         page_number = 0
-        embed = await self.get_embed_page(page_number, paginator, page_title, total_entries)
+        embed = await self.create_embed_page(page_number, paginator, page_title, total_entries)
 
         message = await ctx.send(embed=embed)
         reactions = ['⏮', '◀', '⏹', '▶', '⏭']
@@ -123,44 +123,63 @@ class Tags(commands.Cog):
                 if user != ctx.author:
                     continue
 
+                args = [paginator, page_title, total_entries, message, user]
+
                 if str(reaction.emoji) == '⏮':
-                    page_number = 0
-                    embed = await self.get_embed_page(page_number, paginator, page_title, total_entries)
-                    await message.edit(embed=embed)
-                    try: await message.remove_reaction('⏮', user)
-                    except: pass
+                    page_number = await self.turn_embed_page(0, '⏮', *args)
                 if str(reaction.emoji) == '◀':
-                    if page_number:
-                        page_number -= 1
-                        embed = await self.get_embed_page(page_number, paginator, page_title, total_entries)
-                        await message.edit(embed=embed)
-                    try: await message.remove_reaction('◀', user)
-                    except: pass
+                    page_number = await self.turn_embed_page(page_number-1, '◀', *args)
                 elif str(reaction.emoji) == '⏹':
                     await message.delete()
                     return
                 elif str(reaction.emoji) == '▶':
-                    if page_number < len(paginator.pages) - 1:
-                        page_number += 1
-                        embed = await self.get_embed_page(page_number, paginator, page_title, total_entries)
-                        await message.edit(embed=embed)
-                    try: await message.remove_reaction('▶', user)
-                    except: pass
+                    page_number = await self.turn_embed_page(page_number+1, '▶', *args)
                 elif str(reaction.emoji) == '⏭':
-                    page_number = len(paginator.pages) - 1
-                    embed = await self.get_embed_page(page_number, paginator, page_title, total_entries)
-                    await message.edit(embed=embed)
-                    try: await message.remove_reaction('⏭', user)
-                    except: pass
+                    last_page = len(paginator.pages) - 1
+                    page_number = await self.turn_embed_page(last_page, '⏭', *args)
         except asyncio.TimeoutError:
             try: await message.clear_reactions()
             except: pass
 
 
-    async def get_embed_page(self, page_number: int, paginator: commands.Paginator, page_title: str, total_entries: int) -> discord.Embed:
+    async def turn_embed_page(self, page_number: int, reaction_emoji: str, paginator: commands.Paginator, page_title: str, total_entries: int, embed_message: discord.Message, user: discord.User) -> int:
+        """Edits an embed to another page in a paginator
+        
+        Returns the page number, which is corrected if the given page number was invalid. Attempts to remove the user's reaction that turned the page.
+        """
+        total_pages = len(paginator.pages)
+        page_number = await self.validate_page_number(page_number, total_pages)
+        embed = await self.create_embed_page(page_number, paginator, page_title, total_entries)
+        await embed_message.edit(embed=embed)
+        try:
+            await embed_message.remove_reaction(reaction_emoji, user)
+        except:
+            pass
+
+        return page_number
+
+
+    async def validate_page_number(self, page_number: int, total_pages: int) -> int:
+        """Returns a page number that is corrected if necessary
+        
+        If the page number is invalid, the nearest valid page number will be returned.
+        The lowest valid page number is zero.
+        """
+        if page_number < 0:
+            return 0
+        if page_number >= total_pages:
+            return total_pages - 1
+        return page_number
+
+
+    async def create_embed_page(self, page_number: int, paginator: commands.Paginator, page_title: str, total_entries: int) -> discord.Embed:
+        """Creates an embed with paginated content
+        
+        Page numbers start at zero.
+        """
         embed = discord.Embed()
         embed.add_field(name=page_title, value=paginator.pages[page_number])
-        embed.set_footer(text=f'\u200b\npage {page_number+1}/{len(paginator.pages)} \u2800 ({total_entries} entries in total)')
+        embed.set_footer(text=f'\u200b\npage {page_number+1}/{len(paginator.pages)} \u2800 ({total_entries} total entries)')
 
         return embed
 
