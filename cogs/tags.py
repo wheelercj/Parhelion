@@ -95,9 +95,10 @@ class Tags(commands.Cog):
             return
 
         output = ''
-        for r in records:
+        records = sorted(records, key=lambda x: x['name'])
+        for i, r in enumerate(records):
             tag_name = r['name'].replace('`', '\`')
-            output += f'{r["id"]}.) `{tag_name}`\n'
+            output += f'{i+1}. `{tag_name}` (ID: {r["id"]})\n'
 
         embed = discord.Embed()
         embed.add_field(name=f"{member.name}#{member.discriminator}'s tags",
