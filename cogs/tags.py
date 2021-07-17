@@ -256,7 +256,7 @@ class Tags(commands.Cog):
             await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
             return
 
-        tag_name = await self.bot.db.fetchval('''
+        returned_tag_name = await self.bot.db.fetchval('''
             UPDATE tags
             SET owner_id = $1
             WHERE owner_id = $2
@@ -265,10 +265,10 @@ class Tags(commands.Cog):
             RETURNING name;
             ''', member.id, ctx.author.id, tag_name, ctx.guild.id)
 
-        if tag_name is None:
+        if returned_tag_name is None:
             await ctx.send(f'Tag not found.')
         else:
-            await ctx.send(f'Tag "{tag_name}" now belongs to {member.name}#{member.discriminator}!')
+            await ctx.send(f'Tag "{returned_tag_name}" now belongs to {member.name}#{member.discriminator}!')
 
 
     @tag.command(name='raw')
@@ -427,6 +427,28 @@ class Tags(commands.Cog):
             await ctx.reply(f'Tag "{returned_tag_name}" now belongs to you!')
 
 
+    @tag_id.command(name='transfer')
+    async def transfer_tag_by_id(self, ctx, member: discord.Member, tag_ID: int):
+        """Gives a server member ownership of one of your tags"""
+        if await self.count_members_tags(member) >= 15:
+            await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
+            return
+
+        returned_tag_name = await self.bot.db.fetchval('''
+            UPDATE tags
+            SET owner_id = $1
+            WHERE owner_id = $2
+                AND id = $3
+                AND server_id = $4
+            RETURNING name;
+            ''', member.id, ctx.author.id, tag_ID, ctx.guild.id)
+
+        if returned_tag_name is None:
+            await ctx.send(f'Tag not found.')
+        else:
+            await ctx.send(f'Tag "{returned_tag_name}" now belongs to {member.name}#{member.discriminator}!')
+
+
     @tag_id.command(name='info', hidden=True)
     async def tag_info_by_id(self, ctx, tag_ID: int):
         """Shows info about a tag"""
@@ -439,12 +461,6 @@ class Tags(commands.Cog):
 
         If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
-        await ctx.send('This command is under construction.')
-
-
-    @tag_id.command(name='transfer', hidden=True)
-    async def transfer_tag_by_id(self, ctx, tag_ID: int):
-        """Gives a server member ownership of one of your tags"""
         await ctx.send('This command is under construction.')
 
 
