@@ -323,23 +323,6 @@ class Tags(commands.Cog):
         await ctx.invoke(view_tag_by_id_command, tag_ID=tag_ID)
 
 
-    @tag_id.command(name='view')
-    async def view_tag_by_id(self, ctx, tag_ID: int = None):
-        """An alias for `tag id` in case a tag ID conflicts with a subcommand"""
-        if tag_ID is None:
-            await ctx.send_help('tag id')
-        else:
-            record = await self.bot.db.fetchrow('''
-                UPDATE tags
-                SET views = views + 1
-                WHERE id = $1
-                    AND server_id = $2
-                RETURNING *;
-                ''', tag_ID, ctx.guild.id)
-
-            await self.send_tag(ctx, record)
-
-
     @tag_id.command(name='info', aliases=['i'])
     async def tag_info_by_id(self, ctx, tag_ID: int):
         """Shows info about a tag"""
