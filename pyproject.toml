@@ -16,6 +16,7 @@ dateparser = "^1.0.0"
 jishaku = "^2.1.0"
 asyncpg = "^0.23.0"
 aiofiles = "^0.7.0"
+buttons = "^0.1.9"
 
 [tool.poetry.dev-dependencies]
 

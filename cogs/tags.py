@@ -1,10 +1,9 @@
 # external imports
 import discord
-from discord.ext import commands
-import asyncio
+from discord.ext import commands, buttons
 import asyncpg
 import io
-from typing import Optional, List
+from typing import Optional
 
 # internal imports
 from common import split_input, get_attachment_url, format_timestamp
@@ -23,6 +22,11 @@ from common import split_input, get_attachment_url, format_timestamp
         UNIQUE (name, server_id)
     )
 '''
+
+
+class My_Paginator(buttons.Paginator):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 class Tags(commands.Cog):
@@ -95,126 +99,16 @@ class Tags(commands.Cog):
             await ctx.send(f'{member.name}#{member.discriminator} has no tags on this server.')
             return
 
-        tags_per_page = 15
-        paginator = await self.create_tag_list_pages(records, tags_per_page)
-
-        embed = discord.Embed()
-        total_entries = len(records)
-        page_title = f"{member.name}#{member.discriminator}'s tags"
-        page_number = 0
-        embed = await self.create_embed_page(page_number, paginator, page_title, total_entries)
-
-        message = await ctx.send(embed=embed)
-        reactions = ['⏮', '◀', '⏹', '▶', '⏭']
-        for r in reactions:
-            await message.add_reaction(r)
-
-        def page_check(reaction, user):
-            return user != message.author and str(reaction.emoji) in reactions
-
-        try:
-            while True:
-                reaction, user = await self.bot.wait_for('reaction_add', timeout=60, check=page_check)
-                if user != ctx.author:
-                    continue
-
-                kwargs = {
-                    'paginator': paginator,
-                    'page_title': page_title,
-                    'total_entries': total_entries,
-                    'embed_message': message,
-                    'user': user,
-                }
-                page_number = await self.handle_page_reaction(ctx, page_number, str(reaction.emoji), **kwargs)
-                if page_number is None:
-                    return
-        except asyncio.TimeoutError:
-            try: await message.clear_reactions()
-            except: pass
-
-
-    async def create_tag_list_pages(self, records: List[asyncpg.Record], tags_per_page: int) -> commands.Paginator:
-        """Creates a paginator filled with the tag list content"""
-        paginator = commands.Paginator(prefix='', suffix='')
+        title = f"{member.name}#{member.discriminator}'s tags"
         records = sorted(records, key=lambda x: x['name'])
-
+        entries = []
         for i, r in enumerate(records):
             tag_name = r['name'].replace('`', '\`')
-            paginator.add_line(f'{i+1}. `{tag_name}` (ID: {r["id"]})')
-            if (i+1) % tags_per_page == 0:
-                paginator.close_page()
+            entries.append(f'{i+1}. `{tag_name}` (ID: {r["id"]})')
 
-        return paginator
+        paginator = My_Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=entries, length=15)
 
-
-    async def handle_page_reaction(self, ctx, page_number: int, reaction_emoji: str, **kwargs) -> Optional[int]:
-        """Turns the page of a paginated embed in response to a reaction
-
-        valid reactions = ['⏮', '◀', '⏹', '▶', '⏭']
-        Returns the page number, or None if the user pressed the stop button to delete the embed message.
-        kwargs:
-            paginator: commands.Paginator
-            page_title: str
-            total_entries: int
-            embed_message: discord.Message
-            user: discord.User
-        """
-        if reaction_emoji == '⏮':
-            page_number = await self.turn_embed_page(0, '⏮', **kwargs)
-        elif reaction_emoji == '◀':
-            page_number = await self.turn_embed_page(page_number-1, '◀', **kwargs)
-        elif reaction_emoji == '⏹':
-            await kwargs['embed_message'].delete()
-            return
-        elif reaction_emoji == '▶':
-            page_number = await self.turn_embed_page(page_number+1, '▶', **kwargs)
-        elif reaction_emoji == '⏭':
-            last_page = len(kwargs['paginator'].pages) - 1
-            page_number = await self.turn_embed_page(last_page, '⏭', **kwargs)
-
-        return page_number
-
-
-    async def turn_embed_page(self, page_number: int, reaction_emoji: str, paginator: commands.Paginator, page_title: str, total_entries: int, embed_message: discord.Message, user: discord.User) -> int:
-        """Edits an embed to another page in a paginator
-        
-        Returns the page number, which is corrected if the given page number was invalid. Attempts to remove the user's reaction that turned the page.
-        """
-        total_pages = len(paginator.pages)
-        page_number = await self.validate_page_number(page_number, total_pages)
-        embed = await self.create_embed_page(page_number, paginator, page_title, total_entries)
-        await embed_message.edit(embed=embed)
-        try:
-            await embed_message.remove_reaction(reaction_emoji, user)
-        except:
-            pass
-
-        return page_number
-
-
-    async def validate_page_number(self, page_number: int, total_pages: int) -> int:
-        """Returns a page number that is corrected if necessary
-        
-        If the page number is invalid, the nearest valid page number will be returned.
-        The lowest valid page number is zero.
-        """
-        if page_number < 0:
-            return 0
-        if page_number >= total_pages:
-            return total_pages - 1
-        return page_number
-
-
-    async def create_embed_page(self, page_number: int, paginator: commands.Paginator, page_title: str, total_entries: int) -> discord.Embed:
-        """Creates an embed with paginated content
-        
-        Page numbers start at zero.
-        """
-        embed = discord.Embed()
-        embed.add_field(name=page_title, value=paginator.pages[page_number])
-        embed.set_footer(text=f'\u200b\npage {page_number+1}/{len(paginator.pages)} \u2800 ({total_entries} total entries)')
-
-        return embed
+        await paginator.start(ctx)
 
 
     @commands.command(hidden=True)

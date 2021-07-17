@@ -80,6 +80,17 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "buttons"
+version = "0.1.9"
+description = "A simple to use, interactive session and paginator with custom buttons for discord.py."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+"discord.py" = ">=1.0"
+
+[[package]]
 name = "cffi"
 version = "1.14.5"
 description = "Foreign Function Interface for Python calling C code."
@@ -398,7 +409,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "e5db7fe51a61d271cdc144dec47d7322be8080fc8880edb2c30b98e384f0c6bd"
+content-hash = "350534cea2f99c855516dda7a38af0e9afe693dfd941f5345dde4eadd3254fd4"
 
 [metadata.files]
 aiofiles = [
@@ -476,6 +487,10 @@ attrs = [
 braceexpand = [
     {file = "braceexpand-0.1.7-py2.py3-none-any.whl", hash = "sha256:91332d53de7828103dcae5773fb43bc34950b0c8160e35e0f44c4427a3b85014"},
     {file = "braceexpand-0.1.7.tar.gz", hash = "sha256:e6e539bd20eaea53547472ff94f4fb5c3d3bf9d0a89388c4b56663aba765f705"},
+]
+buttons = [
+    {file = "buttons-0.1.9-py3-none-any.whl", hash = "sha256:6e74abb46ed053ba17ffb61c60cf4b6e17de63bdd8cd44d049059fd8b31d40ea"},
+    {file = "buttons-0.1.9.tar.gz", hash = "sha256:c23b48263b2327f1db386bf4faa270f421f5e24c6b6dc71e67b43d6d9ff07b5a"},
 ]
 cffi = [
     {file = "cffi-1.14.5-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:bb89f306e5da99f4d922728ddcd6f7fcebb3241fc40edebcb7284d7514741991"},
