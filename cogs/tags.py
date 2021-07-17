@@ -335,11 +335,21 @@ class Tags(commands.Cog):
 ################
 
 
-    @tag.group(name='id', hidden=True)
+    @tag.group(name='id')
     async def tag_ID(self, ctx, tag_ID: int = None):
         """A group of commands using tag IDs instead of tag names"""
-        await ctx.send('This command is under construction.')
-        # TODO: show a tag's contents if an ID is provided, else show help for this group.
+        if tag_ID is None:
+            await ctx.send_help('tag id')
+        else:
+            record = await self.bot.db.fetchrow('''
+                UPDATE tags
+                SET views = views + 1
+                WHERE id = $1
+                    AND server_id = $2
+                RETURNING *;
+                ''', tag_ID, ctx.guild.id)
+
+            await self.send_tag(ctx, record)
 
 
     @tag_ID.command(name='view', hidden=True)
