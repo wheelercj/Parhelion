@@ -222,20 +222,20 @@ class Tags(commands.Cog):
             await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
             return
 
-        owner_id = await self.get_tag_owner(ctx, tag_name)
-        owner = ctx.guild.get_member(owner_id)
-
+        owner_id = await self.get_tag_owner_id_by_name(ctx, tag_name)
         if owner_id is None:
             await ctx.send('Tag not found.')
             return
         if owner_id == ctx.author.id:
             await ctx.send('This tag already belongs to you.')
             return
+
+        owner = ctx.guild.get_member(owner_id)
         if owner is not None:
             await ctx.send("The tag's owner is still in this server.")
             return
 
-        ret = await self.bot.db.fetchval('''
+        returned_tag_name = await self.bot.db.fetchval('''
             UPDATE tags
             SET owner_id = $1
             WHERE name = $2
@@ -243,7 +243,7 @@ class Tags(commands.Cog):
             RETURNING name;
             ''', ctx.author.id, tag_name, ctx.guild.id)
 
-        if ret == 'UPDATE 0':
+        if returned_tag_name is None:
             await ctx.send(f'Error. Unable to claim tag.')
         else:
             await ctx.reply(f'Tag "{tag_name}" now belongs to you!')
@@ -393,6 +393,40 @@ class Tags(commands.Cog):
             await ctx.send(f'Successfully deleted tag "{returned_tag_name}"')
 
 
+    @tag_ID.command(name='claim')
+    async def claim_tag_by_id(self, ctx, tag_ID: int):
+        """Gives you ownership of a tag if its owner left the server"""
+        if await self.count_members_tags(ctx.author) >= 15:
+            await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
+            return
+
+        owner_id = await self.get_tag_owner_id_by_id(ctx, tag_ID)
+        if owner_id is None:
+            await ctx.send('Tag not found.')
+            return
+        if owner_id == ctx.author.id:
+            await ctx.send('This tag already belongs to you.')
+            return
+
+        owner = ctx.guild.get_member(owner_id)
+        if owner is not None:
+            await ctx.send("The tag's owner is still in this server.")
+            return
+
+        returned_tag_name = await self.bot.db.fetchval('''
+            UPDATE tags
+            SET owner_id = $1
+            WHERE id = $2
+                AND server_id = $3
+            RETURNING name;
+            ''', ctx.author.id, tag_ID, ctx.guild.id)
+
+        if returned_tag_name is None:
+            await ctx.send(f'Error. Unable to claim tag.')
+        else:
+            await ctx.reply(f'Tag "{returned_tag_name}" now belongs to you!')
+
+
     @tag_ID.command(name='info', hidden=True)
     async def tag_info_by_id(self, ctx, tag_ID: int):
         """Shows info about a tag"""
@@ -405,12 +439,6 @@ class Tags(commands.Cog):
 
         If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
-        await ctx.send('This command is under construction.')
-
-
-    @tag_ID.command(name='claim', hidden=True)
-    async def claim_tag_by_id(self, ctx, tag_ID: int):
-        """Gives you ownership of a tag if its owner left the server"""
         await ctx.send('This command is under construction.')
 
 
@@ -488,8 +516,8 @@ class Tags(commands.Cog):
         return 0
 
 
-    async def get_tag_owner(self, ctx, tag_name: str) -> Optional[int]:
-        """Gets the ID of a tag's owner
+    async def get_tag_owner_id_by_name(self, ctx, tag_name: str) -> Optional[int]:
+        """Gets the user ID of a tag's owner
 
         Returns None if the tag does not exist at ctx.guild.
         """
@@ -499,6 +527,21 @@ class Tags(commands.Cog):
             WHERE name = $1
                 AND server_id = $2;
         ''', tag_name, ctx.guild.id)
+        
+        return owner_id
+
+
+    async def get_tag_owner_id_by_id(self, ctx, tag_ID: int) -> Optional[int]:
+        """Gets the user ID of a tag's owner
+
+        Returns None if the tag does not exist at ctx.guild.
+        """
+        owner_id = await self.bot.db.fetchval('''
+            SELECT owner_id
+            FROM tags
+            WHERE id = $1
+                AND server_id = $2;
+        ''', tag_ID, ctx.guild.id)
         
         return owner_id
 
