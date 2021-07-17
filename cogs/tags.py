@@ -336,13 +336,13 @@ class Tags(commands.Cog):
 
 
     @tag.group(name='id')
-    async def tag_ID(self, ctx, tag_ID: int = None):
+    async def tag_id(self, ctx, tag_ID: int = None):
         """A group of commands using tag IDs instead of tag names"""
         view_tag_by_id_command = self.bot.get_command('tag id view')
         await ctx.invoke(view_tag_by_id_command, tag_ID=tag_ID)
 
 
-    @tag_ID.command(name='view')
+    @tag_id.command(name='view')
     async def view_tag_by_id(self, ctx, tag_ID: int = None):
         """An alias for `tag id` in case a tag ID conflicts with a subcommand"""
         if tag_ID is None:
@@ -359,7 +359,7 @@ class Tags(commands.Cog):
             await self.send_tag(ctx, record)
 
 
-    @tag_ID.command(name='delete', aliases=['del'])
+    @tag_id.command(name='delete', aliases=['del'])
     async def delete_tag_by_id(self, ctx, tag_ID: int):
         """Deletes one of your tags"""
         returned_tag_name = await self.bot.db.fetchval('''
@@ -376,7 +376,7 @@ class Tags(commands.Cog):
             await ctx.send(f'Successfully deleted tag "{returned_tag_name}"')
 
 
-    @tag_ID.command(name='mod-delete', aliases=['mdel', 'moddelete'])
+    @tag_id.command(name='mod-delete', aliases=['mdel', 'moddelete'])
     @commands.has_guild_permissions(manage_messages=True)
     async def mod_delete_tag_by_id(self, ctx, tag_ID: int):
         """Deletes one of anyone's tags"""
@@ -393,7 +393,7 @@ class Tags(commands.Cog):
             await ctx.send(f'Successfully deleted tag "{returned_tag_name}"')
 
 
-    @tag_ID.command(name='claim')
+    @tag_id.command(name='claim')
     async def claim_tag_by_id(self, ctx, tag_ID: int):
         """Gives you ownership of a tag if its owner left the server"""
         if await self.count_members_tags(ctx.author) >= 15:
@@ -427,13 +427,13 @@ class Tags(commands.Cog):
             await ctx.reply(f'Tag "{returned_tag_name}" now belongs to you!')
 
 
-    @tag_ID.command(name='info', hidden=True)
+    @tag_id.command(name='info', hidden=True)
     async def tag_info_by_id(self, ctx, tag_ID: int):
         """Shows info about a tag"""
         await ctx.send('This command is under construction.')
 
 
-    @tag_ID.command(name='edit', hidden=True)
+    @tag_id.command(name='edit', hidden=True)
     async def edit_tag_by_id(self, ctx, tag_ID: int):
         """Rewrites one of your tags
 
@@ -442,25 +442,25 @@ class Tags(commands.Cog):
         await ctx.send('This command is under construction.')
 
 
-    @tag_ID.command(name='transfer', hidden=True)
+    @tag_id.command(name='transfer', hidden=True)
     async def transfer_tag_by_id(self, ctx, tag_ID: int):
         """Gives a server member ownership of one of your tags"""
         await ctx.send('This command is under construction.')
 
 
-    @tag_ID.command(name='raw', hidden=True)
+    @tag_id.command(name='raw', hidden=True)
     async def get_raw_tag_by_id(self, ctx, tag_ID: int):
         """Shows the unrendered text content of a tag"""
         await ctx.send('This command is under construction.')
 
 
-    @tag_ID.command(name='alias', hidden=True)
+    @tag_id.command(name='alias', hidden=True)
     async def create_tag_alias_by_id(self, ctx, tag_ID: int):
         """Creates another name for an existing tag"""
         await ctx.send('This command is under construction.')
 
 
-    @tag_ID.command(name='stats', hidden=True)
+    @tag_id.command(name='stats', hidden=True)
     async def tag_stats_by_id(self, ctx, tag_ID: int):
         """Shows tag statistics about a member or the server"""
         await ctx.send('This command is under construction.')
