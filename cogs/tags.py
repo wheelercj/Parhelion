@@ -118,20 +118,16 @@ class Tags(commands.Cog):
                 if user != ctx.author:
                     continue
 
-                args = [paginator, page_title, total_entries, message, user]
-
-                if str(reaction.emoji) == '⏮':
-                    page_number = await self.turn_embed_page(0, '⏮', *args)
-                elif str(reaction.emoji) == '◀':
-                    page_number = await self.turn_embed_page(page_number-1, '◀', *args)
-                elif str(reaction.emoji) == '⏹':
-                    await message.delete()
+                kwargs = {
+                    'paginator': paginator,
+                    'page_title': page_title,
+                    'total_entries': total_entries,
+                    'embed_message': message,
+                    'user': user,
+                }
+                page_number = await self.respond_to_page_reaction(ctx, page_number, str(reaction.emoji), **kwargs)
+                if page_number is None:
                     return
-                elif str(reaction.emoji) == '▶':
-                    page_number = await self.turn_embed_page(page_number+1, '▶', *args)
-                elif str(reaction.emoji) == '⏭':
-                    last_page = len(paginator.pages) - 1
-                    page_number = await self.turn_embed_page(last_page, '⏭', *args)
         except asyncio.TimeoutError:
             try: await message.clear_reactions()
             except: pass
@@ -149,6 +145,34 @@ class Tags(commands.Cog):
                 paginator.close_page()
 
         return paginator
+
+
+    async def respond_to_page_reaction(self, ctx, page_number: int, reaction_emoji: str, **kwargs) -> Optional[int]:
+        """Turns the page of a paginated embed in response to a reaction
+
+        valid reactions = ['⏮', '◀', '⏹', '▶', '⏭']
+        Returns the page number.
+        kwargs:
+            paginator: commands.Paginator
+            page_title: str
+            total_entries: int
+            embed_message: discord.Message
+            user: discord.User
+        """
+        if reaction_emoji == '⏮':
+            page_number = await self.turn_embed_page(0, '⏮', **kwargs)
+        elif reaction_emoji == '◀':
+            page_number = await self.turn_embed_page(page_number-1, '◀', **kwargs)
+        elif reaction_emoji == '⏹':
+            await kwargs['embed_message'].delete()
+            return
+        elif reaction_emoji == '▶':
+            page_number = await self.turn_embed_page(page_number+1, '▶', **kwargs)
+        elif reaction_emoji == '⏭':
+            last_page = len(kwargs['paginator'].pages) - 1
+            page_number = await self.turn_embed_page(last_page, '⏭', **kwargs)
+
+        return page_number
 
 
     async def turn_embed_page(self, page_number: int, reaction_emoji: str, paginator: commands.Paginator, page_title: str, total_entries: int, embed_message: discord.Message, user: discord.User) -> int:
