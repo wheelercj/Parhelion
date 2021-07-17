@@ -24,7 +24,7 @@ from common import split_input, get_attachment_url, format_timestamp
 '''
 
 
-class My_Paginator(buttons.Paginator):
+class Paginator(buttons.Paginator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -48,6 +48,20 @@ class Tags(commands.Cog):
         """
         view_tag_command = self.bot.get_command('tag view')
         await ctx.invoke(view_tag_command, tag_name=tag_name)
+
+
+    @tag.command(name='view')
+    async def view_tag(self, ctx, *, tag_name: str):
+        """An alias for `tag` in case a tag name conflicts with a subcommand"""
+        record = await self.bot.db.fetchrow('''
+            UPDATE tags
+            SET views = views + 1
+            WHERE name = $1
+                AND server_id = $2
+            RETURNING *;
+            ''', tag_name, ctx.guild.id)
+        
+        await self.send_tag(ctx, record)
 
 
     @tag.command(name='create', aliases=['c'])
@@ -100,7 +114,7 @@ class Tags(commands.Cog):
             return
 
         title = f"{member.name}#{member.discriminator}'s tags"
-        await self.paginate_tags(ctx, title, records)
+        await self.paginate_tag_list(ctx, title, records)
 
 
     @commands.command(hidden=True)
@@ -295,7 +309,7 @@ class Tags(commands.Cog):
             return
 
         title = ''
-        await self.paginate_tags(ctx, title, records)
+        await self.paginate_tag_list(ctx, title, records)
 
     
     @tag.command(name='alias', hidden=True)
@@ -316,39 +330,6 @@ class Tags(commands.Cog):
         await ctx.send('This command is under construction.')
 
 
-    @tag.command(name='view')
-    async def view_tag(self, ctx, *, tag_name: str):
-        """An alias for `tag` in case a tag name conflicts with a subcommand"""
-        record = await self.bot.db.fetchrow('''
-            UPDATE tags
-            SET views = views + 1
-            WHERE name = $1
-                AND server_id = $2
-            RETURNING *;
-            ''', tag_name, ctx.guild.id)
-
-        if record is None:
-            await ctx.send('Tag not found.')
-        elif record['file_url'] is None:
-            await ctx.send(record['content'])
-        else:
-            try:
-                async with self.bot.session.get(record['file_url']) as response:
-                    if not response.ok:
-                        await ctx.send(record['content'])
-                        await ctx.send("This tag's attachment cannot be accessed for some reason. The message that created the tag may have been deleted.")
-                    else:
-                        image_bytes = await response.read()
-                with io.BytesIO(image_bytes) as binary_stream:
-                    file_name = record['file_url'].split('.')[-2]
-                    file_type = record['file_url'].split('.')[-1]
-                    file = discord.File(binary_stream, f'{file_name}.{file_type}')
-                    await ctx.send(record['content'], file=file)
-            except discord.errors.HTTPException as e:
-                if 'empty message' in e.text:
-                    await ctx.send("This tag is empty. It may contain a type of attachment that Discord doesn't provide working URLs to.")
-
-
 ################
 # tag_ID group #
 ################
@@ -359,6 +340,12 @@ class Tags(commands.Cog):
         """A group of commands using tag IDs instead of tag names"""
         await ctx.send('This command is under construction.')
         # TODO: show a tag's contents if an ID is provided, else show help for this group.
+
+
+    @tag_ID.command(name='view', hidden=True)
+    async def view_tag_by_id(self, ctx, tag_ID: int):
+        """An alias for `tag id` in case a tag ID conflicts with a subcommand"""
+        await ctx.send('This command is under construction.')
 
 
     @tag_ID.command(name='delete', aliases=['del'], hidden=True)
@@ -419,20 +406,39 @@ class Tags(commands.Cog):
         await ctx.send('This command is under construction.')
 
 
-    @tag_ID.command(name='view', hidden=True)
-    async def view_tag_by_id(self, ctx, tag_ID: int):
-        """An alias for `tag id` in case a tag ID conflicts with a subcommand"""
-        await ctx.send('This command is under construction.')
+    async def send_tag(self, ctx, record: asyncpg.Record) -> None:
+        """Sends ctx the contents of a tag or an error message if necessary"""
+        if record is None:
+            await ctx.send('Tag not found.')
+        elif record['file_url'] is None:
+            await ctx.send(record['content'])
+        else:
+            try:
+                async with self.bot.session.get(record['file_url']) as response:
+                    if not response.ok:
+                        await ctx.send(record['content'])
+                        await ctx.send("This tag's attachment cannot be accessed for some reason. The message that created the tag may have been deleted.")
+                    else:
+                        image_bytes = await response.read()
+                with io.BytesIO(image_bytes) as binary_stream:
+                    file_name = record['file_url'].split('.')[-2]
+                    file_type = record['file_url'].split('.')[-1]
+                    file = discord.File(binary_stream, f'{file_name}.{file_type}')
+                    await ctx.send(record['content'], file=file)
+            except discord.errors.HTTPException as e:
+                if 'empty message' in e.text:
+                    await ctx.send("This tag is empty. It may contain a type of attachment that Discord doesn't provide working URLs to.")
 
 
-    async def paginate_tags(self, ctx, title: str, records: List[asyncpg.Record]):
+    async def paginate_tag_list(self, ctx, title: str, records: List[asyncpg.Record]) -> None:
+        """Sends ctx a list of tag names, paginated and with reaction buttons"""
         records = sorted(records, key=lambda x: x['name'])
         entries = []
         for i, r in enumerate(records):
             tag_name = r['name'].replace('`', '\`')
             entries.append(f'{i+1}. `{tag_name}` (ID: {r["id"]})')
 
-        paginator = My_Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=entries, length=15)
+        paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=entries, length=15)
 
         await paginator.start(ctx)
 
