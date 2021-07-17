@@ -449,6 +449,24 @@ class Tags(commands.Cog):
             await ctx.send(f'Tag "{returned_tag_name}" now belongs to {member.name}#{member.discriminator}!')
 
 
+    @tag_id.command(name='raw')
+    async def get_raw_tag_by_id(self, ctx, tag_ID: int):
+        """Shows the unrendered text content of a tag"""
+        record = await self.bot.db.fetchrow('''
+            UPDATE tags
+            SET views = views + 1
+            WHERE id = $1
+                AND server_id = $2
+            RETURNING *;
+            ''', tag_ID, ctx.guild.id)
+
+        if record is None:
+            await ctx.send('Tag not found.')
+        else:
+            content = record['content'].replace('`', '\`')
+            await ctx.send(content)
+
+
     @tag_id.command(name='info', hidden=True)
     async def tag_info_by_id(self, ctx, tag_ID: int):
         """Shows info about a tag"""
@@ -461,12 +479,6 @@ class Tags(commands.Cog):
 
         If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
-        await ctx.send('This command is under construction.')
-
-
-    @tag_id.command(name='raw', hidden=True)
-    async def get_raw_tag_by_id(self, ctx, tag_ID: int):
-        """Shows the unrendered text content of a tag"""
         await ctx.send('This command is under construction.')
 
 
