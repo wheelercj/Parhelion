@@ -125,7 +125,7 @@ class Tags(commands.Cog):
                     'embed_message': message,
                     'user': user,
                 }
-                page_number = await self.respond_to_page_reaction(ctx, page_number, str(reaction.emoji), **kwargs)
+                page_number = await self.handle_page_reaction(ctx, page_number, str(reaction.emoji), **kwargs)
                 if page_number is None:
                     return
         except asyncio.TimeoutError:
@@ -147,11 +147,11 @@ class Tags(commands.Cog):
         return paginator
 
 
-    async def respond_to_page_reaction(self, ctx, page_number: int, reaction_emoji: str, **kwargs) -> Optional[int]:
+    async def handle_page_reaction(self, ctx, page_number: int, reaction_emoji: str, **kwargs) -> Optional[int]:
         """Turns the page of a paginated embed in response to a reaction
 
         valid reactions = ['⏮', '◀', '⏹', '▶', '⏭']
-        Returns the page number.
+        Returns the page number, or None if the user pressed the stop button to delete the embed message.
         kwargs:
             paginator: commands.Paginator
             page_title: str
