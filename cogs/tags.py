@@ -50,7 +50,7 @@ class Tags(commands.Cog):
         await ctx.invoke(view_tag_command, tag_name=tag_name)
 
 
-    @tag.command(name='view')
+    @tag.command(name='view', aliases=['v'])
     async def view_tag(self, ctx, *, tag_name: str):
         """An alias for `tag` in case a tag name conflicts with a subcommand"""
         record = await self.bot.db.fetchrow('''
@@ -96,7 +96,7 @@ class Tags(commands.Cog):
             await ctx.send(f'Successfully created tag "{name}"')
 
 
-    @tag.command(name='list')
+    @tag.command(name='list', aliases=['l'])
     async def list_tags(self, ctx, member: discord.Member = None):
         """Lists the names of yours or someone else's tags on this server"""
         if member is None:
@@ -137,7 +137,7 @@ class Tags(commands.Cog):
         await self.send_tag_info(ctx, record)
 
 
-    @tag.command(name='edit')
+    @tag.command(name='edit', aliases=['e'])
     async def edit_tag(self, ctx, *, name_and_content: str):
         """Rewrites one of your tags
 
@@ -196,7 +196,7 @@ class Tags(commands.Cog):
             await ctx.send(f'Successfully deleted tag "{tag_name}"')
 
 
-    @tag.command(name='claim')
+    @tag.command(name='claim', aliases=['cl'])
     async def claim_tag(self, ctx, *, tag_name: str):
         """Gives you ownership of a tag if its owner left the server"""
         if await self.count_members_tags(ctx.author) >= 15:
@@ -230,7 +230,7 @@ class Tags(commands.Cog):
             await ctx.reply(f'Tag "{tag_name}" now belongs to you!')
 
 
-    @tag.command(name='transfer')
+    @tag.command(name='transfer', aliases=['t'])
     async def transfer_tag(self, ctx, member: discord.Member, *, tag_name: str):
         """Gives a server member ownership of one of your tags"""
         if await self.count_members_tags(member) >= 15:
@@ -252,7 +252,7 @@ class Tags(commands.Cog):
             await ctx.send(f'Tag "{returned_tag_name}" now belongs to {member.name}#{member.discriminator}!')
 
 
-    @tag.command(name='raw')
+    @tag.command(name='raw', aliases=['r'])
     async def get_raw_tag(self, ctx, *, tag_name: str):
         """Shows the unrendered text content of a tag"""
         record = await self.bot.db.fetchrow('''
@@ -270,13 +270,13 @@ class Tags(commands.Cog):
             await ctx.send(content)
 
 
-    @tag.command(name='search', hidden=True)
+    @tag.command(name='search', aliases=['s'], hidden=True)
     async def tag_search(self, ctx):
         """Searches for a tag"""
         await ctx.send('This command is under construction.')
 
 
-    @tag.command(name='all')
+    @tag.command(name='all', aliases=['a'])
     async def list_all_tags(self, ctx):
         """Lists all tags on this server"""
         records = await self.bot.db.fetch('''
@@ -323,7 +323,7 @@ class Tags(commands.Cog):
         await ctx.invoke(view_tag_by_id_command, tag_ID=tag_ID)
 
 
-    @tag_id.command(name='view')
+    @tag_id.command(name='view', aliases=['v'])
     async def view_tag_by_id(self, ctx, tag_ID: int = None):
         """An alias for `tag id` in case you're used to having a view subcommand"""
         if tag_ID is None:
@@ -353,7 +353,7 @@ class Tags(commands.Cog):
         await self.send_tag_info(ctx, record)
 
 
-    @tag_id.command(name='edit')
+    @tag_id.command(name='edit', aliases=['e'])
     async def edit_tag_by_id(self, ctx, tag_ID: int, *, content: str):
         """Rewrites one of your tags
 
@@ -411,7 +411,7 @@ class Tags(commands.Cog):
             await ctx.send(f'Successfully deleted tag "{returned_tag_name}"')
 
 
-    @tag_id.command(name='claim')
+    @tag_id.command(name='claim', aliases=['cl'])
     async def claim_tag_by_id(self, ctx, tag_ID: int):
         """Gives you ownership of a tag if its owner left the server"""
         if await self.count_members_tags(ctx.author) >= 15:
@@ -445,7 +445,7 @@ class Tags(commands.Cog):
             await ctx.reply(f'Tag "{returned_tag_name}" now belongs to you!')
 
 
-    @tag_id.command(name='transfer')
+    @tag_id.command(name='transfer', aliases=['t'])
     async def transfer_tag_by_id(self, ctx, member: discord.Member, tag_ID: int):
         """Gives a server member ownership of one of your tags"""
         if await self.count_members_tags(member) >= 15:
@@ -467,7 +467,7 @@ class Tags(commands.Cog):
             await ctx.send(f'Tag "{returned_tag_name}" now belongs to {member.name}#{member.discriminator}!')
 
 
-    @tag_id.command(name='raw')
+    @tag_id.command(name='raw', aliases=['r'])
     async def get_raw_tag_by_id(self, ctx, tag_ID: int):
         """Shows the unrendered text content of a tag"""
         record = await self.bot.db.fetchrow('''
