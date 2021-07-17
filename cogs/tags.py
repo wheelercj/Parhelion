@@ -359,10 +359,21 @@ class Tags(commands.Cog):
             await self.send_tag(ctx, record)
 
 
-    @tag_ID.command(name='delete', aliases=['del'], hidden=True)
+    @tag_ID.command(name='delete', aliases=['del'])
     async def delete_tag_by_id(self, ctx, tag_ID: int):
         """Deletes one of your tags"""
-        await ctx.send('This command is under construction.')
+        returned_tag_name = await self.bot.db.fetchval('''
+            DELETE FROM tags
+            WHERE id = $1
+                AND owner_id = $2
+                AND server_id = $3
+            RETURNING name;
+            ''', tag_ID, ctx.author.id, ctx.guild.id)
+
+        if returned_tag_name is None:
+            await ctx.send('Tag not found.')
+        else:
+            await ctx.send(f'Successfully deleted tag "{returned_tag_name}"')
 
 
     @tag_ID.command(name='mod-delete', aliases=['mdel', 'moddelete'], hidden=True)
