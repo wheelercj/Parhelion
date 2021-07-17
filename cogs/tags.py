@@ -325,7 +325,7 @@ class Tags(commands.Cog):
 
     @tag_id.command(name='view')
     async def view_tag_by_id(self, ctx, tag_ID: int = None):
-        """An alias for `tag id` in case a tag ID conflicts with a subcommand"""
+        """An alias for `tag id` in case you're used to having a view subcommand"""
         if tag_ID is None:
             await ctx.send_help('tag id')
         else:
