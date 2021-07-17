@@ -124,7 +124,7 @@ class Tags(commands.Cog):
         await ctx.invoke(tag_list_command, member=member)
 
 
-    @tag.command(name='info')
+    @tag.command(name='info', aliases=['i'])
     async def tag_info(self, ctx, *, tag_name: str):
         """Shows info about a tag"""
         record = await self.bot.db.fetchrow('''
@@ -134,26 +134,7 @@ class Tags(commands.Cog):
                 AND server_id = $2;
             ''', tag_name, ctx.guild.id)
 
-        if record is None:
-            await ctx.send('Tag not found.')
-            return
-
-        owner = ctx.guild.get_member(record['owner_id'])
-        if owner is not None:
-            owner = owner.name + '#' + owner.discriminator
-        else:
-            owner = record['owner_id']
-
-        created = await format_timestamp(record["created"])
-
-        embed = discord.Embed()
-        embed.add_field(name=record['name'],
-            value=f'owner: {owner}\n'
-                + f'created: {created}\n'
-                + f'views: {record["views"]}\n'
-                + f'ID: {record["id"]}')
-
-        await ctx.send(embed=embed)
+        await self.send_tag_info(ctx, record)
 
 
     @tag.command(name='edit')
@@ -359,6 +340,28 @@ class Tags(commands.Cog):
             await self.send_tag(ctx, record)
 
 
+    @tag_id.command(name='info', aliases=['i'])
+    async def tag_info_by_id(self, ctx, tag_ID: int):
+        """Shows info about a tag"""
+        record = await self.bot.db.fetchrow('''
+            SELECT *
+            FROM tags
+            WHERE id = $1
+                AND server_id = $2;
+            ''', tag_ID, ctx.guild.id)
+
+        await self.send_tag_info(ctx, record)
+
+
+    @tag_id.command(name='edit', hidden=True)
+    async def edit_tag_by_id(self, ctx, tag_ID: int):
+        """Rewrites one of your tags
+
+        If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
+        """
+        await ctx.send('This command is under construction.')
+
+
     @tag_id.command(name='delete', aliases=['del'])
     async def delete_tag_by_id(self, ctx, tag_ID: int):
         """Deletes one of your tags"""
@@ -467,21 +470,6 @@ class Tags(commands.Cog):
             await ctx.send(content)
 
 
-    @tag_id.command(name='info', hidden=True)
-    async def tag_info_by_id(self, ctx, tag_ID: int):
-        """Shows info about a tag"""
-        await ctx.send('This command is under construction.')
-
-
-    @tag_id.command(name='edit', hidden=True)
-    async def edit_tag_by_id(self, ctx, tag_ID: int):
-        """Rewrites one of your tags
-
-        If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
-        """
-        await ctx.send('This command is under construction.')
-
-
     @tag_id.command(name='alias', hidden=True)
     async def create_tag_alias_by_id(self, ctx, tag_ID: int):
         """Creates another name for an existing tag"""
@@ -516,6 +504,30 @@ class Tags(commands.Cog):
             except discord.errors.HTTPException as e:
                 if 'empty message' in e.text:
                     await ctx.send("This tag is empty. It may contain a type of attachment that Discord doesn't provide working URLs to.")
+
+
+    async def send_tag_info(self, ctx, record: asyncpg.Record) -> None:
+        """Sends ctx the info of a tag or an error message if necessary"""
+        if record is None:
+            await ctx.send('Tag not found.')
+            return
+
+        owner = ctx.guild.get_member(record['owner_id'])
+        if owner is not None:
+            owner = owner.name + '#' + owner.discriminator
+        else:
+            owner = record['owner_id']
+
+        created = await format_timestamp(record["created"])
+
+        embed = discord.Embed()
+        embed.add_field(name=record['name'],
+            value=f'owner: {owner}\n'
+                + f'created: {created}\n'
+                + f'views: {record["views"]}\n'
+                + f'ID: {record["id"]}')
+
+        await ctx.send(embed=embed)
 
 
     async def paginate_tag_list(self, ctx, title: str, records: List[asyncpg.Record]) -> None:
