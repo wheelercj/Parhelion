@@ -353,13 +353,28 @@ class Tags(commands.Cog):
         await self.send_tag_info(ctx, record)
 
 
-    @tag_id.command(name='edit', hidden=True)
-    async def edit_tag_by_id(self, ctx, tag_ID: int):
+    @tag_id.command(name='edit')
+    async def edit_tag_by_id(self, ctx, tag_ID: int, *, content: str):
         """Rewrites one of your tags
 
         If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
-        await ctx.send('This command is under construction.')
+        file_url = await get_attachment_url(ctx)
+
+        returned_tag_name = await self.bot.db.fetchval('''
+            UPDATE tags
+            SET content = $1,
+                file_url = $2
+            WHERE id = $3
+                AND owner_id = $4
+                AND server_id = $5
+            RETURNING name;
+            ''', content, file_url, tag_ID, ctx.author.id, ctx.guild.id)
+
+        if returned_tag_name is None:
+            await ctx.send('Tag not found.')
+        else:
+            await ctx.send(f'Successfully edited tag "{returned_tag_name}"')
 
 
     @tag_id.command(name='delete', aliases=['del'])
