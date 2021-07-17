@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands, buttons
 import asyncpg
 import io
-from typing import Optional
+from typing import Optional, List
 
 # internal imports
 from common import split_input, get_attachment_url, format_timestamp
@@ -100,15 +100,7 @@ class Tags(commands.Cog):
             return
 
         title = f"{member.name}#{member.discriminator}'s tags"
-        records = sorted(records, key=lambda x: x['name'])
-        entries = []
-        for i, r in enumerate(records):
-            tag_name = r['name'].replace('`', '\`')
-            entries.append(f'{i+1}. `{tag_name}` (ID: {r["id"]})')
-
-        paginator = My_Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=entries, length=15)
-
-        await paginator.start(ctx)
+        await self.paginate_tags(ctx, title, records)
 
 
     @commands.command(hidden=True)
@@ -289,10 +281,21 @@ class Tags(commands.Cog):
         await ctx.send('This command is under construction.')
 
 
-    @tag.command(name='all', hidden=True)
+    @tag.command(name='all')
     async def list_all_tags(self, ctx):
         """Lists all tags on this server"""
-        await ctx.send('This command is under construction.')
+        records = await self.bot.db.fetch('''
+            SELECT *
+            FROM tags
+            WHERE server_id = $1;
+            ''', ctx.guild.id)
+
+        if not records or not len(records):
+            await ctx.send(f'There are no tags on this server.')
+            return
+
+        title = ''
+        await self.paginate_tags(ctx, title, records)
 
     
     @tag.command(name='alias', hidden=True)
@@ -420,6 +423,18 @@ class Tags(commands.Cog):
     async def view_tag_by_id(self, ctx, tag_ID: int):
         """An alias for `tag id` in case a tag ID conflicts with a subcommand"""
         await ctx.send('This command is under construction.')
+
+
+    async def paginate_tags(self, ctx, title: str, records: List[asyncpg.Record]):
+        records = sorted(records, key=lambda x: x['name'])
+        entries = []
+        for i, r in enumerate(records):
+            tag_name = r['name'].replace('`', '\`')
+            entries.append(f'{i+1}. `{tag_name}` (ID: {r["id"]})')
+
+        paginator = My_Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=entries, length=15)
+
+        await paginator.start(ctx)
 
 
     async def count_members_tags(self, member: discord.Member) -> int:
