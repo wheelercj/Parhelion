@@ -338,6 +338,13 @@ class Tags(commands.Cog):
     @tag.group(name='id')
     async def tag_ID(self, ctx, tag_ID: int = None):
         """A group of commands using tag IDs instead of tag names"""
+        view_tag_by_id_command = self.bot.get_command('tag id view')
+        await ctx.invoke(view_tag_by_id_command, tag_ID=tag_ID)
+
+
+    @tag_ID.command(name='view')
+    async def view_tag_by_id(self, ctx, tag_ID: int = None):
+        """An alias for `tag id` in case a tag ID conflicts with a subcommand"""
         if tag_ID is None:
             await ctx.send_help('tag id')
         else:
@@ -350,12 +357,6 @@ class Tags(commands.Cog):
                 ''', tag_ID, ctx.guild.id)
 
             await self.send_tag(ctx, record)
-
-
-    @tag_ID.command(name='view', hidden=True)
-    async def view_tag_by_id(self, ctx, tag_ID: int):
-        """An alias for `tag id` in case a tag ID conflicts with a subcommand"""
-        await ctx.send('This command is under construction.')
 
 
     @tag_ID.command(name='delete', aliases=['del'], hidden=True)
