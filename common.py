@@ -1,3 +1,4 @@
+import os
 import re
 import traceback
 import discord
@@ -15,6 +16,18 @@ class Dev_Settings:
         self.privacy_policy_link = 'https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853'
 
 dev_settings = Dev_Settings()
+
+
+async def safe_send(ctx, message: str, protect_postgres_host: bool = False) -> None:
+    """Same as ctx.send but with extra security options"""
+    if protect_postgres_host:
+        postgres_host = os.environ['PostgreSQL host']
+        if postgres_host in message:
+            message = message.replace(postgres_host, '(PostgreSQL host)')
+            await ctx.send(message)
+            return
+    
+    await ctx.send(message)
 
 
 def s(n: int, msg: str) -> str:

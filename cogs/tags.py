@@ -6,7 +6,7 @@ import io
 from typing import Optional, List
 
 # internal imports
-from common import split_input, get_attachment_url, format_timestamp
+from common import split_input, get_attachment_url, format_timestamp, safe_send
 
 
 '''
@@ -91,7 +91,7 @@ class Tags(commands.Cog):
         except asyncpg.exceptions.UniqueViolationError:
             await ctx.send(f'A tag named "{name}" already exists.')
         except Exception as e:
-            await ctx.send(f'Error: {e}')
+            await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
         else:
             await ctx.send(f'Successfully created tag "{name}"')
 
