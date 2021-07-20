@@ -32,6 +32,8 @@ class Paginator(buttons.Paginator):
 class Tags(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.tag_name_limit = 50
+        self.tag_content_limit = 1500
 
 
     async def cog_check(self, ctx):
@@ -76,6 +78,11 @@ class Tags(commands.Cog):
 
         try:
             name, content = await split_input(name_and_content)
+            if len(name) > self.tag_name_limit:
+                raise ValueError(f'Tag name length must be {self.tag_name_limit} characters or fewer.')
+            if len(content) > self.tag_content_limit:
+                raise ValueError(f'Tag content length must be {self.tag_content_limit} characters or fewer.')
+
             now = ctx.message.created_at
             file_url = await get_attachment_url(ctx)
 
@@ -144,6 +151,9 @@ class Tags(commands.Cog):
         If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
         name, content = await split_input(name_and_content)
+        if len(content) > self.tag_content_limit:
+            raise ValueError(f'Tag content length must be {self.tag_content_limit} characters or fewer.')
+
         file_url = await get_attachment_url(ctx)
 
         returned_tag_name = await self.bot.db.fetchval('''
@@ -359,6 +369,9 @@ class Tags(commands.Cog):
 
         If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
+        if len(content) > self.tag_content_limit:
+            raise ValueError(f'Tag content length must be {self.tag_content_limit} characters or fewer.')
+
         file_url = await get_attachment_url(ctx)
 
         returned_tag_name = await self.bot.db.fetchval('''
