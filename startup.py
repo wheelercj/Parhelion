@@ -160,17 +160,11 @@ async def continue_reminder(bot, task_record: asyncpg.Record, destination: Union
     start_time = task_record['start_time']
     target_time = task_record['target_time']
 
-    try:
-        if remaining_seconds > 0:
-            await asyncio.sleep(remaining_seconds)
-            await destination.send(f'<@!{author_id}>, here is your reminder: {message}')
-            await delete_reminder_from_db(bot, author_id, start_time)
-        else:
-            await destination.send(f'<@!{author_id}>, an error delayed your reminder: {message}\n' \
-            f'The reminder had been set for {target_time} UTC')
-            await delete_reminder_from_db(bot, author_id, start_time)
-
-    except Exception as e:
-        await destination.send(f'<@!{author_id}>, your reminder was cancelled because of an error: {e}')
+    if remaining_seconds > 0:
+        await asyncio.sleep(remaining_seconds)
+        await destination.send(f'<@!{author_id}>, here is your reminder: {message}')
         await delete_reminder_from_db(bot, author_id, start_time)
-        raise e
+    else:
+        await destination.send(f'<@!{author_id}>, an error delayed your reminder: {message}\n' \
+        f'The reminder had been set for {target_time} UTC')
+        await delete_reminder_from_db(bot, author_id, start_time)

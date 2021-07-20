@@ -51,30 +51,26 @@ class Reminders(commands.Cog):
             await ctx.send('The current limit to how many reminders each person can have is 15. This will increase in the future.')
             return
 
-        try:
-            async with ctx.typing():
-                start_time = ctx.message.created_at
-                target_time, message = await parse_time_message(ctx, time_and_message)
+        async with ctx.typing():
+            start_time = ctx.message.created_at
+            target_time, message = await parse_time_message(ctx, time_and_message)
 
-                if target_time < start_time:
-                    raise commands.BadArgument('Please choose a time in the future.')
+            if target_time < start_time:
+                raise commands.BadArgument('Please choose a time in the future.')
 
-                await self.save_reminder_to_db(ctx, start_time, target_time, message)
+            await self.save_reminder_to_db(ctx, start_time, target_time, message)
+            await ctx.send(f'Reminder set! {await format_timestamp(target_time)} I will remind you: {message}')
 
-                await ctx.send(f'Reminder set! {await format_timestamp(target_time)} I will remind you: {message}')
+        seconds = (target_time - start_time).total_seconds()
+        await asyncio.sleep(seconds)
+        # The maximum reliable sleep duration is 24.85 days.
+        # For details, see https://bugs.python.org/issue20493
 
-            seconds = (target_time - start_time).total_seconds()
-            await asyncio.sleep(seconds)
-            # The maximum reliable sleep duration is 24.85 days.
-            # For details, see https://bugs.python.org/issue20493
+        if datetime.utcnow() < target_time:
+            raise ValueError('Reminder sleep failed.')
 
-            if datetime.utcnow() < target_time:
-                raise ValueError('Reminder sleep failed.')
-
-            await ctx.reply(f'{ctx.author.mention}, here is your reminder: {message}')
-            await delete_reminder_from_db(self.bot, ctx.author.id, start_time)
-        except Exception as e:
-            await ctx.reply(f'{ctx.author.mention}, your reminder was canceled because of an error: {e}')
+        await ctx.reply(f'{ctx.author.mention}, here is your reminder: {message}')
+        await delete_reminder_from_db(self.bot, ctx.author.id, start_time)
 
 
     @remind.command(name='create')
