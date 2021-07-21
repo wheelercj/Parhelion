@@ -113,7 +113,7 @@ class Quotes(commands.Cog):
         await self.begin_daily_quote(ctx, target_time, ctx.author.id)
 
 
-    @quote.command(name='stop')
+    @quote.command(name='stop', aliases=['del', 'delete'])
     async def stop_daily_quote(self, ctx):
         """Stops your daily quotes"""
         try:
@@ -127,7 +127,7 @@ class Quotes(commands.Cog):
             await ctx.send('Your daily quotes have been stopped.')
 
 
-    @quote.command(name='mod-delete', aliases=['moddelete'])
+    @quote.command(name='mod-delete', aliases=['mdel', 'moddelete'])
     @commands.guild_only()
     @commands.has_guild_permissions(manage_messages=True)
     async def mod_delete_daily_quote(self, ctx, *, member: discord.Member):

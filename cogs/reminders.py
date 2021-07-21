@@ -73,14 +73,14 @@ class Reminders(commands.Cog):
         await delete_reminder_from_db(self.bot, ctx.author.id, start_time)
 
 
-    @remind.command(name='create')
+    @remind.command(name='create', aliases=['c'])
     async def create_reminder(self, ctx, *, time_and_message: str):
         """Sends you a reminder; this command is an alias for `remind`"""
         remind_command = self.bot.get_command('remind')
         await ctx.invoke(remind_command, time_and_message=time_and_message)
 
 
-    @remind.command(name='list')
+    @remind.command(name='list', aliases=['l'])
     async def list_reminders(self, ctx):
         """Shows all of your reminders"""
         reminder_records = await self.bot.db.fetch('''
@@ -111,7 +111,7 @@ class Reminders(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @remind.command(name='delete')
+    @remind.command(name='delete', aliases=['del'])
     async def delete_reminder(self, ctx, ID: int):
         """Deletes one of your reminders by its ID shown with the `remind list` command
 
@@ -137,7 +137,7 @@ class Reminders(commands.Cog):
             await ctx.send("Error: use the reminder's ID shown in the `remind list` command.")
 
 
-    @remind.command(name='mod-delete', aliases=['moddelete'])
+    @remind.command(name='mod-delete', aliases=['mdel', 'moddelete'])
     @commands.guild_only()
     @commands.has_guild_permissions(manage_messages=True)
     async def mod_delete_reminder(self, ctx, reminder_ID: int):
