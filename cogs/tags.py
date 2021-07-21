@@ -246,6 +246,9 @@ class Tags(commands.Cog):
     @tag.command(name='transfer', aliases=['t'])
     async def transfer_tag(self, ctx, member: discord.Member, *, tag_name: str):
         """Gives a server member ownership of one of your tags"""
+        if ctx.author.bot:
+            await ctx.send('Bots cannot own tags.')
+            return
         if await self.count_members_tags(member) >= self.tag_count_limit \
                 and self.bot.owner_id != ctx.author.id:
             await ctx.send(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
@@ -485,6 +488,9 @@ class Tags(commands.Cog):
     @tag_id.command(name='transfer', aliases=['t'])
     async def transfer_tag_by_id(self, ctx, member: discord.Member, tag_ID: int):
         """Gives a server member ownership of one of your tags"""
+        if ctx.author.bot:
+            await ctx.send('Bots cannot own tags.')
+            return
         if await self.count_members_tags(member) >= self.tag_count_limit \
                 and self.bot.owner_id != ctx.author.id:
             await ctx.send(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
