@@ -144,6 +144,37 @@ class Quotes(commands.Cog):
             await ctx.send(f"{member.display_name}'s daily quotes have been stopped.")
 
 
+    @quote.command(name='list', aliases=['l'])
+    @commands.guild_only()
+    async def list_daily_quote(self, ctx):
+        """Lists everyone that set up daily quotes in this channel"""
+        try:
+            records = await self.bot.db.fetch('''
+                SELECT author_id
+                FROM daily_quotes
+                WHERE server_id = $1
+                    AND channel_id = $2; 
+                ''', ctx.guild.id, ctx.channel.id)
+        except Exception as e:
+            await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
+            return
+
+        if records is None or not len(records):
+            await ctx.send('There are no daily quotes set up in this channel.')
+            return
+
+        message = "Here's everyone that set up a daily quote in this channel:"
+        for r in records:
+            member = ctx.guild.get_member(r['author_id'])
+            if member:
+                name = f'{member.name}#{member.discriminator}'
+            else:
+                name = r['author_id']
+            message += '\n' + name
+
+        await ctx.send(message)
+
+
     async def begin_daily_quote(self, destination: Union[discord.User, discord.TextChannel, commands.Context], target_time: datetime, author_id: int) -> None:
         """Creates an asyncio task for a daily quote"""
         def error_callback(running_task):
