@@ -289,7 +289,7 @@ class Tags(commands.Cog):
 
     @tag.command(name='search', aliases=['s'])
     async def tag_search(self, ctx, *, query: str):
-        """Searches for a tag"""
+        """Searches for a tag on this server by name"""
         if len(query) < 3:
             await ctx.send('Please enter a query that is at least 3 characters long.')
             # Postgres searches simply do not work with fewer characters for some reason.
