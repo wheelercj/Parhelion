@@ -298,18 +298,17 @@ class Tags(commands.Cog):
         records = await self.bot.db.fetch('''
             SELECT *
             FROM (SELECT *,
-                  to_tsvector(tags.name) as document
+                    to_tsvector(tags.name) as document
                   FROM tags
                   WHERE server_id = $1) tag_search
             WHERE tag_search.document @@ to_tsquery($2);
             ''', ctx.guild.id, query)
 
         if not records or not len(records):
-            await ctx.send(f'No search results found.')
+            await ctx.send(f'No matches found.')
             return
 
-        title = ''
-        await self.paginate_tag_list(ctx, title, records)
+        await self.paginate_tag_list(ctx, '', records)
 
 
     @tag.command(name='all', aliases=['a'])
@@ -325,8 +324,7 @@ class Tags(commands.Cog):
             await ctx.send(f'There are no tags on this server.')
             return
 
-        title = ''
-        await self.paginate_tag_list(ctx, title, records)
+        await self.paginate_tag_list(ctx, '', records)
 
     
     @tag.command(name='alias', hidden=True)
