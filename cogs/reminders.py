@@ -137,6 +137,23 @@ class Reminders(commands.Cog):
             await ctx.send("Error: use the reminder's ID shown in the `remind list` command.")
 
 
+    @remind.command(name='delete-all', aliases=['deleteall'])
+    async def delete_all_reminders(self, ctx):
+        """Deletes all of your reminders
+
+        Currently, this only deletes reminders from the database, not from the program. Deleted reminders will then only be canceled if the bot is restarted.
+        """
+        try:
+            await self.bot.db.execute('''
+                DELETE FROM reminders
+                WHERE author_id = $1;
+                ''', ctx.author.id)
+        except Exception as e:
+            await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
+        else:
+            await ctx.send('All of your reminders have been deleted.')
+
+
     @remind.command(name='mod-delete', aliases=['mdel', 'moddelete'])
     @commands.guild_only()
     @commands.has_guild_permissions(manage_messages=True)
