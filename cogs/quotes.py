@@ -8,7 +8,7 @@ import json
 from typing import Union
 
 # internal imports
-from common import format_time
+from common import format_time, safe_send
 
 
 '''
@@ -122,7 +122,7 @@ class Quotes(commands.Cog):
                 WHERE author_id = $1;
                 ''', ctx.author.id)
         except Exception as e:
-            print('sql delete from error: ', e)
+            await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
         else:
             await ctx.send('Your daily quotes have been stopped.')
 
@@ -139,7 +139,7 @@ class Quotes(commands.Cog):
                     AND server_id = $2;
                 ''', member.id, ctx.guild.id)
         except Exception as e:
-            await ctx.send(f'Error: {e}')
+            await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
         else:
             await ctx.send(f"{member.display_name}'s daily quotes have been stopped.")
 

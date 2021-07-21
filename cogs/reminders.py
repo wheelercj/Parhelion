@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 
 # internal imports
-from common import parse_time_message, format_timestamp, s
+from common import parse_time_message, format_timestamp, s, safe_send
 
 
 '''
@@ -126,14 +126,13 @@ class Reminders(commands.Cog):
                 ''', ID, ctx.author.id)
             await ctx.send(f'Reminder deleted: "{reminder_message}"')
         except Exception as e:
-            await ctx.send(f'Error: {e}')
+            await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
 
 
     @delete_reminder.error
     async def delete_reminder_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send("Error: missing argument. Use the reminder's ID shown in the `remind list` command.")
-            await ctx.send(error)
         elif isinstance(error, commands.BadArgument):
             await ctx.send("Error: use the reminder's ID shown in the `remind list` command.")
 
@@ -154,7 +153,7 @@ class Reminders(commands.Cog):
                 RETURNING *
                 ''', reminder_ID, ctx.guild.id)
         except Exception as e:
-            await ctx.send(f'Error: {e}')
+            await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
         else:
             message = record['message']
             author = ctx.guild.get_member(record['author'])
