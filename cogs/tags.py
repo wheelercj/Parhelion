@@ -32,8 +32,9 @@ class Paginator(buttons.Paginator):
 class Tags(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.tag_name_limit = 50
-        self.tag_content_limit = 1500
+        self.tag_count_limit = 10
+        self.tag_name_length_limit = 50
+        self.tag_content_length_limit = 1500
 
 
     async def cog_check(self, ctx):
@@ -72,16 +73,17 @@ class Tags(commands.Cog):
 
         If the tag name has spaces, surround it with double quotes. If the tag has an attachment, the message in which the tag was created must not be deleted, or the attachment will be lost.
         """
-        if await self.count_members_tags(ctx.author) >= 15:
-            await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
+        if await self.count_members_tags(ctx.author) >= self.tag_count_limit \
+                and self.bot.owner_id != ctx.author.id:
+            await ctx.send(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
             return
 
         try:
             name, content = await split_input(name_and_content)
-            if len(name) > self.tag_name_limit:
-                raise ValueError(f'Tag name length must be {self.tag_name_limit} characters or fewer.')
-            if len(content) > self.tag_content_limit:
-                raise ValueError(f'Tag content length must be {self.tag_content_limit} characters or fewer.')
+            if len(name) > self.tag_name_length_limit:
+                raise ValueError(f'Tag name length must be {self.tag_name_length_limit} characters or fewer.')
+            if len(content) > self.tag_content_length_limit:
+                raise ValueError(f'Tag content length must be {self.tag_content_length_limit} characters or fewer.')
 
             now = ctx.message.created_at
             file_url = await get_attachment_url(ctx)
@@ -151,8 +153,8 @@ class Tags(commands.Cog):
         If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
         name, content = await split_input(name_and_content)
-        if len(content) > self.tag_content_limit:
-            raise ValueError(f'Tag content length must be {self.tag_content_limit} characters or fewer.')
+        if len(content) > self.tag_content_length_limit:
+            raise ValueError(f'Tag content length must be {self.tag_content_length_limit} characters or fewer.')
 
         file_url = await get_attachment_url(ctx)
 
@@ -209,8 +211,9 @@ class Tags(commands.Cog):
     @tag.command(name='claim', aliases=['cl'])
     async def claim_tag(self, ctx, *, tag_name: str):
         """Gives you ownership of a tag if its owner left the server"""
-        if await self.count_members_tags(ctx.author) >= 15:
-            await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
+        if await self.count_members_tags(ctx.author) >= self.tag_count_limit \
+                and self.bot.owner_id != ctx.author.id:
+            await ctx.send(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
             return
 
         owner_id = await self.get_tag_owner_id_by_name(ctx, tag_name)
@@ -243,8 +246,9 @@ class Tags(commands.Cog):
     @tag.command(name='transfer', aliases=['t'])
     async def transfer_tag(self, ctx, member: discord.Member, *, tag_name: str):
         """Gives a server member ownership of one of your tags"""
-        if await self.count_members_tags(member) >= 15:
-            await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
+        if await self.count_members_tags(member) >= self.tag_count_limit \
+                and self.bot.owner_id != ctx.author.id:
+            await ctx.send(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
             return
 
         returned_tag_name = await self.bot.db.fetchval('''
@@ -388,8 +392,8 @@ class Tags(commands.Cog):
 
         If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
-        if len(content) > self.tag_content_limit:
-            raise ValueError(f'Tag content length must be {self.tag_content_limit} characters or fewer.')
+        if len(content) > self.tag_content_length_limit:
+            raise ValueError(f'Tag content length must be {self.tag_content_length_limit} characters or fewer.')
 
         file_url = await get_attachment_url(ctx)
 
@@ -446,8 +450,9 @@ class Tags(commands.Cog):
     @tag_id.command(name='claim', aliases=['cl'])
     async def claim_tag_by_id(self, ctx, tag_ID: int):
         """Gives you ownership of a tag if its owner left the server"""
-        if await self.count_members_tags(ctx.author) >= 15:
-            await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
+        if await self.count_members_tags(ctx.author) >= self.tag_count_limit \
+                and self.bot.owner_id != ctx.author.id:
+            await ctx.send(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
             return
 
         owner_id = await self.get_tag_owner_id_by_id(ctx, tag_ID)
@@ -480,8 +485,9 @@ class Tags(commands.Cog):
     @tag_id.command(name='transfer', aliases=['t'])
     async def transfer_tag_by_id(self, ctx, member: discord.Member, tag_ID: int):
         """Gives a server member ownership of one of your tags"""
-        if await self.count_members_tags(member) >= 15:
-            await ctx.send('The current limit to how many tags each person can have is 15. This will increase in the future.')
+        if await self.count_members_tags(member) >= self.tag_count_limit \
+                and self.bot.owner_id != ctx.author.id:
+            await ctx.send(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
             return
 
         returned_tag_name = await self.bot.db.fetchval('''
