@@ -280,10 +280,29 @@ class Tags(commands.Cog):
             await ctx.send(content)
 
 
-    @tag.command(name='search', aliases=['s'], hidden=True)
-    async def tag_search(self, ctx):
+    @tag.command(name='search', aliases=['s'])
+    async def tag_search(self, ctx, *, query: str):
         """Searches for a tag"""
-        await ctx.send('This command is under construction.')
+        if len(query) < 3:
+            await ctx.send('Please enter a query that is at least 3 characters long.')
+            # Postgres searches simply do not work with fewer characters for some reason.
+            return
+
+        records = await self.bot.db.fetch('''
+            SELECT *
+            FROM (SELECT *,
+                  to_tsvector(tags.name) as document
+                  FROM tags
+                  WHERE server_id = $1) tag_search
+            WHERE tag_search.document @@ to_tsquery($2);
+            ''', ctx.guild.id, query)
+
+        if not records or not len(records):
+            await ctx.send(f'No search results found.')
+            return
+
+        title = ''
+        await self.paginate_tag_list(ctx, title, records)
 
 
     @tag.command(name='all', aliases=['a'])
