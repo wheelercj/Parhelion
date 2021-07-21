@@ -49,6 +49,16 @@ class Owner(commands.Cog):
             await ctx.send('Server not found.')
 
 
+    @commands.command(name='server-id', aliases=['sid', 'serverid'])
+    async def get_server_id(self, ctx, *, server_name: str):
+        """Gets the ID of a server by its name, if the bot can see the server"""
+        servers = self.bot.guilds
+        for server in servers:
+            if server_name == server.name:
+                await ctx.send(server.id)
+        await ctx.message.add_reaction('✅')
+
+
     @commands.command()
     async def gist(self, ctx, *, content: str):
         """Creates a new private gist on GitHub and gives you the link
