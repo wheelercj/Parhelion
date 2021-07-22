@@ -51,6 +51,7 @@ class Bot(commands.Bot):
             'cogs.owner',
             'cogs.quotes',
             'cogs.reminders',
+            'cogs.settings',
             'cogs.tags',
             'jishaku',
         ]
