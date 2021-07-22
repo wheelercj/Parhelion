@@ -9,9 +9,9 @@ import asyncpg
         id SERIAL PRIMARY KEY,
         command_name TEXT,
         is_blacklist BOOL DEFAULT TRUE,  -- else it's a whitelist
-        is_user_ids BOOL DEFAULT TRUE,   -- else it's a list of server IDs
+        object_type TEXT CONSTRAINT valid_type CHECK (object_type = ANY('{"server", "channel", "user"}')),
         object_ids BIGINT[],
-        UNIQUE (command_name, is_blacklist, is_user_ids)
+        UNIQUE (command_name, is_blacklist, object_type)
     )
 '''
 # Each command may have multiple rows.
@@ -48,10 +48,7 @@ class Settings(commands.Cog):
                 content += 'blacklist of '
             else:
                 content += 'whitelist of '
-            if r['is_user_ids']:
-                content += 'users:'
-            else:
-                content += 'servers:'
+            content += r['object_type'] + 's:'
             for ID in r['object_ids']:
                 content += f'\n {ID}'
 
@@ -68,20 +65,20 @@ class Settings(commands.Cog):
             raise commands.BadArgument(f'Command "{command_name}" not found.')
 
         try:
-            await self.bot.db.execute('''
+            await self.bot.db.execute("""
                 INSERT INTO command_access_settings
-                (command_name, is_blacklist, is_user_ids, object_ids)
-                VALUES ($1, FALSE, FALSE, $2);
-                ''', command_name, [server.id])
+                (command_name, is_blacklist, object_type, object_ids)
+                VALUES ($1, FALSE, 'server', $2);
+                """, command_name, [server.id])
         except asyncpg.exceptions.UniqueViolationError:
-            await self.bot.db.execute('''
+            await self.bot.db.execute("""
                 UPDATE command_access_settings
                 SET object_ids = object_ids || $1
                 WHERE command_name = $2
                     AND is_blacklist = FALSE
-                    AND is_user_ids = FALSE
-                    AND $3 != ANY(object_ids);
-                ''', [server.id], command_name, server.id)
+                    AND object_type = 'server'
+                    AND $3 NOT IN object_ids;
+                """, [server.id], command_name, server.id)
 
         await ctx.message.add_reaction('✅')
 
