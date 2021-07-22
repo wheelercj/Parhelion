@@ -11,7 +11,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 # internal imports
-from cogs.rand import send_quote, update_quote_day
+from cogs.quotes import send_quote, update_quote_day
 from cogs.reminders import delete_reminder_from_db
 
 
