@@ -60,32 +60,43 @@ class Settings(commands.Cog):
 
         For the `access` argument, you may enter "allow", "deny", or "limit". The command name must not contain any aliases.
         """
+        await self.save_cmd_setting('server', server.id, access, command_name)
+        await ctx.message.add_reaction('✅')
+
+
+    async def save_cmd_setting(self, object_type: str, object_id: int, access: str, command_name: str) -> None:
+        """Validates and saves a new command access setting to the database"""
+        # Validate the arguments.
+        if object_type not in ('server', 'channel', 'user'):
+            raise ValueError
         access = access.strip('"')
         if access not in ('allow', 'deny', 'limit'):
             raise commands.BadArgument('Please enter either "allow", "deny", or "limit" before the command that you are changing the settings of.')
         all_command_names = [x.name for x in self.bot.commands]
         entered = command_name.split(' ')
-        for command_name in entered:
-            if command_name not in all_command_names:
-                raise commands.BadArgument(f'Command "{command_name}" not found.')
+        for cmd_name in entered:
+            if cmd_name not in all_command_names:
+                raise commands.BadArgument(f'Command "{cmd_name}" not found.')
 
         try:
+            # Create a new row for this setting, but only if one does not
+            # already exist for this type of setting.
             await self.bot.db.execute("""
                 INSERT INTO command_access_settings
                 (command_name, access, object_type, object_ids)
-                VALUES ($1, $2, 'server', $3);
-                """, command_name, access, [server.id])
+                VALUES ($1, $2, $3, $4);
+                """, command_name, access, object_type, [object_id])
         except asyncpg.exceptions.UniqueViolationError:
+            # If a row for this type of setting already exists,
+            # update the existing row.
             await self.bot.db.execute("""
                 UPDATE command_access_settings
                 SET object_ids = object_ids || $1
                 WHERE command_name = $2
                     AND access = $3
-                    AND object_type = 'server'
+                    AND object_type = $4
                     AND $1 != ANY(object_ids);
-                """, server.id, command_name, access)
-
-        await ctx.message.add_reaction('✅')
+                """, object_id, command_name, access, object_type)
 
 
 def setup(bot):
