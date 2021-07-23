@@ -17,6 +17,38 @@ import asyncpg
 # Each command may have multiple rows.
 
 
+class Access(commands.Converter):
+    """Validates a string input for whether to grant access to a command"""
+    async def convert(self, ctx, argument):
+        argument = argument.strip('"').lower()
+        if argument not in ('allow', 'deny', 'limit'):
+            raise commands.BadArgument('Please enter either "allow", "deny", or "limit" before the command that you are changing the settings of.')
+        return argument
+
+
+class ObjectType(commands.Converter):
+    """Validates a string argument for either server, channel, or user
+    
+    This is not intended to be used for command arguments.
+    """
+    async def convert(self, ctx, argument):
+        argument = argument.strip('"').lower()
+        if argument not in ('server', 'channel', 'user'):
+            raise ValueError('Please use either "server", "channel", or "user".')
+        return argument
+
+
+class CommandName(commands.Converter):
+    """Validates string input of a command name and rejects aliases"""
+    async def convert(self, ctx, argument):
+        all_command_names = [x.name for x in ctx.bot.commands]
+        entered = argument.split(' ')
+        for cmd_name in entered:
+            if cmd_name not in all_command_names:
+                raise commands.BadArgument(f'Command "{cmd_name}" not found.')
+        return argument
+
+
 class Settings(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -29,7 +61,7 @@ class Settings(commands.Cog):
 
 
     @commands.group(aliases=['set'], invoke_without_command=True)
-    async def setting(self, ctx, *, command_name: str):
+    async def setting(self, ctx, *, command_name: CommandName):
         """Shows the settings for a command"""
         records = await self.bot.db.fetch('''
             SELECT *
@@ -55,7 +87,7 @@ class Settings(commands.Cog):
 
 
     @setting.command(name='server', aliases=['s'])
-    async def server_cmd_access(self, ctx, server: discord.Guild, access: str, *, command_name: str):
+    async def server_cmd_access(self, ctx, server: discord.Guild, access: Access, *, command_name: CommandName):
         """Manages commands access for a server
 
         For the `access` argument, you may enter "allow", "deny", or "limit". The command name must not contain any aliases.
@@ -64,20 +96,8 @@ class Settings(commands.Cog):
         await ctx.message.add_reaction('✅')
 
 
-    async def save_cmd_setting(self, object_type: str, object_id: int, access: str, command_name: str) -> None:
-        """Validates and saves a new command access setting to the database"""
-        # Validate the arguments.
-        if object_type not in ('server', 'channel', 'user'):
-            raise ValueError
-        access = access.strip('"')
-        if access not in ('allow', 'deny', 'limit'):
-            raise commands.BadArgument('Please enter either "allow", "deny", or "limit" before the command that you are changing the settings of.')
-        all_command_names = [x.name for x in self.bot.commands]
-        entered = command_name.split(' ')
-        for cmd_name in entered:
-            if cmd_name not in all_command_names:
-                raise commands.BadArgument(f'Command "{cmd_name}" not found.')
-
+    async def save_cmd_setting(self, object_type: ObjectType, object_id: int, access: Access, command_name: CommandName) -> None:
+        """Saves a new command access setting to the database"""
         try:
             # Create a new row for this setting, but only if one does not
             # already exist for this type of setting.
