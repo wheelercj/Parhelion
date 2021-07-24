@@ -9,7 +9,7 @@ import asyncpg
         id SERIAL PRIMARY KEY,
         command_name TEXT,
         access TEXT CONSTRAINT valid_access CHECK (access = ANY('{"allow", "deny", "limit"}')),
-        object_type TEXT CONSTRAINT valid_type CHECK (object_type = ANY('{"global", "server", "channel", "user"}')),
+        object_type TEXT CONSTRAINT valid_type CHECK (object_type = ANY('{"global", "server", "role", "channel", "user"}')),
         object_ids BIGINT[],  -- this is [null] if object_type is 'global'
         UNIQUE (command_name, access, object_type)
     )
@@ -30,14 +30,14 @@ class Access(commands.Converter):
 
 
 class ObjectType(commands.Converter):
-    """Converter to validate a string argument to be either 'global', 'server', 'channel', or 'user'
+    """Converter to validate a string argument to be either 'global', 'server', 'role', 'channel', or 'user'
 
     This is not intended to be used for command arguments.
     """
     async def convert(self, ctx, argument):
         argument = argument.strip('"').lower()
-        if argument not in ('global', 'server', 'channel', 'user'):
-            raise ValueError('Please use either "global", "server", "channel", or "user".')
+        if argument not in ('global', 'server', 'role', 'channel', 'user'):
+            raise ValueError('Please use either "global", "server", "role", "channel", or "user".')
         return argument
 
 
@@ -133,6 +133,16 @@ class Settings(commands.Cog):
         """
         await self.save_cmd_setting('server', server.id, access, command_name)
         await ctx.send(f'New setting: {access} use of {command_name} for server {server.name}.')
+
+
+    @setting.command(name='role', aliases=['r'])
+    async def role_cmd_access(self, ctx, role: discord.Role, access: Access, *, command_name: CommandName):
+        """Manages commands access for a role
+
+        For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
+        """
+        await self.save_cmd_setting('server', role.id, access, command_name)
+        await ctx.send(f'New setting: {access} use of {command_name} for server {role.name}.')
 
 
     @setting.command(name='channel', aliases=['c'])
