@@ -59,21 +59,20 @@ class Channel(commands.Converter):
     """Converter for all types of Discord channels"""
     async def convert(self, ctx, argument):
         converters = [
-            commands.TextChannelConverter(),
-            commands.VoiceChannelConverter(),
-            commands.StageChannelConverter(),
-            commands.StoreChannelConverter(),
-            commands.CategoryChannelConverter(),
+            commands.TextChannelConverter,
+            commands.VoiceChannelConverter,
+            commands.StageChannelConverter,
+            commands.StoreChannelConverter,
+            commands.CategoryChannelConverter,
         ]
 
-        for c in converters:
+        for converter in converters:
             try:
-                return await c.convert(ctx, argument)
+                channel = await converter().convert(ctx, argument)
+                return channel
             except commands.ChannelNotFound:
-                if c == converters[-1]:
+                if converter == converters[-1]:
                     raise commands.BadArgument(f'Channel "{argument}" not found.')
-                else:
-                    pass
 
 
 class Settings(commands.Cog):
@@ -103,7 +102,7 @@ class Settings(commands.Cog):
         content = ''
         for r in records:
             content += f'\n\nID: {r["id"]}\n' \
-                + r['access'] + ' access '
+                + r['access'] + ' use '
             if r['object_type'] == 'global':
                 content += 'globally'
             else:
@@ -123,7 +122,7 @@ class Settings(commands.Cog):
         For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
         """
         await self.save_cmd_setting('global', None, access, command_name)
-        await ctx.message.add_reaction('✅')
+        await ctx.send(f'New setting: {access} use of {command_name} globally.')
 
 
     @setting.command(name='server', aliases=['s'])
@@ -133,7 +132,7 @@ class Settings(commands.Cog):
         For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
         """
         await self.save_cmd_setting('server', server.id, access, command_name)
-        await ctx.message.add_reaction('✅')
+        await ctx.send(f'New setting: {access} use of {command_name} for server {server.name}.')
 
 
     @setting.command(name='channel', aliases=['c'])
@@ -143,7 +142,7 @@ class Settings(commands.Cog):
         For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
         """
         await self.save_cmd_setting('channel', channel.id, access, command_name)
-        await ctx.message.add_reaction('✅')
+        await ctx.send(f'New setting: {access} use of {command_name} for channel {channel.name}.')
 
 
     @setting.command(name='member', aliases=['m'])
@@ -153,7 +152,7 @@ class Settings(commands.Cog):
         For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
         """
         await self.save_cmd_setting('user', member.id, access, command_name)
-        await ctx.message.add_reaction('✅')
+        await ctx.send(f'New setting: {access} use of {command_name} for member {member.display_name}.')
 
 
     @setting.command(name='user', aliases=['u'])
@@ -163,7 +162,7 @@ class Settings(commands.Cog):
         For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
         """
         await self.save_cmd_setting('user', user.id, access, command_name)
-        await ctx.message.add_reaction('✅')
+        await ctx.send(f'New setting: {access} use of {command_name} for user {user.name}#{user.discriminator}.')
 
 
     async def save_cmd_setting(self, object_type: ObjectType, object_id: int, access: Access, command_name: CommandName) -> None:
