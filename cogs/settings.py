@@ -89,13 +89,19 @@ class Settings(commands.Cog):
 
 
     @commands.group(aliases=['set'], invoke_without_command=True)
+    @commands.has_guild_permissions(manage_guild=True)
     async def setting(self, ctx, *, command_name: CommandName):
-        """Shows the settings for a command"""
+        """Shows this server's settings for a command"""
         records = await self.bot.db.fetch('''
             SELECT *
             FROM command_access_settings
-            WHERE command_name = $1;
-            ''', command_name)
+            WHERE command_name = $1
+                AND (parent_server_id = $2
+                    OR object_type = 'global'
+                    OR object_type = 'user'
+                    OR (object_type = 'server'
+                        AND $2 = ANY(object_ids)));
+            ''', command_name, ctx.guild.id)
 
         if records is None or not len(records):
             await ctx.send(f'No settings found for "{command_name}".')
@@ -110,11 +116,12 @@ class Settings(commands.Cog):
             else:
                 if r['parent_channel_id']:
                     content += f'in channel {r["parent_channel_id"]}\n'
-                if r['parent_server_id']:
-                    content += f'in server {r["parent_server_id"]}\n'
-                content += 'by ' + r['object_type'] + 's:'
-                for ID in r['object_ids']:
-                    content += f'\n {ID}'
+                if r['object_type'] == 'server':
+                    content += 'by this server'
+                else:
+                    content += 'by ' + r['object_type'] + 's:'
+                    for ID in r['object_ids']:
+                        content += f'\n {ID}'
 
         embed = discord.Embed()
         embed.add_field(name=f'"{command_name}" settings', value=content)
