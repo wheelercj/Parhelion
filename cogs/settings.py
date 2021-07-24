@@ -10,7 +10,7 @@ import asyncpg
         command_name TEXT,
         access TEXT CONSTRAINT valid_access CHECK (access = ANY('{"allow", "deny", "limit"}')),
         object_type TEXT CONSTRAINT valid_type CHECK (object_type = ANY('{"global", "server", "channel", "user"}')),
-        object_ids BIGINT[],  -- this is null if object_type is 'global'
+        object_ids BIGINT[],  -- this is [null] if object_type is 'global'
         UNIQUE (command_name, access, object_type)
     )
 '''
@@ -20,7 +20,7 @@ import asyncpg
 class Access(commands.Converter):
     """Converter to validate a string input for whether to grant access to a command
     
-    Valid inputs: 'allow', 'deny', 'limit'
+    Valid inputs: 'allow', 'deny', or 'limit'.
     """
     async def convert(self, ctx, argument):
         argument = argument.strip('"').lower()
@@ -44,7 +44,7 @@ class ObjectType(commands.Converter):
 class CommandName(commands.Converter):
     """Converter to validate a string input of a command name
     
-    Aliases are not valid.
+    Command aliases are not considered valid.
     """
     async def convert(self, ctx, argument):
         all_command_names = [x.name for x in ctx.bot.commands]
@@ -53,6 +53,27 @@ class CommandName(commands.Converter):
             if cmd_name not in all_command_names:
                 raise commands.BadArgument(f'Command "{cmd_name}" not found.')
         return argument
+
+
+class Channel(commands.Converter):
+    """Converter for all types of Discord channels"""
+    async def convert(self, ctx, argument):
+        converters = [
+            commands.TextChannelConverter(),
+            commands.VoiceChannelConverter(),
+            commands.StageChannelConverter(),
+            commands.StoreChannelConverter(),
+            commands.CategoryChannelConverter(),
+        ]
+
+        for c in converters:
+            try:
+                return await c.convert(ctx, argument)
+            except commands.ChannelNotFound:
+                if c == converters[-1]:
+                    raise commands.BadArgument(f'Channel "{argument}" not found.')
+                else:
+                    pass
 
 
 class Settings(commands.Cog):
@@ -112,6 +133,36 @@ class Settings(commands.Cog):
         For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
         """
         await self.save_cmd_setting('server', server.id, access, command_name)
+        await ctx.message.add_reaction('✅')
+
+
+    @setting.command(name='channel', aliases=['c'])
+    async def channel_cmd_access(self, ctx, channel: Channel, access: Access, *, command_name: CommandName):
+        """Manages commands access for a channel
+
+        For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
+        """
+        await self.save_cmd_setting('channel', channel.id, access, command_name)
+        await ctx.message.add_reaction('✅')
+
+
+    @setting.command(name='member', aliases=['m'])
+    async def member_cmd_access(self, ctx, member: discord.Member, access: Access, *, command_name: CommandName):
+        """Manages commands access for a member
+
+        For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
+        """
+        await self.save_cmd_setting('user', member.id, access, command_name)
+        await ctx.message.add_reaction('✅')
+
+
+    @setting.command(name='user', aliases=['u'])
+    async def user_cmd_access(self, ctx, user: discord.User, access: Access, *, command_name: CommandName):
+        """Manages commands access for a user
+
+        For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
+        """
+        await self.save_cmd_setting('user', user.id, access, command_name)
         await ctx.message.add_reaction('✅')
 
 
