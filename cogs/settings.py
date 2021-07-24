@@ -18,7 +18,10 @@ import asyncpg
 
 
 class Access(commands.Converter):
-    """Validates a string input for whether to grant access to a command"""
+    """Converter to validate a string input for whether to grant access to a command
+    
+    Valid inputs: 'allow', 'deny', 'limit'
+    """
     async def convert(self, ctx, argument):
         argument = argument.strip('"').lower()
         if argument not in ('allow', 'deny', 'limit'):
@@ -27,8 +30,8 @@ class Access(commands.Converter):
 
 
 class ObjectType(commands.Converter):
-    """Validates a string argument for either server, channel, or user
-    
+    """Converter to validate a string argument to be either 'server', 'channel', or 'user'
+
     This is not intended to be used for command arguments.
     """
     async def convert(self, ctx, argument):
@@ -39,7 +42,10 @@ class ObjectType(commands.Converter):
 
 
 class CommandName(commands.Converter):
-    """Validates string input of a command name and rejects aliases"""
+    """Converter to validate a string input of a command name
+    
+    Aliases are not valid.
+    """
     async def convert(self, ctx, argument):
         all_command_names = [x.name for x in ctx.bot.commands]
         entered = argument.split(' ')
