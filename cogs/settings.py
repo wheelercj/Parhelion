@@ -122,6 +122,7 @@ class Settings(commands.Cog):
 
 
     @setting.command(name='global', aliases=['g'])
+    @commands.is_owner()
     async def global_cmd_access(self, ctx, access: Access, *, command_name: CommandName):
         """Manages commands access globally
 
@@ -132,6 +133,7 @@ class Settings(commands.Cog):
 
 
     @setting.command(name='a-server', aliases=['as'])
+    @commands.is_owner()
     async def a_server_cmd_access(self, ctx, server: discord.Guild, access: Access, *, command_name: CommandName):
         """Manages commands access for a server
 
@@ -142,6 +144,7 @@ class Settings(commands.Cog):
 
 
     @setting.command(name='server', aliases=['s'])
+    @commands.has_guild_permissions(manage_guild=True)
     async def server_cmd_access(self, ctx, access: Access, *, command_name: CommandName):
         """Manages commands access for this server
 
@@ -152,6 +155,7 @@ class Settings(commands.Cog):
 
 
     @setting.command(name='role', aliases=['r'])
+    @commands.has_guild_permissions(manage_guild=True)
     async def role_cmd_access(self, ctx, role: discord.Role, access: Access, *, command_name: CommandName):
         """Manages commands access for a role in this server
 
@@ -162,6 +166,7 @@ class Settings(commands.Cog):
 
 
     @setting.command(name='channel', aliases=['c'])
+    @commands.has_guild_permissions(manage_guild=True)
     async def channel_cmd_access(self, ctx, channel: Channel, access: Access, *, command_name: CommandName):
         """Manages commands access for a channel in this server
 
@@ -172,6 +177,7 @@ class Settings(commands.Cog):
 
 
     @setting.command(name='channel-member', aliases=['cm', 'channelmember'])
+    @commands.has_guild_permissions(manage_guild=True)
     async def channel_member_cmd_access(self, ctx, channel: Channel, member: discord.Member, access: Access, *, command_name: CommandName):
         """Manages commands access for a member for a channel in this server
 
@@ -182,6 +188,7 @@ class Settings(commands.Cog):
 
 
     @setting.command(name='member', aliases=['m'])
+    @commands.has_guild_permissions(manage_guild=True)
     async def member_cmd_access(self, ctx, member: discord.Member, access: Access, *, command_name: CommandName):
         """Manages commands access for a member of this server
 
@@ -192,6 +199,7 @@ class Settings(commands.Cog):
 
 
     @setting.command(name='user', aliases=['u'])
+    @commands.is_owner()
     async def user_cmd_access(self, ctx, user: discord.User, access: Access, *, command_name: CommandName):
         """Manages commands access for a user
 
