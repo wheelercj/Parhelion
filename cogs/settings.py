@@ -9,8 +9,8 @@ import asyncpg
         id SERIAL PRIMARY KEY,
         command_name TEXT,
         access TEXT CONSTRAINT valid_access CHECK (access = ANY('{"allow", "deny", "limit"}')),
-        object_type TEXT CONSTRAINT valid_type CHECK (object_type = ANY('{"server", "channel", "user"}')),
-        object_ids BIGINT[],
+        object_type TEXT CONSTRAINT valid_type CHECK (object_type = ANY('{"global", "server", "channel", "user"}')),
+        object_ids BIGINT[],  -- this is null if object_type is 'global'
         UNIQUE (command_name, access, object_type)
     )
 '''
@@ -30,14 +30,14 @@ class Access(commands.Converter):
 
 
 class ObjectType(commands.Converter):
-    """Converter to validate a string argument to be either 'server', 'channel', or 'user'
+    """Converter to validate a string argument to be either 'global', 'server', 'channel', or 'user'
 
     This is not intended to be used for command arguments.
     """
     async def convert(self, ctx, argument):
         argument = argument.strip('"').lower()
-        if argument not in ('server', 'channel', 'user'):
-            raise ValueError('Please use either "server", "channel", or "user".')
+        if argument not in ('global', 'server', 'channel', 'user'):
+            raise ValueError('Please use either "global", "server", "channel", or "user".')
         return argument
 
 
@@ -82,28 +82,44 @@ class Settings(commands.Cog):
         content = ''
         for r in records:
             content += f'\n\nID: {r["id"]}\n' \
-                + r['access'] + ' access to ' \
-                + r['object_type'] + 's:'
-            for ID in r['object_ids']:
-                content += f'\n {ID}'
+                + r['access'] + ' access '
+            if r['object_type'] == 'global':
+                content += 'globally'
+            else:
+                content += 'by ' + r['object_type'] + 's:'
+                for ID in r['object_ids']:
+                    content += f'\n {ID}'
 
         embed = discord.Embed()
-        embed.add_field(name=f'{command_name} settings', value=content)
+        embed.add_field(name=f'"{command_name}" settings', value=content)
         await ctx.send(embed=embed)
+
+
+    @setting.command(name='global', aliases=['g'])
+    async def global_cmd_access(self, ctx, access: Access, *, command_name: CommandName):
+        """Manages commands access globally
+
+        For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
+        """
+        await self.save_cmd_setting('global', None, access, command_name)
+        await ctx.message.add_reaction('✅')
 
 
     @setting.command(name='server', aliases=['s'])
     async def server_cmd_access(self, ctx, server: discord.Guild, access: Access, *, command_name: CommandName):
         """Manages commands access for a server
 
-        For the `access` argument, you may enter "allow", "deny", or "limit". The command name must not contain any aliases.
+        For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
         """
         await self.save_cmd_setting('server', server.id, access, command_name)
         await ctx.message.add_reaction('✅')
 
 
     async def save_cmd_setting(self, object_type: ObjectType, object_id: int, access: Access, command_name: CommandName) -> None:
-        """Saves a new command access setting to the database"""
+        """Saves a new command access setting to the database
+        
+        object_id should be None if object_type is 'global'.
+        """
         try:
             # Create a new row for this setting, but only if one does not
             # already exist for this type of setting.
