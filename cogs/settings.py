@@ -131,14 +131,24 @@ class Settings(commands.Cog):
         await ctx.send(f'New setting: {access} use of "{command_name}" globally.')
 
 
-    @setting.command(name='server', aliases=['s'])
-    async def server_cmd_access(self, ctx, server: discord.Guild, access: Access, *, command_name: CommandName):
+    @setting.command(name='a-server', aliases=['as'])
+    async def a_server_cmd_access(self, ctx, server: discord.Guild, access: Access, *, command_name: CommandName):
         """Manages commands access for a server
 
         For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
         """
         await self.save_cmd_setting('server', server.id, access, command_name)
         await ctx.send(f'New setting: {access} use of "{command_name}" for server {server.name}.')
+
+
+    @setting.command(name='server', aliases=['s'])
+    async def server_cmd_access(self, ctx, access: Access, *, command_name: CommandName):
+        """Manages commands access for this server
+
+        For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
+        """
+        await self.save_cmd_setting('server', ctx.guild.id, access, command_name)
+        await ctx.send(f'New setting: {access} use of "{command_name}" for this server.')
 
 
     @setting.command(name='role', aliases=['r'])
