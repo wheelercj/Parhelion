@@ -155,7 +155,6 @@ class Reminders(commands.Cog):
 
 
     @remind.command(name='mod-delete', aliases=['mdel', 'moddelete'])
-    @commands.guild_only()
     @commands.has_guild_permissions(manage_messages=True)
     async def mod_delete_reminder(self, ctx, reminder_ID: int):
         """Delete's one of anyone's reminders made on this server

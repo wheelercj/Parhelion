@@ -128,7 +128,6 @@ class Quotes(commands.Cog):
 
 
     @quote.command(name='mod-delete', aliases=['mdel', 'moddelete'])
-    @commands.guild_only()
     @commands.has_guild_permissions(manage_messages=True)
     async def mod_delete_daily_quote(self, ctx, *, member: discord.Member):
         """Stops the daily quotes of anyone on this server"""
