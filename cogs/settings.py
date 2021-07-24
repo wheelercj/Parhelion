@@ -92,6 +92,14 @@ class Settings(commands.Cog):
     @commands.has_guild_permissions(manage_guild=True)
     async def setting(self, ctx, *, command_name: CommandName):
         """Shows this server's settings for a command"""
+        view_setting_command = self.bot.get_command('setting view')
+        await ctx.invoke(view_setting_command, command_name=command_name)
+
+
+    @setting.command(name='view', aliases=['v'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def view_setting(self, ctx, *, command_name: CommandName):
+        """An alias for `setting`"""
         records = await self.bot.db.fetch('''
             SELECT *
             FROM command_access_settings
