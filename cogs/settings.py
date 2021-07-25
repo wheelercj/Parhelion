@@ -22,14 +22,11 @@ import asyncpg
 class Access(commands.Converter):
     """Converter to validate a string input for whether to grant access to a command
     
-    Valid inputs: 'allow', 'deny', or 'limit'. The bot owner may also use 'owner-allow', 'owner-deny', or 'owner-limit'.
+    Valid inputs: 'allow', 'deny', or 'limit'.
     """
     async def convert(self, ctx, argument):
         argument = argument.strip('"').lower()
-        if argument in ('owner-allow', 'owner-deny', 'owner-limit'):
-            if not await ctx.bot.is_owner(ctx.author):
-                raise commands.NotOwner('Owner access types can only be used by the bot owner.')
-        elif argument not in ('allow', 'deny', 'limit'):
+        if argument not in ('allow', 'deny', 'limit'):
             raise commands.BadArgument('Please enter either "allow", "deny", or "limit" before the command that you are changing the settings of.')
         return argument
 
@@ -106,7 +103,7 @@ class Settings(commands.Cog):
     @commands.has_guild_permissions(manage_guild=True)
     async def view_setting(self, ctx, *, command_name: CommandName):
         """An alias for `setting`"""
-        records = await self.bot.db.fetch('''
+        records = await self.bot.db.fetch("""
             SELECT *
             FROM command_access_settings
             WHERE command_name = $1
@@ -114,7 +111,7 @@ class Settings(commands.Cog):
                     OR object_type = 'global'
                     OR (object_type = 'server'
                         AND $2 = ANY(object_ids)));
-            ''', command_name, ctx.guild.id)
+            """, command_name, ctx.guild.id)
 
         if records is None or not len(records):
             await ctx.send(f'No settings found for "{command_name}".')
@@ -144,10 +141,11 @@ class Settings(commands.Cog):
     @setting.command(name='global', aliases=['g'])
     @commands.is_owner()
     async def global_cmd_access(self, ctx, access: Access, *, command_name: CommandName):
-        """Manages commands access globally
+        """Manages absolute commands access globally
 
-        For the `access` argument, you may enter "allow", "deny", "limit", "owner-allow", "owner-deny", or "owner-limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
+        For the `access` argument, you may enter "allow", "deny", or "limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
         """
+        access = 'owner-' + access
         await self.save_cmd_setting('global', None, access, command_name)
         await ctx.send(f'New setting: {access} use of "{command_name}" globally.')
 
@@ -155,10 +153,13 @@ class Settings(commands.Cog):
     @setting.command(name='a-server', aliases=['as'])
     @commands.is_owner()
     async def a_server_cmd_access(self, ctx, server: discord.Guild, access: Access, *, command_name: CommandName):
-        """Manages commands access for a server
+        """Manages absolute commands access for a server
 
-        For the `access` argument, you may enter "allow", "deny", "limit", "owner-allow", "owner-deny", or "owner-limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
+        For the `access` argument, you may enter "allow" or "deny". The command name must not contain any aliases.
         """
+        access = 'owner-' + access
+        if access == "owner-limit":
+            raise commands.BadArgument('Please enter either "allow" or "deny" before the command that you are changing the settings of.')
         await self.save_cmd_setting('server', server.id, access, command_name)
         await ctx.send(f'New setting: {access} use of "{command_name}" for server {server.name}.')
 
@@ -221,10 +222,13 @@ class Settings(commands.Cog):
     @setting.command(name='user', aliases=['u'])
     @commands.is_owner()
     async def user_cmd_access(self, ctx, user: discord.User, access: Access, *, command_name: CommandName):
-        """Manages commands access for a user
+        """Manages absolute commands access for a user
 
-        For the `access` argument, you may enter "allow", "deny", "limit", "owner-allow", "owner-deny", or "owner-limit". Limited access is the same as denied access, except that it allows exceptions. The command name must not contain any aliases.
+        For the `access` argument, you may enter "allow" or "deny". The command name must not contain any aliases.
         """
+        access = 'owner-' + access
+        if access == "owner-limit":
+            raise commands.BadArgument('Please enter either "allow" or "deny" before the command that you are changing the settings of.')
         await self.save_cmd_setting('user', user.id, access, command_name)
         await ctx.send(f'New setting: {access} use of "{command_name}" for user {user.name}#{user.discriminator}.')
 
