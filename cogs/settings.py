@@ -112,7 +112,6 @@ class Settings(commands.Cog):
             WHERE command_name = $1
                 AND (parent_server_id = $2
                     OR object_type = 'global'
-                    OR object_type = 'user'
                     OR (object_type = 'server'
                         AND $2 = ANY(object_ids)));
             ''', command_name, ctx.guild.id)
