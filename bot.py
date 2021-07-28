@@ -16,6 +16,7 @@ from typing import List, Dict
 # internal imports
 from common import dev_settings, dev_mail, get_prefixes_message, get_prefixes_list
 from startup import continue_tasks, load_all_custom_prefixes, set_up_logger, get_db_connection
+from cogs.settings import CmdSettings
 
 
 class Bot(commands.Bot):
@@ -25,20 +26,21 @@ class Bot(commands.Bot):
 
         super().__init__(intents=intents, command_prefix=self.get_command_prefixes)
 
-        self.load_default_extensions()
-
         self.add_check(self.check_global_cooldown, call_once=True)
 
         self.app_info: commands.Bot.AppInfo = None
         self.owner_id: int = None
         self.launch_time = datetime.utcnow()
         self.global_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
+        self.all_cmd_settings: Dict[str, CmdSettings] = dict()
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.db: asyncpg.Pool = None
         self.custom_prefixes: Dict[int, List[str]] = load_all_custom_prefixes()
         self.logger: logging.Logger = None
         self.previous_command_ctxs: List[commands.Context] = []
         self.command_use_count = 0
+
+        self.load_default_extensions()
 
 
     def load_default_extensions(self) -> None:
@@ -97,7 +99,7 @@ class Bot(commands.Bot):
     async def close(self):
         await self.db.close()
         await super().close()
-    
+
 
     async def on_connect(self):
         print('Loading . . . ')
@@ -196,6 +198,8 @@ class Bot(commands.Bot):
             await ctx.send('This command has been disabled.')
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.send(f'Commands on cooldown. Please try again in {error.retry_after:.2f} seconds.')
+        elif isinstance(error, commands.CheckFailure):
+            await ctx.send(f'This command is disabled.')
         elif isinstance(error, commands.UserInputError):
             await ctx.send(error)
         elif isinstance(error, commands.NotOwner):
@@ -203,13 +207,18 @@ class Bot(commands.Bot):
         elif isinstance(error, commands.MissingRole):
             await ctx.send(f'You do not have the necessary role to use this command: {error.missing_role}')
         elif isinstance(error, commands.MissingPermissions):
-            await ctx.send(f'You do not have the necessary permissions to use this command: {error.missing_perms}')
+            message = f'You do not have the necessary permissions to use this command'
+            try: message += ': ' + error.missing_perms
+            except: pass
+            await ctx.send(message)
         elif isinstance(error, commands.BotMissingPermissions):
             perms_needed = ', '.join(error.missing_perms).replace('_', ' ')
             await ctx.send(f'I have not been granted some permission(s) needed for this command to work: {perms_needed}. Permissions can be managed in the server\'s settings.')
             await dev_mail(self, f'The invite link may need to be updated with more permission(s): {perms_needed}')
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send('This command cannot be used in private messages.')
+        elif isinstance(error, commands.BadUnionArgument):
+            await ctx.send('Error: one or more inputs could not be understood.')
         else:
             print(f'Ignoring exception in command {ctx.command}:', file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
@@ -230,7 +239,7 @@ class Bot(commands.Bot):
         await message.channel.send(f'Hello {message.author.display_name}! My command {prefixes_message}. Use `{prefixes[0]}help` to get help with commands.')
 
 
-    async def check_global_cooldown(self, ctx) -> True:
+    async def check_global_cooldown(self, ctx) -> bool:
         """Checks if ctx.author used any command recently
         
         If the user has not triggered the global cooldown, the global
