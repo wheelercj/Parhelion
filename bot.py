@@ -15,7 +15,6 @@ from typing import List, Dict
 # internal imports
 from common import dev_settings, dev_mail, get_prefixes_message, get_prefixes_list
 from startup import continue_tasks, load_all_custom_prefixes, set_up_logger
-from cogs.settings import CmdSettings
 
 
 class Bot(commands.Bot):
@@ -31,7 +30,6 @@ class Bot(commands.Bot):
         self.owner_id: int = None
         self.launch_time = datetime.utcnow()
         self.global_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
-        self.all_cmd_settings: Dict[str, CmdSettings] = dict()
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.custom_prefixes: Dict[int, List[str]] = load_all_custom_prefixes()
         self.logger: logging.Logger = None

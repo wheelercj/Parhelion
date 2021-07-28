@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 import asyncio
 import asyncpg
-from typing import Dict, Any, Optional
+from typing import Any, Optional, Dict
 import json
 
 
@@ -25,24 +25,6 @@ import json
             }'::jsonb
     );
 '''
-
-
-class ServerSettings:
-    """The server settings for one command"""
-    def __init__(self):
-        self.members: Dict[str, bool] = dict()
-        self.channels: Dict[str, bool] = dict()
-        self.roles: Dict[str, bool] = dict()
-        self.server: bool = None
-
-
-class CmdSettings:
-    """The global and server settings for one command"""
-    def __init__(self):
-        self.global_users: Dict[str, bool] = dict()
-        self.global_servers: Dict[str, bool] = dict()
-        self._global: bool = None
-        self.servers: Dict[str, ServerSettings] = dict()
 
 
 class CommandName(commands.Converter):
@@ -82,6 +64,34 @@ class Settings(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self._task = bot.loop.create_task(self.load_settings())
+        self.all_cmd_settings: Dict[str, dict] = dict()
+        # Command access settings hierarchy, order, and types:
+        #     all_cmd_settings: Dict[str, dict]  # The settings for all commands.
+        #         'cmd_settings': Dict[str, Union[dict, bool]]  # The settings for one command.
+        #             'global_users': Dict[str, bool]
+        #             'global_servers': Dict[str, bool]
+        #             '_global': bool
+        #             'server_settings': Dict[str, Union[dict, bool]]
+        #                 'members': Dict[str, bool]
+        #                 'channels': Dict[str, bool]
+        #                 'roles': Dict[str, bool]
+        #                 'server': bool
+
+    # The default global and server settings for one command.
+        self.default_cmd_settings = {
+            'global_users': dict(),
+            'global_servers': dict(),
+            '_global': None,
+            'servers': dict()
+        }
+
+    # The default server settings for one command.
+        self.default_server_settings = {
+            'members': dict(),
+            'channels': dict(),
+            'roles': dict(),
+            'server': None
+        }
 
 
     async def load_settings(self):
@@ -98,7 +108,7 @@ class Settings(commands.Cog):
             if records is None or not len(records):
                 print('  No settings found')
             for r in records:
-                self.bot.all_cmd_settings[r['cmd_name']] = json.loads(r['cmd_settings'])
+                self.all_cmd_settings[r['cmd_name']] = json.loads(r['cmd_settings'])
         except asyncio.CancelledError:
             raise
         except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
@@ -116,32 +126,18 @@ class Settings(commands.Cog):
     async def bot_check(self, ctx):
         """Checks if ctx.author has permission to use ctx.command"""
         # The order in which the settings are checked is important. Owner settings must be checked before the settings chosen by the mods/admin of ctx.guild, and within each of those two categories the settings must go from most specific to least specific.
-
-        # Settings hierarchy and order:
-        #     all_cmd_settings  # The settings for all commands.
-        #         cmd_settings  # The settings for one command.
-        #             owner_settings
-        #                 global_users
-        #                 global_servers
-        #                 _global
-        #             server_settings
-        #                 members
-        #                 channels
-        #                 roles
-        #                 server
-
         if await self.bot.is_owner(ctx.author):
             return True
 
         try:
             cmd = ctx.command.root_parent or ctx.command
-            cmd_settings = self.bot.all_cmd_settings[cmd.name]
+            cmd_settings = self.all_cmd_settings[cmd.name]
 
             # Check owner settings.
             owner_settings = [
-                (cmd_settings.global_users, ctx.author.id),
-                (cmd_settings.global_servers, ctx.guild.id),
-                (cmd_settings._global, None)
+                (cmd_settings['global_users'], ctx.author.id),
+                (cmd_settings['global_servers'], ctx.guild.id),
+                (cmd_settings['_global'], None)
             ]
 
             for category, ID in owner_settings:
@@ -150,15 +146,15 @@ class Settings(commands.Cog):
                     return setting
 
             # Check the settings chosen by the mods/admin of ctx.guild.
-            all_server_settings = cmd_settings.server[str(ctx.guild.id)]  # This must be after owner settings are checked because it might raise KeyError.
+            all_server_settings = cmd_settings['server'][str(ctx.guild.id)]  # This must be after owner settings are checked because it might raise KeyError.
             # Gather the settings that don't include the roles ctx.author doesn't have.
             server_settings = [
-                (all_server_settings.members, ctx.author.id),
-                (all_server_settings.channels, ctx.channel.id)
+                (all_server_settings['members'], ctx.author.id),
+                (all_server_settings['channels'], ctx.channel.id)
             ]
             for role in ctx.author.roles[::-1]:
-                server_settings.append((all_server_settings.roles, role.id))
-            server_settings.append((all_server_settings.server, None))
+                server_settings.append((all_server_settings['roles'], role.id))
+            server_settings.append((all_server_settings['server'], None))
 
             for c, ID in server_settings:
                 setting = await self.has_access(c, ID)
@@ -197,30 +193,30 @@ class Settings(commands.Cog):
     async def view_setting(self, ctx, command_name: CommandName):
         """An alias for `setting`"""
         try:
-            s = self.bot.all_cmd_settings[command_name]
+            s = self.all_cmd_settings[command_name]
         except KeyError:
             await ctx.send(f'No settings found for the `{command_name}` command.')
             return
 
         embed = discord.Embed(title=f'`{command_name}` command settings')
-        if s._global is not None:
-            embed.add_field(name='global', value=s._global, inline=False)
-        if len(s.global_servers):
-            embed.add_field(name='global servers', value=s.global_servers, inline=False)
-        if len(s.global_users):
-            embed.add_field(name='global users', value=s.global_users, inline=False)
+        if s['_global'] is not None:
+            embed.add_field(name='global', value=s['_global'], inline=False)
+        if len(s['global_servers']):
+            embed.add_field(name='global servers', value=s['global_servers'], inline=False)
+        if len(s['global_users']):
+            embed.add_field(name='global users', value=s['global_users'], inline=False)
 
         try:
-            ss = s.servers[str(ctx.guild.id)]
+            ss = s['servers'][str(ctx.guild.id)]
 
-            if ss.server is not None:
-                embed.add_field(name='server', value=ss.server, inline=False)
-            if len(ss.roles):
-                embed.add_field(name='server roles', value=ss.roles, inline=False)
-            if len(ss.channels):
-                embed.add_field(name='server channels', value=ss.channels, inline=False)
-            if len(ss.members):
-                embed.add_field(name='server members', value=ss.members, inline=False)
+            if ss['server'] is not None:
+                embed.add_field(name='server', value=ss['server'], inline=False)
+            if len(ss['roles']):
+                embed.add_field(name='server roles', value=ss['roles'], inline=False)
+            if len(ss['channels']):
+                embed.add_field(name='server channels', value=ss['channels'], inline=False)
+            if len(ss['members']):
+                embed.add_field(name='server members', value=ss['members'], inline=False)
         except KeyError:
             pass
 
@@ -235,7 +231,7 @@ class Settings(commands.Cog):
         The command name must not contain any aliases.
         """
         await self.set_default_settings(ctx, command_name)
-        self.bot.all_cmd_settings[command_name]._global = on_or_off
+        self.all_cmd_settings[command_name]['_global'] = on_or_off
         setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
             UPDATE command_access_settings
@@ -253,7 +249,7 @@ class Settings(commands.Cog):
         The command name must not contain any aliases.
         """
         await self.set_default_settings(ctx, command_name)
-        self.bot.all_cmd_settings[command_name].global_servers = {str(server.id): on_or_off}
+        self.all_cmd_settings[command_name]['global_servers'] = {str(server.id): on_or_off}
         setting_json = json.dumps({server.id: on_or_off})
         await self.bot.db.execute("""
             UPDATE command_access_settings
@@ -271,7 +267,7 @@ class Settings(commands.Cog):
         The command name must not contain any aliases.
         """
         await self.set_default_settings(ctx, command_name)
-        self.bot.all_cmd_settings[command_name].global_users = {str(user.id): on_or_off}
+        self.all_cmd_settings[command_name]['global_users'] = {str(user.id): on_or_off}
         setting_json = json.dumps({user.id: on_or_off})
         await self.bot.db.execute("""
             UPDATE command_access_settings
@@ -289,7 +285,7 @@ class Settings(commands.Cog):
         The command name must not contain any aliases.
         """
         await self.set_default_settings(ctx, command_name)
-        self.bot.all_cmd_settings[command_name].servers[str(ctx.guild.id)].server = on_or_off
+        self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['server'] = on_or_off
         setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
             UPDATE command_access_settings
@@ -307,7 +303,7 @@ class Settings(commands.Cog):
         The command name must not contain any aliases.
         """
         await self.set_default_settings(ctx, command_name)
-        self.bot.all_cmd_settings[command_name].servers[str(ctx.guild.id)].roles[str(role.id)] = on_or_off
+        self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['roles'][str(role.id)] = on_or_off
         setting_json = json.dumps({role.id: on_or_off})
         await self.bot.db.execute("""
             UPDATE command_access_settings
@@ -325,7 +321,7 @@ class Settings(commands.Cog):
         The command name must not contain any aliases.
         """
         await self.set_default_settings(ctx, command_name)
-        self.bot.all_cmd_settings[command_name].servers[str(ctx.guild.id)].channels[str(channel.id)] = on_or_off
+        self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['channels'][str(channel.id)] = on_or_off
         setting_json = json.dumps({channel.id: on_or_off})
         await self.bot.db.execute("""
             UPDATE command_access_settings
@@ -343,7 +339,7 @@ class Settings(commands.Cog):
         The command name must not contain any aliases.
         """
         await self.set_default_settings(ctx, command_name)
-        self.bot.all_cmd_settings[command_name].servers[str(ctx.guild.id)].members[str(member.id)] = on_or_off
+        self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['members'][str(member.id)] = on_or_off
         setting_json = json.dumps({member.id: on_or_off})
         await self.bot.db.execute("""
             UPDATE command_access_settings
@@ -358,8 +354,8 @@ class Settings(commands.Cog):
         
         The defaults are set in both this program and in the database.
         """
-        self.bot.all_cmd_settings.setdefault(command_name, CmdSettings())
-        self.bot.all_cmd_settings[command_name].servers.setdefault(str(ctx.guild.id), ServerSettings())
+        self.all_cmd_settings.setdefault(command_name, self.default_cmd_settings)
+        self.all_cmd_settings[command_name]['servers'].setdefault(str(ctx.guild.id), self.default_server_settings)
         await self.bot.db.execute("""
             INSERT INTO command_access_settings
             (cmd_name)
