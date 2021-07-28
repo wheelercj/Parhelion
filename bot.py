@@ -3,7 +3,6 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 import aiohttp
-import asyncpg
 import json
 import os
 import re
@@ -15,7 +14,7 @@ from typing import List, Dict
 
 # internal imports
 from common import dev_settings, dev_mail, get_prefixes_message, get_prefixes_list
-from startup import continue_tasks, load_all_custom_prefixes, set_up_logger, get_db_connection
+from startup import continue_tasks, load_all_custom_prefixes, set_up_logger
 from cogs.settings import CmdSettings
 
 
@@ -34,7 +33,6 @@ class Bot(commands.Bot):
         self.global_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
         self.all_cmd_settings: Dict[str, CmdSettings] = dict()
         self.session = aiohttp.ClientSession(loop=self.loop)
-        self.db: asyncpg.Pool = None
         self.custom_prefixes: Dict[int, List[str]] = load_all_custom_prefixes()
         self.logger: logging.Logger = None
         self.previous_command_ctxs: List[commands.Context] = []
@@ -107,7 +105,6 @@ class Bot(commands.Bot):
 
         self.app_info = await self.application_info()
         self.owner_id = self.app_info.owner.id
-        self.db = await get_db_connection()
         self.logger = await set_up_logger(__name__, logging.INFO)
 
         await continue_tasks(self)
