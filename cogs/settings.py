@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 import asyncio
 import asyncpg
-from typing import Any, Optional, Dict
+from typing import Any, Optional, Dict, Callable
 import json
 
 
@@ -32,6 +32,13 @@ def ooo(boolean: bool) -> str:
     if boolean:
         return 'on'
     return 'off'
+
+
+def emoji(boolean: bool) -> str:
+    """Returns either '✅' or '❌'"""
+    if boolean:
+        return '✅'
+    return '❌'
 
 
 class CommandName(commands.Converter):
@@ -207,23 +214,29 @@ class Settings(commands.Cog):
 
         embed = discord.Embed(title=f'`{command_name}` command settings')
         if s['_global'] is not None:
-            embed.add_field(name='global', value=s['_global'], inline=False)
+            embed.add_field(name='global', value=emoji(s['_global']), inline=False)
         if len(s['global_servers']):
-            embed.add_field(name='global servers', value=s['global_servers'], inline=False)
+            content = await self.get_settings_message(s, 'global_servers', self.bot.get_guild)
+            embed.add_field(name='global servers', value=content, inline=False)
         if len(s['global_users']):
-            embed.add_field(name='global users', value=s['global_users'], inline=False)
+            content = await self.get_settings_message(s, 'global_users', self.bot.get_user)
+            embed.add_field(name='global users', value=content, inline=False)
 
         try:
             ss = s['servers'][str(ctx.guild.id)]
+            server = self.bot.get_guild(ctx.guild.id)
 
             if ss['server'] is not None:
-                embed.add_field(name='server', value=ss['server'], inline=False)
+                embed.add_field(name='server', value=emoji(ss['server']), inline=False)
             if len(ss['roles']):
-                embed.add_field(name='server roles', value=ss['roles'], inline=False)
+                content = await self.get_settings_message(ss, 'roles', server.get_role)
+                embed.add_field(name='server roles', value=content, inline=False)
             if len(ss['channels']):
-                embed.add_field(name='server channels', value=ss['channels'], inline=False)
+                content = await self.get_settings_message(ss, 'channels', server.get_channel)
+                embed.add_field(name='server channels', value=content, inline=False)
             if len(ss['members']):
-                embed.add_field(name='server members', value=ss['members'], inline=False)
+                content = await self.get_settings_message(ss, 'members', server.get_member)
+                embed.add_field(name='server members', value=content, inline=False)
         except KeyError:
             pass
 
@@ -370,6 +383,16 @@ class Settings(commands.Cog):
             ON CONFLICT (cmd_name)
             DO NOTHING;
             """, command_name)
+
+
+    async def get_settings_message(self, dictionary: dict, key: str, get_function: Callable) -> str:
+        """Creates a str listing whether each element of dict[key] has access"""
+        content = ''
+        for ID_str, boolean in dictionary[key].items():
+            name = get_function(int(ID_str))
+            content += f'{emoji(boolean)} {name}\n'
+
+        return content
 
 
 def setup(bot):
