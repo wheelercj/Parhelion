@@ -249,13 +249,13 @@ class Settings(commands.Cog):
         The command name must not contain any aliases.
         """
         await self.set_default_settings(ctx, command_name)
-        self.all_cmd_settings[command_name]['global_servers'] = {str(server.id): on_or_off}
-        setting_json = json.dumps({server.id: on_or_off})
+        self.all_cmd_settings[command_name]['global_servers'][str(server.id)] = on_or_off
+        setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
             UPDATE command_access_settings
-            SET cmd_settings = JSONB_SET(cmd_settings, '{global_servers}', $1::JSONB, TRUE)
-            WHERE cmd_name = $2;
-            """, setting_json, command_name)
+            SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
+            WHERE cmd_name = $4;
+            """, 'global_servers', str(server.id), setting_json, command_name)
         await ctx.send(f'New setting: "{command_name}" {on_or_off} for server {server.name}.')
 
 
@@ -267,13 +267,13 @@ class Settings(commands.Cog):
         The command name must not contain any aliases.
         """
         await self.set_default_settings(ctx, command_name)
-        self.all_cmd_settings[command_name]['global_users'] = {str(user.id): on_or_off}
-        setting_json = json.dumps({user.id: on_or_off})
+        self.all_cmd_settings[command_name]['global_users'][str(user.id)] = on_or_off
+        setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
             UPDATE command_access_settings
-            SET cmd_settings = JSONB_SET(cmd_settings, '{global_users}', $1::JSONB, TRUE)
-            WHERE cmd_name = $2;
-            """, setting_json, command_name)
+            SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
+            WHERE cmd_name = $4;
+            """, 'global_users', str(user.id), setting_json, command_name)
         await ctx.send(f'New setting: "{command_name}" {on_or_off} for user {user.name}#{user.discriminator}.')
 
 
@@ -289,9 +289,9 @@ class Settings(commands.Cog):
         setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
             UPDATE command_access_settings
-            SET cmd_settings = JSONB_SET(cmd_settings, '{servers, $1, server}', $2::JSONB, TRUE)
-            WHERE cmd_name = $3;
-            """, str(ctx.guild.id), setting_json, command_name)
+            SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3]::TEXT[], $4::JSONB, TRUE)
+            WHERE cmd_name = $5;
+            """, 'servers', str(ctx.guild.id), 'server', setting_json, command_name)
         await ctx.send(f'New setting: "{command_name}" {on_or_off} for this server.')
 
 
@@ -304,12 +304,12 @@ class Settings(commands.Cog):
         """
         await self.set_default_settings(ctx, command_name)
         self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['roles'][str(role.id)] = on_or_off
-        setting_json = json.dumps({role.id: on_or_off})
+        setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
             UPDATE command_access_settings
-            SET cmd_settings = JSONB_SET(cmd_settings, '{servers, $1, roles}', $2::JSONB, TRUE)
-            WHERE cmd_name = $3;
-            """, str(ctx.guild.id), setting_json, command_name)
+            SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
+            WHERE cmd_name = $6;
+            """, 'servers', str(ctx.guild.id), 'roles', str(role.id), setting_json, command_name)
         await ctx.send(f'New setting: "{command_name}" {on_or_off} for role {role.name}.')
 
 
@@ -322,12 +322,12 @@ class Settings(commands.Cog):
         """
         await self.set_default_settings(ctx, command_name)
         self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['channels'][str(channel.id)] = on_or_off
-        setting_json = json.dumps({channel.id: on_or_off})
+        setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
             UPDATE command_access_settings
-            SET cmd_settings = JSONB_SET(cmd_settings, '{servers, $1, channels}', $2::JSONB, TRUE)
-            WHERE cmd_name = $3;
-            """, str(ctx.guild.id), setting_json, command_name)
+            SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
+            WHERE cmd_name = $6;
+            """, 'servers', str(ctx.guild.id), 'channels', str(channel.id), setting_json, command_name)
         await ctx.send(f'New setting: "{command_name}" {on_or_off} for channel {channel.name}.')
 
 
@@ -340,12 +340,12 @@ class Settings(commands.Cog):
         """
         await self.set_default_settings(ctx, command_name)
         self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['members'][str(member.id)] = on_or_off
-        setting_json = json.dumps({member.id: on_or_off})
+        setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
             UPDATE command_access_settings
-            SET cmd_settings = JSONB_SET(cmd_settings, '{servers, $1, members}', $2::JSONB, TRUE)
-            WHERE cmd_name = $3;
-            """, str(ctx.guild.id), setting_json, command_name)
+            SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
+            WHERE cmd_name = $6;
+            """, 'servers', str(ctx.guild.id), 'members', str(member.id), setting_json, command_name)
         await ctx.send(f'New setting: "{command_name}" {on_or_off} for member {member.name}.')
 
 
