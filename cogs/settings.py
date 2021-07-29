@@ -27,6 +27,13 @@ import json
 '''
 
 
+def ooo(boolean: bool) -> str:
+    """Returns either 'on' or 'off'"""
+    if boolean:
+        return 'on'
+    return 'off'
+
+
 class CommandName(commands.Converter):
     """Converter to validate a string input of a command name
     
@@ -238,7 +245,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, '{_global}', $1::JSONB, TRUE)
             WHERE cmd_name = $2;
             """, setting_json, command_name)
-        await ctx.send(f'New global setting: command `{command_name}` access: {on_or_off}.')
+        await ctx.send(f'New global setting: command `{command_name}` {ooo(on_or_off)}.')
 
 
     @setting.command(name='global-server', aliases=['gs', 'globalserver'])
@@ -256,7 +263,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
             WHERE cmd_name = $4;
             """, 'global_servers', str(server.id), setting_json, command_name)
-        await ctx.send(f'New setting: "{command_name}" {on_or_off} for server {server.name}.')
+        await ctx.send(f'New global setting: `{command_name}` {ooo(on_or_off)} for server {server.name}.')
 
 
     @setting.command(name='global-user', aliases=['gu', 'globaluser'])
@@ -274,7 +281,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
             WHERE cmd_name = $4;
             """, 'global_users', str(user.id), setting_json, command_name)
-        await ctx.send(f'New setting: "{command_name}" {on_or_off} for user {user.name}#{user.discriminator}.')
+        await ctx.send(f'New global setting: `{command_name}` {ooo(on_or_off)} for user {user.name}#{user.discriminator}.')
 
 
     @setting.command(name='server', aliases=['s'])
@@ -292,7 +299,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3]::TEXT[], $4::JSONB, TRUE)
             WHERE cmd_name = $5;
             """, 'servers', str(ctx.guild.id), 'server', setting_json, command_name)
-        await ctx.send(f'New setting: "{command_name}" {on_or_off} for this server.')
+        await ctx.send(f'New setting: `{command_name}` {ooo(on_or_off)} for this server.')
 
 
     @setting.command(name='role', aliases=['r'])
@@ -310,7 +317,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
             WHERE cmd_name = $6;
             """, 'servers', str(ctx.guild.id), 'roles', str(role.id), setting_json, command_name)
-        await ctx.send(f'New setting: "{command_name}" {on_or_off} for role {role.name}.')
+        await ctx.send(f'New setting: `{command_name}` {ooo(on_or_off)} for role {role.name}.')
 
 
     @setting.command(name='channel', aliases=['c'])
@@ -328,7 +335,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
             WHERE cmd_name = $6;
             """, 'servers', str(ctx.guild.id), 'channels', str(channel.id), setting_json, command_name)
-        await ctx.send(f'New setting: "{command_name}" {on_or_off} for channel {channel.name}.')
+        await ctx.send(f'New setting: `{command_name}` {ooo(on_or_off)} for channel {channel.name}.')
 
 
     @setting.command(name='member', aliases=['m'])
@@ -346,7 +353,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
             WHERE cmd_name = $6;
             """, 'servers', str(ctx.guild.id), 'members', str(member.id), setting_json, command_name)
-        await ctx.send(f'New setting: "{command_name}" {on_or_off} for member {member.name}.')
+        await ctx.send(f'New setting: `{command_name}` {ooo(on_or_off)} for member {member.name}.')
 
 
     async def set_default_settings(self, ctx, command_name: str) -> None:
