@@ -225,7 +225,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='global', aliases=['g'])
     @commands.is_owner()
-    async def global_cmd_access(self, ctx, on_or_off: bool, command_name: CommandName):
+    async def global_cmd_access(self, ctx, command_name: CommandName, on_or_off: bool):
         """Manages absolute commands access globally
 
         The command name must not contain any aliases.
@@ -243,7 +243,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='global-server', aliases=['gs', 'globalserver'])
     @commands.is_owner()
-    async def global_server_cmd_access(self, ctx, server: discord.Guild, on_or_off: bool, command_name: CommandName):
+    async def global_server_cmd_access(self, ctx, server: discord.Guild, command_name: CommandName, on_or_off: bool):
         """Manages absolute commands access for a server
 
         The command name must not contain any aliases.
@@ -261,7 +261,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='global-user', aliases=['gu', 'globaluser'])
     @commands.is_owner()
-    async def global_user_cmd_access(self, ctx, user: discord.User, on_or_off: bool, command_name: CommandName):
+    async def global_user_cmd_access(self, ctx, user: discord.User, command_name: CommandName, on_or_off: bool):
         """Manages absolute commands access for a user
 
         The command name must not contain any aliases.
@@ -279,7 +279,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='server', aliases=['s'])
     @commands.has_guild_permissions(manage_guild=True)
-    async def server_cmd_access(self, ctx, on_or_off: bool, command_name: CommandName):
+    async def server_cmd_access(self, ctx, command_name: CommandName, on_or_off: bool):
         """Manages commands access for this server
 
         The command name must not contain any aliases.
@@ -297,7 +297,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='role', aliases=['r'])
     @commands.has_guild_permissions(manage_guild=True)
-    async def role_cmd_access(self, ctx, role: discord.Role, on_or_off: bool, command_name: CommandName):
+    async def role_cmd_access(self, ctx, role: discord.Role, command_name: CommandName, on_or_off: bool):
         """Manages commands access for a role in this server
 
         The command name must not contain any aliases.
@@ -315,7 +315,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='channel', aliases=['c'])
     @commands.has_guild_permissions(manage_guild=True)
-    async def channel_cmd_access(self, ctx, channel: Channel, on_or_off: bool, command_name: CommandName):
+    async def channel_cmd_access(self, ctx, channel: Channel, command_name: CommandName, on_or_off: bool):
         """Manages commands access for a channel in this server
 
         The command name must not contain any aliases.
@@ -333,7 +333,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='member', aliases=['m'])
     @commands.has_guild_permissions(manage_guild=True)
-    async def member_cmd_access(self, ctx, member: discord.Member, on_or_off: bool, command_name: CommandName):
+    async def member_cmd_access(self, ctx, member: discord.Member, command_name: CommandName, on_or_off: bool):
         """Manages commands access for a member of this server
 
         The command name must not contain any aliases.
