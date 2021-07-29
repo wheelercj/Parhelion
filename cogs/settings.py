@@ -15,13 +15,8 @@ import json
             DEFAULT '{
                 "global_users": {},
                 "global_servers": {},
-                "_global": NULL,
-                "servers": {
-                    "members": {},
-                    "channels": {},
-                    "roles": {},
-                    "server": NULL
-                }
+                "_global": null,
+                "servers": {}
             }'::jsonb
     );
 '''
@@ -85,13 +80,14 @@ class Settings(commands.Cog):
         #             'global_users': Dict[str, bool]
         #             'global_servers': Dict[str, bool]
         #             '_global': bool
-        #             'server_settings': Dict[str, Union[dict, bool]]
-        #                 'members': Dict[str, bool]
-        #                 'channels': Dict[str, bool]
-        #                 'roles': Dict[str, bool]
-        #                 'server': bool
+        #             'servers': Dict[str, dict]
+        #                 (for each server: f'{server_id}': Dict[str, Union[dict, bool]])
+        #                     'members': Dict[str, bool]
+        #                     'channels': Dict[str, bool]
+        #                     'roles': Dict[str, bool]
+        #                     'server': bool
 
-    # The default global and server settings for one command.
+        # The default global and server settings for one command.
         self.default_cmd_settings = {
             'global_users': dict(),
             'global_servers': dict(),
@@ -99,13 +95,15 @@ class Settings(commands.Cog):
             'servers': dict()
         }
 
-    # The default server settings for one command.
+        # The default server settings for one command.
         self.default_server_settings = {
             'members': dict(),
             'channels': dict(),
             'roles': dict(),
             'server': None
         }
+
+        self.default_server_settings_json = json.dumps(self.default_server_settings)
 
 
     async def load_settings(self):
@@ -304,7 +302,7 @@ class Settings(commands.Cog):
 
         The command name must not contain any aliases.
         """
-        await self.set_default_settings(ctx, command_name)
+        await self.set_default_settings(ctx, command_name, ctx.guild.id)
         self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['server'] = on_or_off
         setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
@@ -322,7 +320,7 @@ class Settings(commands.Cog):
 
         The command name must not contain any aliases.
         """
-        await self.set_default_settings(ctx, command_name)
+        await self.set_default_settings(ctx, command_name, ctx.guild.id)
         self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['roles'][str(role.id)] = on_or_off
         setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
@@ -340,7 +338,7 @@ class Settings(commands.Cog):
 
         The command name must not contain any aliases.
         """
-        await self.set_default_settings(ctx, command_name)
+        await self.set_default_settings(ctx, command_name, ctx.guild.id)
         self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['channels'][str(channel.id)] = on_or_off
         setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
@@ -358,7 +356,7 @@ class Settings(commands.Cog):
 
         The command name must not contain any aliases.
         """
-        await self.set_default_settings(ctx, command_name)
+        await self.set_default_settings(ctx, command_name, ctx.guild.id)
         self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['members'][str(member.id)] = on_or_off
         setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
@@ -369,9 +367,9 @@ class Settings(commands.Cog):
         await ctx.send(f'New setting: `{command_name}` {ooo(on_or_off)} for member {member.name}.')
 
 
-    async def set_default_settings(self, ctx, command_name: str) -> None:
+    async def set_default_settings(self, ctx, command_name: str, server_id: int = None) -> None:
         """Sets default settings for a command if and only if it has no settings yet
-        
+
         The defaults are set in both this program and in the database.
         """
         self.all_cmd_settings.setdefault(command_name, self.default_cmd_settings)
@@ -383,6 +381,12 @@ class Settings(commands.Cog):
             ON CONFLICT (cmd_name)
             DO NOTHING;
             """, command_name)
+        if server_id:
+            await self.bot.db.execute("""
+                UPDATE command_access_settings
+                SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
+                WHERE cmd_name = $4;
+                """, 'servers', str(server_id), self.default_server_settings_json, command_name)
 
 
     async def get_settings_message(self, dictionary: Dict[str, bool], get_function: Callable[[int], object]) -> str:
