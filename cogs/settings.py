@@ -335,8 +335,8 @@ class Settings(commands.Cog):
 
     @setting.command(name='channel', aliases=['c'])
     @commands.has_guild_permissions(manage_guild=True)
-    async def channel_cmd_access(self, ctx, channel: Channel, command_name: CommandName, on_or_off: bool):
-        """Manages commands access for a channel in this server
+    async def channel_cmd_access(self, ctx, channel: discord.TextChannel, command_name: CommandName, on_or_off: bool):
+        """Manages commands access for a text channel in this server
 
         The command name must not contain any aliases.
         """
