@@ -216,10 +216,10 @@ class Settings(commands.Cog):
         if s['_global'] is not None:
             embed.add_field(name='global', value=emoji(s['_global']), inline=False)
         if len(s['global_servers']):
-            content = await self.get_settings_message(s, 'global_servers', self.bot.get_guild)
+            content = await self.get_settings_message(s['global_servers'], self.bot.get_guild)
             embed.add_field(name='global servers', value=content, inline=False)
         if len(s['global_users']):
-            content = await self.get_settings_message(s, 'global_users', self.bot.get_user)
+            content = await self.get_settings_message(s['global_users'], self.bot.get_user)
             embed.add_field(name='global users', value=content, inline=False)
 
         try:
@@ -229,13 +229,13 @@ class Settings(commands.Cog):
             if ss['server'] is not None:
                 embed.add_field(name='server', value=emoji(ss['server']), inline=False)
             if len(ss['roles']):
-                content = await self.get_settings_message(ss, 'roles', server.get_role)
+                content = await self.get_settings_message(ss['roles'], server.get_role)
                 embed.add_field(name='server roles', value=content, inline=False)
             if len(ss['channels']):
-                content = await self.get_settings_message(ss, 'channels', server.get_channel)
+                content = await self.get_settings_message(ss['channels'], server.get_channel)
                 embed.add_field(name='server channels', value=content, inline=False)
             if len(ss['members']):
-                content = await self.get_settings_message(ss, 'members', server.get_member)
+                content = await self.get_settings_message(ss['members'], server.get_member)
                 embed.add_field(name='server members', value=content, inline=False)
         except KeyError:
             pass
@@ -385,11 +385,14 @@ class Settings(commands.Cog):
             """, command_name)
 
 
-    async def get_settings_message(self, dictionary: dict, key: str, get_function: Callable) -> str:
-        """Creates a str listing whether each element of dict[key] has access"""
+    async def get_settings_message(self, dictionary: Dict[str, bool], get_function: Callable[[int], object]) -> str:
+        """Creates a str listing whether each setting in a settings dict is on or off
+        
+        The dict keys must be Discord object IDs, and the values must be booleans. The function to get the objects must be synchronous.
+        """
         content = ''
-        for ID_str, boolean in dictionary[key].items():
-            name = get_function(int(ID_str))
+        for ID, boolean in dictionary.items():
+            name = get_function(int(ID))
             content += f'{emoji(boolean)} {name}\n'
 
         return content
