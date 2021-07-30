@@ -378,9 +378,9 @@ class Settings(commands.Cog):
         del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]
         await self.bot.db.execute("""
             UPDATE command_access_settings
-            SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
-            WHERE cmd_name = $4;
-            """, 'servers', str(ctx.guild.id), '{}', command_name)
+            SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
+            WHERE cmd_name = $3;
+            """, 'servers', str(ctx.guild.id), command_name)
         await ctx.send(f'Deleted all server setting for command `{command_name}`.')
 
 
@@ -404,9 +404,9 @@ class Settings(commands.Cog):
         del self.all_cmd_settings[command_name]['global_servers'][str(server.id)]
         await self.bot.db.execute("""
             UPDATE command_access_settings
-            SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
-            WHERE cmd_name = $4;
-            """, 'global_servers', str(server.id), 'null', command_name)
+            SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
+            WHERE cmd_name = $3;
+            """, 'global_servers', str(server.id), command_name)
         await ctx.send(f'Deleted global setting for command `{command_name}` for server {server.name}.')
 
 
@@ -417,9 +417,9 @@ class Settings(commands.Cog):
         del self.all_cmd_settings[command_name]['global_users'][str(user.id)]
         await self.bot.db.execute("""
             UPDATE command_access_settings
-            SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
-            WHERE cmd_name = $4;
-            """, 'global_users', str(user.id), 'null', command_name)
+            SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
+            WHERE cmd_name = $3;
+            """, 'global_users', str(user.id), command_name)
         await ctx.send(f'Deleted global setting for command `{command_name}`  for user {user.name}#{user.discriminator}.')
 
 
@@ -443,9 +443,9 @@ class Settings(commands.Cog):
         del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['roles'][str(role.id)]
         await self.bot.db.execute("""
             UPDATE command_access_settings
-            SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
-            WHERE cmd_name = $6;
-            """, 'servers', str(ctx.guild.id), 'roles', str(role.id), 'null', command_name)
+            SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
+            WHERE cmd_name = $5;
+            """, 'servers', str(ctx.guild.id), 'roles', str(role.id), command_name)
         await ctx.send(f'Deleted setting for command `{command_name}` for role {role.name}.')
 
 
@@ -456,9 +456,9 @@ class Settings(commands.Cog):
         del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['channels'][str(channel.id)]
         await self.bot.db.execute("""
             UPDATE command_access_settings
-            SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
-            WHERE cmd_name = $6;
-            """, 'servers', str(ctx.guild.id), 'channels', str(channel.id), 'null', command_name)
+            SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
+            WHERE cmd_name = $5;
+            """, 'servers', str(ctx.guild.id), 'channels', str(channel.id), command_name)
         await ctx.send(f'Deleted setting for command `{command_name}` for channel {channel.name}.')
 
 
@@ -469,9 +469,9 @@ class Settings(commands.Cog):
         del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['members'][str(member.id)]
         await self.bot.db.execute("""
             UPDATE command_access_settings
-            SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
-            WHERE cmd_name = $6;
-            """, 'servers', str(ctx.guild.id), 'members', str(member.id), 'null', command_name)
+            SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
+            WHERE cmd_name = $5;
+            """, 'servers', str(ctx.guild.id), 'members', str(member.id), command_name)
         await ctx.send(f'Deleted setting for command `{command_name}` for member {member.name}.')
 
 
@@ -481,7 +481,6 @@ class Settings(commands.Cog):
         The defaults are set in both this program and in the database.
         """
         self.all_cmd_settings.setdefault(command_name, self.default_cmd_settings)
-        self.all_cmd_settings[command_name]['servers'].setdefault(str(ctx.guild.id), self.default_server_settings)
         await self.bot.db.execute("""
             INSERT INTO command_access_settings
             (cmd_name)
@@ -490,6 +489,7 @@ class Settings(commands.Cog):
             DO NOTHING;
             """, command_name)
         if server_id:
+            self.all_cmd_settings[command_name]['servers'].setdefault(str(server_id), self.default_server_settings)
             await self.bot.db.execute("""
                 UPDATE command_access_settings
                 SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
