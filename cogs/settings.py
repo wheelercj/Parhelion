@@ -23,10 +23,10 @@ import json
 
 
 def ooo(boolean: bool) -> str:
-    """Returns either 'on' or 'off'"""
+    """Returns either 'enabled' or 'disabled'"""
     if boolean:
-        return 'on'
-    return 'off'
+        return 'enabled'
+    return 'disabled'
 
 
 def emoji(boolean: bool) -> str:
@@ -44,7 +44,7 @@ class CommandName(commands.Converter):
     async def convert(self, ctx, argument):
         all_command_names = [x.name for x in ctx.bot.commands]
         if argument not in all_command_names:
-            raise commands.BadArgument(f'Command "{argument}" not found.')
+            raise commands.BadArgument(f'Command `{argument}` not found.')
         return argument
 
 
@@ -250,7 +250,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='global', aliases=['g'])
     @commands.is_owner()
-    async def global_cmd_setting(self, ctx, command_name: CommandName, on_or_off: bool):
+    async def global_cmd_setting(self, ctx, on_or_off: bool, command_name: CommandName):
         """Manages absolute commands access globally"""
         await self.set_default_settings(ctx, command_name)
         self.all_cmd_settings[command_name]['_global'] = on_or_off
@@ -265,7 +265,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='global-server', aliases=['gs', 'globalserver'])
     @commands.is_owner()
-    async def global_server_cmd_setting(self, ctx, server: discord.Guild, command_name: CommandName, on_or_off: bool):
+    async def global_server_cmd_setting(self, ctx, server: discord.Guild, on_or_off: bool, command_name: CommandName):
         """Manages absolute commands access for a server"""
         await self.set_default_settings(ctx, command_name)
         self.all_cmd_settings[command_name]['global_servers'][str(server.id)] = on_or_off
@@ -280,7 +280,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='global-user', aliases=['gu', 'globaluser'])
     @commands.is_owner()
-    async def global_user_cmd_setting(self, ctx, user: discord.User, command_name: CommandName, on_or_off: bool):
+    async def global_user_cmd_setting(self, ctx, user: discord.User, on_or_off: bool, command_name: CommandName):
         """Manages absolute commands access for a user"""
         await self.set_default_settings(ctx, command_name)
         self.all_cmd_settings[command_name]['global_users'][str(user.id)] = on_or_off
@@ -295,7 +295,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='server', aliases=['s'])
     @commands.has_guild_permissions(manage_guild=True)
-    async def server_cmd_setting(self, ctx, command_name: CommandName, on_or_off: bool):
+    async def server_cmd_setting(self, ctx, on_or_off: bool, command_name: CommandName):
         """Manages commands access for this server"""
         await self.set_default_settings(ctx, command_name, ctx.guild.id)
         self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['server'] = on_or_off
@@ -310,7 +310,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='role', aliases=['r'])
     @commands.has_guild_permissions(manage_guild=True)
-    async def role_cmd_setting(self, ctx, role: discord.Role, command_name: CommandName, on_or_off: bool):
+    async def role_cmd_setting(self, ctx, role: discord.Role, on_or_off: bool, command_name: CommandName):
         """Manages commands access for a role in this server"""
         await self.set_default_settings(ctx, command_name, ctx.guild.id)
         self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['roles'][str(role.id)] = on_or_off
@@ -325,7 +325,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='channel', aliases=['c'])
     @commands.has_guild_permissions(manage_guild=True)
-    async def channel_cmd_setting(self, ctx, channel: discord.TextChannel, command_name: CommandName, on_or_off: bool):
+    async def channel_cmd_setting(self, ctx, channel: discord.TextChannel, on_or_off: bool, command_name: CommandName):
         """Manages commands access for a text channel in this server"""
         await self.set_default_settings(ctx, command_name, ctx.guild.id)
         self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['channels'][str(channel.id)] = on_or_off
@@ -340,7 +340,7 @@ class Settings(commands.Cog):
 
     @setting.command(name='member', aliases=['m'])
     @commands.has_guild_permissions(manage_guild=True)
-    async def member_cmd_setting(self, ctx, member: discord.Member, command_name: CommandName, on_or_off: bool):
+    async def member_cmd_setting(self, ctx, member: discord.Member, on_or_off: bool, command_name: CommandName):
         """Manages commands access for a member of this server"""
         await self.set_default_settings(ctx, command_name, ctx.guild.id)
         self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['members'][str(member.id)] = on_or_off
@@ -361,7 +361,7 @@ class Settings(commands.Cog):
     @setting.group(name='delete', aliases=['del'], invoke_without_command=True)
     @commands.has_guild_permissions(manage_guild=True)
     async def delete_setting(self, ctx):
-        """Deletes a command setting"""
+        """A group of commands for deleting command settings"""
         await ctx.send_help('setting delete')
 
 
