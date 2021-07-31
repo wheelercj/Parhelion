@@ -162,13 +162,20 @@ class Settings(commands.Cog):
             cmd_settings = self.all_cmd_settings[cmd.name]
 
             # Check owner settings.
-            owner_settings = [(cmd_settings['global_users'], ctx.author.id)]
+            global_settings = [(cmd_settings['global_users'], ctx.author.id)]
             if ctx.guild:
-                owner_settings.append((cmd_settings['global_servers'], ctx.guild.id))
-            owner_settings.append((cmd_settings['_global'], None))
+                global_settings.append((cmd_settings['global_servers'], ctx.guild.id))
+            owner_allow = False
+            if await self.check_categories(ctx, global_settings):
+                owner_allow = True  # Instead of returning True here, allow servers to disable commands that are enabled in global-server and/or global-user settings.
 
-            if await self.check_categories(ctx, owner_settings):
-                return True
+            global_settings = [(cmd_settings['_global'], None)]
+            try:
+                if await self.check_categories(ctx, global_settings):
+                    return True
+            except commands.CheckFailure:
+                if not owner_allow:
+                    raise
 
             # Check the settings chosen by the mods/admin of ctx.guild.
             if ctx.guild:
@@ -190,7 +197,7 @@ class Settings(commands.Cog):
         return True
 
 
-    async def check_categories(self, ctx, settings_categories: List[Tuple]) -> Optional[bool]:
+    async def check_categories(self, ctx, settings_categories: List[Tuple]) -> Optional[True]:
         """Determines whether to grant access if there is at least one setting"""
         for category, ID in settings_categories:
             setting = await self.check_category(category, ID)
@@ -217,7 +224,7 @@ class Settings(commands.Cog):
 
         Commands can be enabled or disabled for the entire server, or for a role, channel, or member. If a setting is not chosen for a command, most commands are enabled by default for most users. Some commands have extra requirements not listed in settings. For example, these setting commands require the user to have the "manage server" permission. 
         
-        When creating or deleting a setting for a command, use the command's full name (not an alias). For commands that have subcommands (such as the `remind` commands), settings can only be applied to the root command. If two or more settings conflict, the most specific one will be used (except that global settings cannot be overridden by server settings and can only be set by the bot owner). For example, if the `remind` command is disabled for the server but enabled for one of its channels, then that command can only be used in that channel.
+        When creating or deleting a setting for a command, use the command's full name (not an alias). For commands that have subcommands (such as the `remind` commands), settings can only be applied to the root command. If two or more settings conflict, the most specific one will be used (except that some global settings cannot be overridden by server settings; global settings can only be set by the bot owner). For example, if the `remind` command is disabled for the server but enabled for one of its channels, then that command can only be used in that channel.
         """
         if command_name:
             view_setting_command = self.bot.get_command('setting view')
