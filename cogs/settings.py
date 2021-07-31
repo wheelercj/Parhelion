@@ -165,32 +165,36 @@ class Settings(commands.Cog):
             cmd_settings = self.all_cmd_settings[cmd.name]
 
             # Check owner settings.
-            owner_settings = [
-                (cmd_settings['global_users'], ctx.author.id),
-                (cmd_settings['global_servers'], ctx.guild.id),
-                (cmd_settings['_global'], None)
-            ]
+            owner_settings = [(cmd_settings['global_users'], ctx.author.id)]
+            if ctx.guild:
+                owner_settings.append((cmd_settings['global_servers'], ctx.guild.id))
+            owner_settings.append((cmd_settings['_global'], None))
 
             for category, ID in owner_settings:
                 setting = await self.has_access(category, ID)
                 if setting is not None:
-                    return setting
+                    if setting:
+                        return setting
+                    raise commands.CheckFailure(f'The `{ctx.invoked_with}` command has been disabled in this bot\'s command settings for some servers, roles, channels, and/or users.')
 
             # Check the settings chosen by the mods/admin of ctx.guild.
-            all_server_settings = cmd_settings['server'][str(ctx.guild.id)]  # This must be after owner settings are checked because it might raise KeyError.
-            # Gather the settings that don't include the roles ctx.author doesn't have.
-            server_settings = [
-                (all_server_settings['members'], ctx.author.id),
-                (all_server_settings['channels'], ctx.channel.id)
-            ]
-            for role in ctx.author.roles[::-1]:
-                server_settings.append((all_server_settings['roles'], role.id))
-            server_settings.append((all_server_settings['server'], None))
+            if ctx.guild:
+                all_server_settings = cmd_settings['server'][str(ctx.guild.id)]  # This must be after owner settings are checked because it might raise KeyError.
+                # Gather the settings that don't include the roles ctx.author doesn't have.
+                server_settings = [
+                    (all_server_settings['members'], ctx.author.id),
+                    (all_server_settings['channels'], ctx.channel.id)
+                ]
+                for role in ctx.author.roles[::-1]:
+                    server_settings.append((all_server_settings['roles'], role.id))
+                server_settings.append((all_server_settings['server'], None))
 
-            for c, ID in server_settings:
-                setting = await self.has_access(c, ID)
-                if setting is not None:
-                    return setting
+                for c, ID in server_settings:
+                    setting = await self.has_access(c, ID)
+                    if setting is not None:
+                        if setting:
+                            return setting
+                        raise commands.CheckFailure(f'The `{ctx.invoked_with}` command has been disabled in this bot\'s command settings for some servers, roles, channels, and/or users.')
         except KeyError:
             pass
         # There are no settings for this command.

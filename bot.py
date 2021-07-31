@@ -187,14 +187,12 @@ class Bot(commands.Bot):
             error = error.original
 
         # Exception hierarchy: https://discordpy.readthedocs.io/en/latest/ext/commands/api.html?highlight=permissions#exception-hierarchy
-        # if isinstance(error, commands.CommandNotFound):
-        #     await ctx.send(f'Command not found.')
+        if isinstance(error, commands.CommandNotFound):
+            pass
         if isinstance(error, commands.DisabledCommand):
             await ctx.send('This command has been disabled.')
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.send(f'Commands on cooldown. Please try again in {error.retry_after:.2f} seconds.')
-        elif isinstance(error, commands.CheckFailure):
-            await ctx.send(f'This command is disabled.')
         elif isinstance(error, commands.UserInputError):
             await ctx.send(error)
         elif isinstance(error, commands.NotOwner):
@@ -212,6 +210,8 @@ class Bot(commands.Bot):
             await dev_mail(self, f'The invite link may need to be updated with more permission(s): {perms_needed}')
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send('This command cannot be used in private messages.')
+        elif isinstance(error, commands.CheckFailure):
+            await ctx.send(f'You do not have access to this command. {str(error)}')
         elif isinstance(error, commands.BadUnionArgument):
             await ctx.send('Error: one or more inputs could not be understood.')
         else:
