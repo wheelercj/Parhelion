@@ -189,7 +189,7 @@ class Bot(commands.Bot):
         # Exception hierarchy: https://discordpy.readthedocs.io/en/latest/ext/commands/api.html?highlight=permissions#exception-hierarchy
         if isinstance(error, commands.CommandNotFound):
             pass
-        if isinstance(error, commands.DisabledCommand):
+        elif isinstance(error, commands.DisabledCommand):
             await ctx.send('This command has been disabled.')
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.send(f'Commands on cooldown. Please try again in {error.retry_after:.2f} seconds.')
@@ -211,7 +211,7 @@ class Bot(commands.Bot):
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send('This command cannot be used in private messages.')
         elif isinstance(error, commands.CheckFailure):
-            await ctx.send(f'You do not have access to this command. {str(error)}')
+            await ctx.send(f'You do not have access to this command.')
         elif isinstance(error, commands.BadUnionArgument):
             await ctx.send('Error: one or more inputs could not be understood.')
         else:

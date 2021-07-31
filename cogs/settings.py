@@ -47,7 +47,7 @@ class CommandName(commands.Converter):
     async def convert(self, ctx, argument):
         all_command_names = [x.name for x in ctx.bot.commands]
         if argument not in all_command_names:
-            raise commands.BadArgument(f'Command `{argument}` not found.')
+            raise commands.BadArgument(f'Command `{argument}` not found. If you are trying to choose a setting for a command alias, note that the settings commands do not work on aliases.')
         return argument
 
 
@@ -146,12 +146,6 @@ class Settings(commands.Cog):
             print(f'{error = }')
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.load_settings())
-
-
-    async def cog_check(self, ctx):
-        if not await self.bot.is_owner(ctx.author):
-            raise commands.NotOwner
-        return True
 
 
     async def bot_check(self, ctx):
