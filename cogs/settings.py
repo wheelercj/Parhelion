@@ -42,9 +42,12 @@ def emoji(boolean: bool) -> str:
 class CommandName(commands.Converter):
     """Converter to validate a string input of a command name
     
-    Command aliases are not considered valid.
+    Command aliases and subcommands are not considered valid by this converter.
     """
     async def convert(self, ctx, argument):
+        if ' ' in argument:
+            raise commands.BadArgument('Currently, settings cannot be applied to subcommands')
+            # Removing this would not be enough to support subcommands because the list below contains only root commands.
         all_command_names = [x.name for x in ctx.bot.commands]
         if argument not in all_command_names:
             raise commands.BadArgument(f'Command `{argument}` not found. If you are trying to choose a setting for a command alias, note that the settings commands do not work on aliases.')
