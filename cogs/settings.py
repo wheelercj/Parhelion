@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 import asyncio
 import asyncpg
-from typing import List, Any, Optional, Dict, Callable
+from typing import List, Tuple, Any, Optional, Dict, Callable
 import json
 
 # internal imports
@@ -149,7 +149,7 @@ class Settings(commands.Cog):
 
 
     async def bot_check(self, ctx):
-        """Checks if ctx.author has permission to use ctx.command"""
+        """Checks if the settings allow ctx.command to be used by ctx"""
         # The order in which the settings are checked is important. Owner settings must be checked before the settings chosen by the mods/admin of ctx.guild, and within each of those two categories the settings must go from most specific to least specific.
         if await self.bot.is_owner(ctx.author):
             return True
@@ -164,12 +164,8 @@ class Settings(commands.Cog):
                 owner_settings.append((cmd_settings['global_servers'], ctx.guild.id))
             owner_settings.append((cmd_settings['_global'], None))
 
-            for category, ID in owner_settings:
-                setting = await self.has_access(category, ID)
-                if setting is not None:
-                    if setting:
-                        return setting
-                    raise commands.CheckFailure(f'The `{ctx.invoked_with}` command has been disabled in this bot\'s command settings for some servers, roles, channels, and/or users.')
+            if await self.check_categories(ctx, owner_settings):
+                return True
 
             # Check the settings chosen by the mods/admin of ctx.guild.
             if ctx.guild:
@@ -179,31 +175,36 @@ class Settings(commands.Cog):
                     (all_server_settings['members'], ctx.author.id),
                     (all_server_settings['channels'], ctx.channel.id)
                 ]
-                for role in ctx.author.roles[::-1]:
+                for role in ctx.author.roles[::-1]:  # Reversed to start with the most important roles.
                     server_settings.append((all_server_settings['roles'], role.id))
                 server_settings.append((all_server_settings['server'], None))
 
-                for c, ID in server_settings:
-                    setting = await self.has_access(c, ID)
-                    if setting is not None:
-                        if setting:
-                            return setting
-                        raise commands.CheckFailure(f'The `{ctx.invoked_with}` command has been disabled in this bot\'s command settings for some servers, roles, channels, and/or users.')
+                if await self.check_categories(ctx, server_settings):
+                    return True
         except KeyError:
             pass
-        # There are no settings for this command.
+        # There are no relevant settings for this command.
         return True
 
 
-    async def has_access(self, setting_category: Any, ID: str = None) -> Optional[bool]:
+    async def check_categories(self, ctx, settings_categories: List[Tuple]) -> Optional[bool]:
+        """Determines whether to grant access if there is at least one setting"""
+        for category, ID in settings_categories:
+            setting = await self.check_category(category, ID)
+            if setting is not None:
+                if setting:
+                    return True
+                raise commands.CheckFailure(f'The `{ctx.invoked_with}` command has been disabled in this bot\'s command settings for some servers, roles, channels, and/or users.')
+
+
+    async def check_category(self, setting_category: Any, ID: Optional[int]) -> Optional[bool]:
         """Gets the setting for an object ID in a setting category"""
-        if ID is None or ID == 'None':
+        if ID is None:
             return setting_category
-        else:
-            try:
-                return setting_category[str(ID)]
-            except KeyError:
-                return None
+        try:
+            return setting_category[str(ID)]
+        except KeyError:
+            return None
 
 
     @commands.group(aliases=['set'], invoke_without_command=True)
