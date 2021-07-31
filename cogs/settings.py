@@ -203,7 +203,7 @@ class Settings(commands.Cog):
             return setting_category
         else:
             try:
-                return setting_category[ID]
+                return setting_category[str(ID)]
             except KeyError:
                 return None
 
