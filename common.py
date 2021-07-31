@@ -2,7 +2,7 @@ import os
 import re
 import traceback
 import discord
-from discord.ext import commands
+from discord.ext import commands, buttons
 from typing import List, Tuple, Optional
 from datetime import datetime, timedelta
 import dateparser
@@ -16,6 +16,40 @@ class Dev_Settings:
         self.privacy_policy_link = 'https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853'
 
 dev_settings = Dev_Settings()
+
+
+class Paginator(buttons.Paginator):
+    """Paginator that uses an interactive session to display buttons
+
+    title: str 
+        Only available when embed=True. The title of the embeded pages. 
+    length: int
+        The number of entries per page. 
+    entries: list
+        The entries to paginate. 
+    extra_pages: list
+        Extra pages to append to our entries. 
+    prefix: Optional[str] 
+        The formatting prefix to apply to our entries. 
+    suffix: Optional[str] 
+        The formatting suffix to apply to our entries. 
+    format: Optional[str] 
+        The format string to wrap around our entries. This should be the first half of the format only, E.g to wrap Entry, we would only provide **. 
+    colour: discord.Colour 
+        Only available when embed=True. The colour of the embeded pages. 
+    use_defaults: bool
+        Option which determines whether we should use default buttons as well. This is True by default. 
+    embed: bool
+        Option that indicates that entries should be embeded. 
+    joiner: str
+        Option which allows us to specify the entries joiner. E.g self.joiner.join(self.entries) 
+    timeout: int
+        The timeout in seconds to wait for reaction responses. 
+    thumbnail: 
+        Only available when embed=True. The thumbnail URL to set for the embeded pages.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 async def safe_send(ctx, message: str, protect_postgres_host: bool = False) -> None:

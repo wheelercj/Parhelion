@@ -1,12 +1,12 @@
 # external imports
 import discord
-from discord.ext import commands, buttons
+from discord.ext import commands
 import asyncpg
 import io
 from typing import Optional, List
 
 # internal imports
-from common import split_input, get_attachment_url, format_timestamp, safe_send
+from common import Paginator, split_input, get_attachment_url, format_timestamp, safe_send
 
 
 '''
@@ -22,11 +22,6 @@ from common import split_input, get_attachment_url, format_timestamp, safe_send
         UNIQUE (name, server_id)
     )
 '''
-
-
-class Paginator(buttons.Paginator):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
 
 class Tags(commands.Cog):

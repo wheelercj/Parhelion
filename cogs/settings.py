@@ -3,8 +3,11 @@ import discord
 from discord.ext import commands
 import asyncio
 import asyncpg
-from typing import Any, Optional, Dict, Callable
+from typing import List, Any, Optional, Dict, Callable
 import json
+
+# internal imports
+from common import Paginator
 
 
 '''
@@ -74,18 +77,34 @@ class Settings(commands.Cog):
         self.bot = bot
         self._task = bot.loop.create_task(self.load_settings())
         self.all_cmd_settings: Dict[str, dict] = dict()
-        # Command access settings hierarchy, order, and types:
-        #     all_cmd_settings: Dict[str, dict]  # The settings for all commands.
-        #         'cmd_settings': Dict[str, Union[dict, bool]]  # The settings for one command.
-        #             'global_users': Dict[str, bool]
-        #             'global_servers': Dict[str, bool]
-        #             '_global': bool
-        #             'servers': Dict[str, dict]
-        #                 (for each server: f'{server_id}': Dict[str, Union[dict, bool]])
-        #                     'members': Dict[str, bool]
-        #                     'channels': Dict[str, bool]
-        #                     'roles': Dict[str, bool]
-        #                     'server': bool
+        """
+        Command access settings hierarchy, order, and types:
+            self.all_cmd_settings = {
+                f'{command_name}': {
+                    'global_users': {
+                        f'{user_id}': bool
+                    },
+                    'global_servers': {
+                        f'{server_id}': bool
+                    },
+                    '_global': bool,
+                    'servers': {
+                        f'{server_id}': {
+                            'members': {
+                                f'{member_id}': bool
+                            },
+                            'channels': {
+                                f'{channel_id}': bool
+                            },
+                            'roles': {
+                                f'{role_id}': bool
+                            },
+                            'server': bool
+                        }
+                    }
+                }
+            }
+        """
 
         # The default global and server settings for one command.
         self.default_cmd_settings = {
@@ -196,9 +215,7 @@ class Settings(commands.Cog):
 
         Commands can be enabled or disabled for the entire server, or for a role, channel, or member. If a setting is not chosen for a command, most commands are enabled by default for most users. Some commands have extra requirements not listed in settings. For example, these setting commands require the user to have the "manage server" permission. 
         
-        When creating or deleting a setting for a command, use the command's full name (not an alias). For commands that have subcommands (such as the `remind` commands), settings can only be applied to the root command. If two or more settings conflict, the most specific one will be used (except that global settings cannot be overridden by server settings and can only be set by the bot owner). For example, if the `remind` command is disabled for the server but enabled for one of its channels, then that command can only be used in that channel. 
-
-        The commands that you are able to use are the commands that are listed when and where you use the `help` command. Please contact me in the support server with any questions, concerns, etc. (use the `support` command for the link).
+        When creating or deleting a setting for a command, use the command's full name (not an alias). For commands that have subcommands (such as the `remind` commands), settings can only be applied to the root command. If two or more settings conflict, the most specific one will be used (except that global settings cannot be overridden by server settings and can only be set by the bot owner). For example, if the `remind` command is disabled for the server but enabled for one of its channels, then that command can only be used in that channel.
         """
         if command_name:
             view_setting_command = self.bot.get_command('setting view')
@@ -275,7 +292,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
             WHERE cmd_name = $4;
             """, 'global_servers', str(server.id), setting_json, command_name)
-        await ctx.send(f'New global setting: `{command_name}` {ooo(on_or_off)} for server {server.name}.')
+        await ctx.send(f'New global setting: `{command_name}` {ooo(on_or_off)} for server: {server.name}.')
 
 
     @setting.command(name='global-user', aliases=['gu', 'globaluser'])
@@ -290,7 +307,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
             WHERE cmd_name = $4;
             """, 'global_users', str(user.id), setting_json, command_name)
-        await ctx.send(f'New global setting: `{command_name}` {ooo(on_or_off)} for user {user.name}#{user.discriminator}.')
+        await ctx.send(f'New global setting: `{command_name}` {ooo(on_or_off)} for user: {user.name}#{user.discriminator}.')
 
 
     @setting.command(name='server', aliases=['s'])
@@ -320,7 +337,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
             WHERE cmd_name = $6;
             """, 'servers', str(ctx.guild.id), 'roles', str(role.id), setting_json, command_name)
-        await ctx.send(f'New setting: `{command_name}` {ooo(on_or_off)} for role {role.name}.')
+        await ctx.send(f'New setting: `{command_name}` {ooo(on_or_off)} for role: {role.name}.')
 
 
     @setting.command(name='channel', aliases=['c'])
@@ -335,7 +352,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
             WHERE cmd_name = $6;
             """, 'servers', str(ctx.guild.id), 'channels', str(channel.id), setting_json, command_name)
-        await ctx.send(f'New setting: `{command_name}` {ooo(on_or_off)} for channel {channel.name}.')
+        await ctx.send(f'New setting: `{command_name}` {ooo(on_or_off)} for channel: {channel.name}.')
 
 
     @setting.command(name='member', aliases=['m'])
@@ -350,7 +367,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
             WHERE cmd_name = $6;
             """, 'servers', str(ctx.guild.id), 'members', str(member.id), setting_json, command_name)
-        await ctx.send(f'New setting: `{command_name}` {ooo(on_or_off)} for member {member.name}.')
+        await ctx.send(f'New setting: `{command_name}` {ooo(on_or_off)} for member: {member.name}.')
 
 
 ########################
@@ -365,7 +382,7 @@ class Settings(commands.Cog):
         await ctx.send_help('setting delete')
 
 
-    @delete_setting.command(name='global-all', aliases=['gobalall'])
+    @delete_setting.command(name='global-all', aliases=['globalall'])
     @commands.is_owner()
     async def delete_all_global_cmd_settings(self, ctx, command_name: CommandName):
         """Deletes all settings for a command"""
@@ -413,7 +430,7 @@ class Settings(commands.Cog):
             SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
             WHERE cmd_name = $3;
             """, 'global_servers', str(server.id), command_name)
-        await ctx.send(f'Deleted global setting for command `{command_name}` for server {server.name}.')
+        await ctx.send(f'Deleted global setting for command `{command_name}` for server: {server.name}.')
 
 
     @delete_setting.command(name='global-user', aliases=['gu', 'globaluser'])
@@ -426,7 +443,7 @@ class Settings(commands.Cog):
             SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
             WHERE cmd_name = $3;
             """, 'global_users', str(user.id), command_name)
-        await ctx.send(f'Deleted global setting for command `{command_name}`  for user {user.name}#{user.discriminator}.')
+        await ctx.send(f'Deleted global setting for command `{command_name}` for user: {user.name}#{user.discriminator}.')
 
 
     @delete_setting.command(name='server', aliases=['s'])
@@ -452,7 +469,7 @@ class Settings(commands.Cog):
             SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
             WHERE cmd_name = $5;
             """, 'servers', str(ctx.guild.id), 'roles', str(role.id), command_name)
-        await ctx.send(f'Deleted setting for command `{command_name}` for role {role.name}.')
+        await ctx.send(f'Deleted setting for command `{command_name}` for role: {role.name}.')
 
 
     @delete_setting.command(name='channel', aliases=['c'])
@@ -465,7 +482,7 @@ class Settings(commands.Cog):
             SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
             WHERE cmd_name = $5;
             """, 'servers', str(ctx.guild.id), 'channels', str(channel.id), command_name)
-        await ctx.send(f'Deleted setting for command `{command_name}` for channel {channel.name}.')
+        await ctx.send(f'Deleted setting for command `{command_name}` for channel: {channel.name}.')
 
 
     @delete_setting.command(name='member', aliases=['m'])
@@ -478,7 +495,133 @@ class Settings(commands.Cog):
             SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
             WHERE cmd_name = $5;
             """, 'servers', str(ctx.guild.id), 'members', str(member.id), command_name)
-        await ctx.send(f'Deleted setting for command `{command_name}` for member {member.name}.')
+        await ctx.send(f'Deleted setting for command `{command_name}` for member: {member.name}.')
+
+
+######################
+# list_settings group #
+######################
+
+
+    @setting.group(name='list', aliases=['l'], invoke_without_command=True)
+    @commands.has_guild_permissions(manage_guild=True)
+    async def list_settings(self, ctx):
+        """A group of commands that show lists of settings for multiple commands"""
+        await ctx.send_help('setting list')
+
+
+    @list_settings.command(name='all', aliases=['a'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def list_all_settings(self, ctx):
+        """Shows the names of commands that have any non-default settings for any server"""
+        title = 'all commands with any non-default settings'
+        names = sorted(list(self.all_cmd_settings.keys()))
+        paginator = Paginator(title=title, embed=True, timeout=90, entries=names, length=15)
+        await paginator.start(ctx)
+
+
+    @list_settings.command(name='global', aliases=['g'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def list_global_settings(self, ctx):
+        """Shows the names and global settings of commands that have non-default global settings"""
+        entries = await self.get_setting_entries(['_global'])
+        await self.paginate_settings(ctx, 'for global', entries)
+
+
+    @list_settings.command(name='global-server', aliases=['gs', 'globalserver'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def list_global_server_settings(self, ctx, server: discord.Guild = None):
+        """Shows the global-server command settings that apply to a server"""
+        if server is None:
+            server = ctx.guild
+        entries = await self.get_setting_entries(['global_servers', str(server.id)])
+        await self.paginate_settings(ctx, f'for global-server: {server.name}', entries)
+
+
+    @list_settings.command(name='global-user', aliases=['gu', 'globaluser'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def list_global_user_settings(self, ctx, user: discord.User = None):
+        """Shows the global-user command settings that apply to a user"""
+        if user is None:
+            user = ctx.author
+        entries = await self.get_setting_entries(['global_users', str(user.id)])
+        await self.paginate_settings(ctx, f'for global-user: {user.name}#{user.discriminator}', entries)
+
+
+    @list_settings.command(name='server', aliases=['s'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def list_server_settings(self, ctx):
+        """Shows the serverwide command settings for this server"""
+        entries = await self.get_setting_entries(['servers', str(ctx.guild.id), 'server'])
+        await self.paginate_settings(ctx, 'for this server', entries)
+
+
+    @list_settings.command(name='role', aliases=['r'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def list_role_settings(self, ctx, role: discord.Role):
+        """Shows the command settings that apply to a role"""
+        entries = await self.get_setting_entries(['servers', str(ctx.guild.id), 'roles', str(role.id)])
+        await self.paginate_settings(ctx, f'for role: {role.name}', entries)
+
+
+    @list_settings.command(name='channel', aliases=['c'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def list_channel_settings(self, ctx, channel: discord.TextChannel):
+        """Shows the command settings that apply to a text channel"""
+        entries = await self.get_setting_entries(['servers', str(ctx.guild.id), 'channels', str(channel.id)])
+        await self.paginate_settings(ctx, f'for channel: {channel.name}', entries)
+
+
+    @list_settings.command(name='member', aliases=['m'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def list_member_settings(self, ctx, member: discord.Member):
+        """Shows the command settings that apply to a member of this server"""
+        entries = await self.get_setting_entries(['servers', str(ctx.guild.id), 'members', str(member.id)])
+        await self.paginate_settings(ctx, f'for member: {member.name}#{member.discriminator}', entries)
+
+
+    async def paginate_settings(self, ctx, title: str, entries: List[str]) -> None:
+        """Sends ctx a list of settings and their names, paginated and with reaction buttons"""
+        if len(entries):
+            title = f'command settings {title}'
+            paginator = Paginator(title=title, embed=True, timeout=90, entries=entries, length=15)
+            await paginator.start(ctx)
+        else:
+            await ctx.send(f'No command settings found {title}')
+
+
+    async def get_setting_entries(self, keys: List[str]) -> List[str]:
+        """Gets the setting and command name of non-default settings for all commands for a specific object
+
+        The name or ID of that specific object must be the last key. The last key may only be a server ID if the second-to-last key is 'global_servers'.
+        """
+        if len(keys) <= 2:
+            if keys[0] == 'servers':
+                raise ValueError
+        else:
+            if keys[0] != 'servers':
+                raise ValueError
+
+        entries = []
+        for command_name, sub_dict in self.all_cmd_settings.items():
+            try:
+                if len(keys) == 1:
+                    boolean = sub_dict[keys[0]]
+                elif len(keys) == 2:
+                    boolean = sub_dict[keys[0]][keys[1]]
+                elif len(keys) == 3:
+                    boolean = sub_dict[keys[0]][keys[1]][keys[2]]
+                elif len(keys) == 4:
+                    boolean = sub_dict[keys[0]][keys[1]][keys[2]][keys[3]]
+                else:
+                    raise ValueError
+
+                if boolean is not None:
+                    entries.append(emoji(boolean) + ' ' + command_name)
+            except KeyError:
+                pass
+
+        return entries
 
 
     async def set_default_settings(self, ctx, command_name: str, server_id: int = None) -> None:
