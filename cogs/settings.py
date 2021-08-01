@@ -197,7 +197,7 @@ class Settings(commands.Cog):
         return True
 
 
-    async def check_categories(self, ctx, settings_categories: List[Tuple]) -> Optional[True]:
+    async def check_categories(self, ctx, settings_categories: List[Tuple]) -> Optional[bool]:
         """Determines whether to grant access if there is at least one setting"""
         for category, ID in settings_categories:
             setting = await self.check_category(category, ID)
