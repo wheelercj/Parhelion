@@ -8,6 +8,16 @@ from typing import Tuple, List
 from common import Paginator
 
 
+'''
+CREATE TABLE docs (
+    id SERIAL PRIMARY KEY,
+    server_id BIGINT UNIQUE,
+    url TEXT NOT NULL,
+    language TEXT NOT NULL
+);
+'''
+
+
 class Docs(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -17,17 +27,18 @@ class Docs(commands.Cog):
     async def doc(self, ctx, *, query: str = None):
         """Searches this server's chosen documentation"""
         url = 'https://discordpy.readthedocs.io/en/latest/index.html'
-        language = 'en'
+        if 'readthedocs' not in url:
+            raise commands.BadArgument('The `doc` commands only works with ReadTheDocs sites')
         if query is None:
             await ctx.send(f'<{url}>')
             return
 
-        project_name, project_version, search_url = await self.parse_doc_url(url)
+        project_name, project_version, language, search_url = await self.parse_doc_url(url)
         params = {
             'q': query,
             'project': project_name,
             'version': project_version,
-            'page_size': 15,
+            'page_size': 20,
         }
 
         async with ctx.typing():
@@ -47,13 +58,14 @@ class Docs(commands.Cog):
         await paginator.start(ctx)
 
 
-    async def parse_doc_url(self, url: str) -> Tuple[str, str, str]:
-        """Splits a ReadTheDocs URL into project_name, project_version, and search_url
+    async def parse_doc_url(self, url: str) -> Tuple[str, str, str, str]:
+        """Splits a ReadTheDocs URL into project_name, project_version, language, and search_url
         
         E.g. 'https://discordpy.readthedocs.io/en/latest/index.html'
         becomes
         project_name = 'discordpy'
         project_version = 'latest'
+        language = 'en'
         search_url = 'https://discordpy.readthedocs.io/_/api/v2/search/'
         """
         # Temporarily remove the `https://` or `http://` for easier parsing.
@@ -62,9 +74,10 @@ class Docs(commands.Cog):
             url = url[i+2:]
         project_name = url.split('.')[0]
         project_version = url.split('/')[2]
+        language = url.split('/')[1]
         search_url = 'https://' + url.split('/')[0] + '/_/api/v2/search/'
 
-        return project_name, project_version, search_url
+        return project_name, project_version, language, search_url
 
 
     async def parse_search_results(self, json_text: str, language: str = None) -> List[str]:
