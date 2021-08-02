@@ -1,5 +1,8 @@
 # external imports
+import discord
 from discord.ext import commands
+import asyncio
+import asyncpg
 from bs4 import BeautifulSoup
 from typing import Tuple, List, Dict
 
@@ -19,7 +22,31 @@ CREATE TABLE docs (
 class Docs(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self._task = bot.loop.create_task(self.load_docs_urls())
         self.docs_urls: Dict[int, str] = dict()  # Server IDs and URLs.
+
+
+    async def load_docs_urls(self):
+        await self.bot.wait_until_ready()
+        if self.bot.db is None:
+            print('Error: self.bot.db is None')
+            return
+        print('  Loading documentation URLs')
+        try:
+            records = await self.bot.db.fetch('''
+                SELECT *
+                FROM docs;
+                ''')
+            if records is None or not len(records):
+                print('  No documentation URLs found')
+            for r in records:
+                self.docs_urls[r['server_id']] = r['url']
+        except asyncio.CancelledError:
+            raise
+        except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
+            print(f'{error = }')
+            self._task.cancel()
+            self._task = self.bot.loop.create_task(self.load_docs_urls())
 
 
     @commands.group(invoke_without_command=True)
@@ -60,7 +87,7 @@ class Docs(commands.Cog):
         await paginator.start(ctx)
 
 
-    @doc.command(name='set', alias=['s'])
+    @doc.command(name='set')
     @commands.has_guild_permissions(manage_guild=True)
     async def set_doc_url(self, ctx, url: str):
         """Sets the ReadTheDocs URL for the `doc` command for this server
@@ -78,14 +105,34 @@ class Docs(commands.Cog):
             raise commands.BadArgument("The part of the URL that says the language of the documentation should be two letters long. Here's an example of a valid URL: `https://discordpy.readthedocs.io/en/latest`")
 
         self.docs_urls[ctx.guild.id] = url
+        await self.bot.db.execute('''
+            INSERT INTO docs
+            (server_id, url)
+            VALUES ($1, $2)
+            ON CONFLICT (server_id)
+            DO UPDATE
+            SET url = $2
+            WHERE docs.server_id = $1;
+            ''', ctx.guild.id, url)
+
         await ctx.send('The URL has been set! Everyone can now use the `doc` command with your chosen documentation source.')
 
 
-    @doc.command(name='delete', alias=['del'])
+    @doc.command(name='delete')
     @commands.has_guild_permissions(manage_guild=True)
     async def delete_doc_url(self, ctx):
         """Deletes this server's chosen URL for the `doc` command"""
-        del self.docs_urls[ctx.guild.id]
+        try:
+            del self.docs_urls[ctx.guild.id]
+        except KeyError:
+            await ctx.send('No documentation URL had been set')
+            return
+
+        await self.bot.db.execute('''
+            DELETE FROM docs
+            WHERE server_id = $1;
+            ''', ctx.guild.id)
+
         await ctx.send('Documentation URL deleted')
 
 
