@@ -8,6 +8,16 @@ from copy import copy
 from common import dev_settings, get_prefixes_message, get_prefixes_str
 
 
+'''
+CREATE TABLE custom_prefixes (
+    id SERIAL PRIMARY KEY,
+    server_id BIGINT UNIQUE,
+    prefixes TEXT[],
+    removed_default_prefixes TEXT[]
+)
+'''
+
+
 class Mod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -22,27 +32,15 @@ class Mod(commands.Cog):
     @commands.group(invoke_without_command=True)
     @commands.has_guild_permissions(manage_guild=True)
     async def prefix(self, ctx):
-        """Shows the prefixes and a help message"""
+        """A group of commands for managing this bot's command prefixes for this server"""
         prefixes = await get_prefixes_message(self.bot, ctx.message)
-        await ctx.send(f"My current {prefixes}")
-        await ctx.send_help('prefix')
-
-
-    @prefix.command(name='list')
-    @commands.has_guild_permissions(manage_guild=True)
-    async def list_prefixes(self, ctx):
-        """Shows the bot's current command prefixes for this server"""
-        prefixes = await get_prefixes_message(self.bot, ctx.message)
-        await ctx.send(f"My current {prefixes}")
+        await ctx.send(f"My current {prefixes}. You can use the `prefix add` and `prefix delete` commands to manage my command prefixes for this server.")
 
 
     @prefix.command(name='add')
     @commands.has_guild_permissions(manage_guild=True)
     async def add_prefix(self, ctx, *, new_prefix: str):
-        """Adds a command prefix to the bot for this server
-        
-        If the prefix contains any spaces, wrap it in double quotes.
-        """
+        """Adds a command prefix to the bot for this server"""
         if new_prefix.startswith('"') \
                     and new_prefix.endswith('"'):
                 new_prefix = new_prefix[1:-1]
@@ -50,7 +48,10 @@ class Mod(commands.Cog):
             await ctx.send('Prefixes cannot begin with a space.')
             return
         if not new_prefix or new_prefix == '':
-            await ctx.send('Invalid command prefix.')
+            await ctx.send('Prefixless command invocation is not supported in servers.')
+            return
+        if len(new_prefix) > 10:
+            await ctx.send('The maximum length of each command prefix is 10 characters.')
             return
 
         try:
@@ -62,7 +63,7 @@ class Mod(commands.Cog):
             custom_prefixes.remove(f'␝{new_prefix}')
         else:
             if len(custom_prefixes) >= 10:
-                await ctx.send('The maximum number of command prefixes has already been met.')
+                await ctx.send('The maximum number of custom command prefixes is 10.')
                 return
 
             custom_prefixes.append(new_prefix)
@@ -78,7 +79,7 @@ class Mod(commands.Cog):
     async def delete_prefix(self, ctx, *, old_prefix: str):
         """Deletes one of the bot's command prefixes for this server
         
-        You cannot delete the bot mention prefix. If the prefix contains any spaces, wrap it in double quotes.
+        You cannot delete the bot mention prefix (`@Parhelion`). If the prefix contains any spaces, wrap it in double quotes.
         """
         default_prefixes: List[str] = copy(dev_settings.default_bot_prefixes)
         try:
