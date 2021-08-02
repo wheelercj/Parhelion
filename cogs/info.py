@@ -4,7 +4,7 @@ from discord.ext import commands
 from typing import List, Tuple, Union
 
 # internal imports
-from common import format_datetime, format_timestamp
+from common import format_datetime, format_timestamp, format_timedelta
 
 
 def y_n(boolean: bool) -> str:
@@ -22,6 +22,31 @@ class Info(commands.Cog):
         """Shows the current time in UTC"""
         current_time = await format_datetime(ctx.message.created_at)
         await ctx.send(f'The current time in UTC is {current_time}')
+
+
+    @commands.command(hidden=True)
+    async def ping(self, ctx):
+        """Shows the bot's latency"""
+        await ctx.send(f'Pong! Websocket latency: {self.bot.latency * 1000:.2f} ms')
+
+
+    @commands.command(hidden=True)
+    async def uptime(self, ctx):
+        """Shows the time since the bot last restarted"""
+        _uptime = await self.get_uptime(ctx)
+        await ctx.send(f'Uptime: {_uptime}')
+
+    
+    @commands.command(hidden=True)
+    async def stats(self, ctx):
+        """Shows info about this bot"""
+        embed = await self.get_stats(ctx)
+        await ctx.send(embed=embed)
+
+
+######################
+# info command group #
+######################
 
 
     @commands.group(aliases=['i'], invoke_without_command=True)
@@ -168,13 +193,43 @@ class Info(commands.Cog):
 
 
     @info.command(name='bot', aliases=['b'])
-    @commands.guild_only()
     async def _bot_info(self, ctx):
         """Shows info about this bot"""
-        about_command = self.bot.get_command('about')
-        await ctx.invoke(about_command)
-        stats_command = self.bot.get_command('stats')
-        await ctx.invoke(stats_command)
+        embed = await self.get_stats(ctx)
+        await ctx.send(embed=embed)
+
+
+    async def get_stats(self, ctx) -> discord.Embed:
+        """Returns info about this bot"""
+        embed = discord.Embed()
+        embed.add_field(name='stats',
+            value=f'websocket latency: {self.bot.latency * 1000:.2f} ms\n' \
+                f'uptime: {await self.get_uptime(ctx)}\n' \
+                f'servers: {len(self.bot.guilds)}\n' \
+                f'users: {len(self.bot.users)}\n' \
+                f'commands: {len(self.bot.commands)}\n' \
+                f'commands used since last restart: {self.bot.command_use_count}\n' \
+                f'commands {ctx.author} can use here: {await self.count_available_cmds(ctx)}\n')
+        return embed
+
+
+    async def get_uptime(self, ctx) -> str:
+        """Returns the amount of time the bot has been running"""
+        _uptime = ctx.message.created_at - self.bot.launch_time
+        time_message = await format_timedelta(_uptime)
+        return time_message
+
+
+    async def count_available_cmds(self, ctx) -> int:
+        """Counts the commands that ctx.author can use"""
+        count = 0
+        for cmd in self.bot.commands:
+            try:
+                if await cmd.can_run(ctx):
+                    count += 1
+            except commands.CommandError:
+                pass
+        return count
 
 
     @info.command(name='role', aliases=['r'])

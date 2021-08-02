@@ -4,7 +4,7 @@ from discord.ext import commands
 import platform
 
 # internal imports
-from common import dev_settings, format_timedelta, get_prefixes_message, get_prefixes_list
+from common import dev_settings, get_prefixes_message, get_prefixes_list
 
 
 # Guide on subclassing HelpCommand: https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96
@@ -69,44 +69,9 @@ class Help(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.command(aliases=['ping', 'uptime'])
-    async def stats(self, ctx):
-        """Shows statistics about this bot"""
-        embed = discord.Embed()
-        embed.add_field(name='stats',
-            value=f'websocket latency: {self.bot.latency * 1000:.2f} ms\n' \
-                f'uptime: {await self.uptime(ctx)}\n' \
-                f'servers: {len(self.bot.guilds)}\n' \
-                f'users: {len(self.bot.users)}\n' \
-                f'commands: {len(self.bot.commands)}\n' \
-                f'commands used since last restart: {self.bot.command_use_count}\n' \
-                f'commands {ctx.author} can use here: {await self.count_available_cmds(ctx)}\n')
-
-        await ctx.send(embed=embed)
-
-
     @commands.command(hidden=True)
     async def source(self, ctx):
         await ctx.send('I am closed source.')
-
-
-    async def uptime(self, ctx) -> str:
-        """Returns the amount of time the bot has been running"""
-        _uptime = ctx.message.created_at - self.bot.launch_time
-        time_message = await format_timedelta(_uptime)
-        return time_message
-
-
-    async def count_available_cmds(self, ctx) -> int:
-        """Counts the commands that ctx.author can use"""
-        count = 0
-        for cmd in self.bot.commands:
-            try:
-                if await cmd.can_run(ctx):
-                    count += 1
-            except commands.CommandError:
-                pass
-        return count
 
 
 def setup(bot):
