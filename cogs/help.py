@@ -35,7 +35,7 @@ class Help(commands.Cog):
         self.bot.help_command = self.old_help_command
 
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def prefixes(self, ctx):
         """Lists the bot's current prefixes for this server"""
         prefixes = await get_prefixes_message(self.bot, ctx.message)

@@ -6,26 +6,12 @@ from datetime import datetime
 import asyncio
 import asyncpg
 from typing import Union, Tuple, Dict, List
-import json
 import logging
 from logging.handlers import RotatingFileHandler
 
 # internal imports
 from cogs.quotes import send_quote, update_quote_day
 from cogs.reminders import delete_reminder_from_db
-
-
-def load_all_custom_prefixes() -> Dict[int, List[str]]:
-    """Gets all the custom prefixes for all servers
-    
-    Returns an empty dict if there are none.
-    """
-    with open('custom_prefixes.json', 'r') as file:
-        try:
-            string_key_dict = json.load(file)
-            return str_keys_to_ints(string_key_dict)
-        except json.decoder.JSONDecodeError:
-            return dict()
 
 
 def str_keys_to_ints(string_key_dict: Dict[str, List[str]]) -> Dict[int, List[str]]:

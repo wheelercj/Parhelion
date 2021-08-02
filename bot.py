@@ -3,7 +3,6 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 import aiohttp
-import json
 import os
 import re
 import sys
@@ -14,7 +13,7 @@ from typing import List, Dict
 
 # internal imports
 from common import dev_settings, dev_mail, get_prefixes_message, get_prefixes_list
-from startup import continue_tasks, load_all_custom_prefixes, set_up_logger
+from startup import continue_tasks, set_up_logger
 
 
 class Bot(commands.Bot):
@@ -31,7 +30,8 @@ class Bot(commands.Bot):
         self.launch_time = datetime.utcnow()
         self.global_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.user)
         self.session = aiohttp.ClientSession(loop=self.loop)
-        self.custom_prefixes: Dict[int, List[str]] = load_all_custom_prefixes()
+        self.custom_prefixes: Dict[int, List[str]] = dict()
+        self.removed_default_prefixes: Dict[int, List[str]] = dict()
         self.logger: logging.Logger = None
         self.previous_command_ctxs: List[commands.Context] = []
         self.command_use_count = 0
@@ -71,26 +71,22 @@ class Bot(commands.Bot):
             prefixes.append('')
         else:
             try:
-                server_prefixes = copy(self.custom_prefixes[message.guild.id])
-                for p in server_prefixes:
-                    if p.startswith('␝'):
-                        prefixes.remove(p[1:])
-                    else:
-                        prefixes.append(p)
+                removed_default_prefixes = copy(self.removed_default_prefixes[message.guild.id])
+                if removed_default_prefixes is not None:
+                    for p in removed_default_prefixes:
+                        prefixes.remove(p)
+            except KeyError:
+                pass
+            try:
+                custom_prefixes = copy(self.custom_prefixes[message.guild.id])
+                if custom_prefixes is not None:
+                    prefixes.extend(custom_prefixes)
             except KeyError:
                 pass
 
         if message.guild and '' in prefixes:
             prefixes.remove('')
         return commands.when_mentioned_or(*prefixes)(bot, message)
-
-
-    async def save_all_custom_prefixes(self) -> None:
-        """Saves all the custom prefixes for all servers"""
-        with open('custom_prefixes.json', 'w') as file:
-            json.dump(self.custom_prefixes, file)
-            # This converts all the integer keys to strings
-            # because JSON dict keys cannot be ints.
 
 
     async def close(self):
