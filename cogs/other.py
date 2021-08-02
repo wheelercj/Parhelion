@@ -15,44 +15,24 @@ class Other(commands.Cog):
         self.bot = bot
 
 
-    @commands.command(aliases=['random'])
-    async def rand(self, ctx, low: int = 1, high: int = 6):
-        """Gives a random number (default bounds: 1 and 6)"""
-        low = int(low)
-        high = int(high)
-        if  low <= high:
-            await ctx.send(str(random.randint(low, high)))
-        else:
-            await ctx.send(str(random.randint(high, low)))
+    @commands.command(aliases=['link', 'url', 'publish', 'post', 'paste', 'mystbin'])
+    async def share(self, ctx, *, text: str = None):
+        """Gives you a URL to your text or attachment
 
+        Text is posted publicly on Mystb.in and cannot be edited or deleted once posted. Attachments stay on Discord's servers until deleted. For text, you can use a code block. Not all file types work for attachments.
+        """
+        async with ctx.typing():
+            file_url = await get_attachment_url(ctx)
+            if file_url:
+                await ctx.send(f"Here's a link to the attachment: <{file_url}>")
 
-    @commands.command(name='flip-coin', aliases=['flip', 'flipcoin'])
-    async def flip_coin(self, ctx):
-        """Flips a coin"""
-        n = random.randint(1, 2)
-        if n == 1:
-            await ctx.send('heads')
-        else:
-            await ctx.send('tails')
+            if text:
+                syntax, text = await unwrap_code_block(text)
+                text = dedent(text)
+                mystbin_client = mystbin.Client(session=self.bot.session)
+                paste = await mystbin_client.post(text, syntax=syntax)
 
-
-    @commands.command()
-    async def choose(self, ctx, choice_count: int, *choices: str):
-        """Chooses randomly from multiple choices"""
-        choices_made = []
-        for _ in range(0, choice_count):
-            choices_made.append(random.choice(choices))
-        await ctx.send(''.join(choices_made))
-
-
-    @choose.error
-    async def choose_error(self, ctx, error):
-        if isinstance(error, commands.errors.BadArgument) \
-        or isinstance(error, commands.errors.CommandInvokeError) \
-        or isinstance(error, commands.errors.MissingRequiredArgument):
-            await ctx.send(f'Error: the first argument must be the number of choices you want to be made. Following arguments must be the choices to choose from.')
-        else:
-            await ctx.send(error)
+                await ctx.reply(f'New Mystb.in paste created at <{paste.url}>')
 
 
     @commands.command(aliases=['calc', 'solve', 'maths'])
@@ -101,7 +81,47 @@ class Other(commands.Cog):
                 await send_traceback(ctx, e)
 
 
-    @commands.command(aliases=['rotate', 'rot', 'shift'])
+    @commands.command(name='random', aliases=['rand'], hidden=True)
+    async def rand(self, ctx, low: int = 1, high: int = 6):
+        """Gives a random number (default bounds: 1 and 6)"""
+        low = int(low)
+        high = int(high)
+        if  low <= high:
+            await ctx.send(str(random.randint(low, high)))
+        else:
+            await ctx.send(str(random.randint(high, low)))
+
+
+    @commands.command(name='flip-coin', aliases=['flip', 'flipcoin'], hidden=True)
+    async def flip_coin(self, ctx):
+        """Flips a coin"""
+        n = random.randint(1, 2)
+        if n == 1:
+            await ctx.send('heads')
+        else:
+            await ctx.send('tails')
+
+
+    @commands.command(hidden=True)
+    async def choose(self, ctx, choice_count: int, *choices: str):
+        """Chooses randomly from multiple choices"""
+        choices_made = []
+        for _ in range(0, choice_count):
+            choices_made.append(random.choice(choices))
+        await ctx.send(''.join(choices_made))
+
+
+    @choose.error
+    async def choose_error(self, ctx, error):
+        if isinstance(error, commands.errors.BadArgument) \
+        or isinstance(error, commands.errors.CommandInvokeError) \
+        or isinstance(error, commands.errors.MissingRequiredArgument):
+            await ctx.send(f'Error: the first argument must be the number of choices you want to be made. Following arguments must be the choices to choose from.')
+        else:
+            await ctx.send(error)
+
+
+    @commands.command(aliases=['rotate', 'rot', 'shift'], hidden=True)
     async def cipher(self, ctx, n: int, *, message: str):
         """Rotates each letter n letters through the alphabet"""
         message = message.lower()
@@ -116,26 +136,6 @@ class Other(commands.Cog):
                 new_string += char
 
         await ctx.send(new_string)
-
-
-    @commands.command(aliases=['link', 'url', 'publish', 'post', 'paste', 'mystbin'])
-    async def share(self, ctx, *, text: str = None):
-        """Gives you a URL to your text or attachment
-
-        Text is posted publicly on Mystb.in and cannot be edited or deleted once posted. Attachments stay on Discord's servers until deleted. For text, you can use a code block. Not all file types work for attachments.
-        """
-        async with ctx.typing():
-            file_url = await get_attachment_url(ctx)
-            if file_url:
-                await ctx.send(f"Here's a link to the attachment: <{file_url}>")
-
-            if text:
-                syntax, text = await unwrap_code_block(text)
-                text = dedent(text)
-                mystbin_client = mystbin.Client(session=self.bot.session)
-                paste = await mystbin_client.post(text, syntax=syntax)
-
-                await ctx.reply(f'New Mystb.in paste created at <{paste.url}>')
 
 
 def setup(bot):
