@@ -1,8 +1,7 @@
 # external imports
-import discord
 from discord.ext import commands
 from bs4 import BeautifulSoup
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 
 # internal imports
 from common import Paginator
@@ -12,8 +11,7 @@ from common import Paginator
 CREATE TABLE docs (
     id SERIAL PRIMARY KEY,
     server_id BIGINT UNIQUE,
-    url TEXT NOT NULL,
-    language TEXT NOT NULL
+    url TEXT NOT NULL
 );
 '''
 
@@ -21,14 +19,18 @@ CREATE TABLE docs (
 class Docs(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.docs_urls: Dict[int, str] = dict()  # Server IDs and URLs.
 
 
-    @commands.group()
+    @commands.group(invoke_without_command=True)
     async def doc(self, ctx, *, query: str = None):
-        """Searches this server's chosen documentation"""
-        url = 'https://discordpy.readthedocs.io/en/latest/index.html'
-        if 'readthedocs' not in url:
-            raise commands.BadArgument('The `doc` commands only works with ReadTheDocs sites')
+        """Searches this server's chosen documentation source"""
+        try:
+            url = self.docs_urls[ctx.guild.id]
+        except KeyError:
+            await ctx.send('This server hasn\'t chosen a ReadTheDocs URL for this command yet. If you have the "manage server" permission, you can choose the URL with the `doc set` command.')
+            return
+
         if query is None:
             await ctx.send(f'<{url}>')
             return
@@ -58,6 +60,35 @@ class Docs(commands.Cog):
         await paginator.start(ctx)
 
 
+    @doc.command(name='set', alias=['s'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def set_doc_url(self, ctx, url: str):
+        """Sets the ReadTheDocs URL for the `doc` command for this server
+
+        Currently, each server can only have one documentation URL.
+        Here's an example of a valid URL: `https://discordpy.readthedocs.io/en/latest`
+        """
+        if 'readthedocs' not in url:
+            raise commands.BadArgument('The `doc` commands only works with ReadTheDocs sites')
+        if not url.startswith('https://'):
+            raise commands.BadArgument('ReadTheDocs URLs should begin with "https://"')
+        if len(url.split('/')) < 5:
+            raise commands.BadArgument("The URL appears to be too short. Here's an example of a valid URL: `https://discordpy.readthedocs.io/en/latest`")
+        if len(url.split('/')[3]) != 2:
+            raise commands.BadArgument("The part of the URL that says the language of the documentation should be two letters long. Here's an example of a valid URL: `https://discordpy.readthedocs.io/en/latest`")
+
+        self.docs_urls[ctx.guild.id] = url
+        await ctx.send('The URL has been set! Everyone can now use the `doc` command with your chosen documentation source.')
+
+
+    @doc.command(name='delete', alias=['del'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def delete_doc_url(self, ctx):
+        """Deletes this server's chosen URL for the `doc` command"""
+        del self.docs_urls[ctx.guild.id]
+        await ctx.send('Documentation URL deleted')
+
+
     async def parse_doc_url(self, url: str) -> Tuple[str, str, str, str]:
         """Splits a ReadTheDocs URL into project_name, project_version, language, and search_url
         
@@ -70,8 +101,7 @@ class Docs(commands.Cog):
         """
         # Temporarily remove the `https://` or `http://` for easier parsing.
         i = url.find('//')
-        if i != -1:
-            url = url[i+2:]
+        url = url[i+2:]
         project_name = url.split('.')[0]
         project_version = url.split('/')[2]
         language = url.split('/')[1]
