@@ -52,6 +52,13 @@ class Docs(commands.Cog):
     @commands.group(invoke_without_command=True)
     async def doc(self, ctx, *, query: str = None):
         """Searches this server's chosen documentation source"""
+        doc_search_command = self.bot.get_command('doc search')
+        await ctx.invoke(doc_search_command, query=query)
+
+
+    @doc.command(name='search')
+    async def search_doc(self, ctx, *, query: str = None):
+        """An alias for `doc` in case a subcommand name conflicts with a search query"""
         try:
             url = self.docs_urls[ctx.guild.id]
         except KeyError:
@@ -67,7 +74,6 @@ class Docs(commands.Cog):
             'q': query,
             'project': project_name,
             'version': project_version,
-            'page_size': 20,
         }
 
         async with ctx.typing():
@@ -104,6 +110,7 @@ class Docs(commands.Cog):
         if len(url.split('/')[3]) != 2:
             raise commands.BadArgument("The part of the URL that says the language of the documentation should be two letters long. Here's an example of a valid URL: `https://discordpy.readthedocs.io/en/latest`")
 
+        url = '/'.join(url.split('/')[:5])
         self.docs_urls[ctx.guild.id] = url
         await self.bot.db.execute('''
             INSERT INTO docs
