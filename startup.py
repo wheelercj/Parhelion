@@ -10,7 +10,6 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 # internal imports
-from cogs.quotes import send_quote, update_quote_day
 from cogs.reminders import delete_reminder_from_db
 
 
@@ -52,12 +51,13 @@ async def set_up_logger(name: str, level: int) -> logging.Logger:
 
 
 async def continue_tasks(bot) -> None:
-    """Runs all saved tasks, one at a time
+    """Runs all saved reminders, one at a time
     
     This function processes only one task at a time,
     which is one of the reasons the tasks must be
     sorted by target time.
     """
+    # TODO: rewrite reminders so I can delete this function.
     while True:
         table_name, task_record = await get_first_global_task(bot)
         if task_record is None:
@@ -66,24 +66,14 @@ async def continue_tasks(bot) -> None:
 
 
 async def get_first_global_task(bot) -> Tuple[str, asyncpg.Record]:
-    """Gets the task with the earliest target time
+    """Gets the reminder with the earliest target time
     
     The first value returned is the name of the table the task is from. The second value is the task's record.
     """
-    table_names = ['reminders', 'daily_quotes']
-    first_record = await get_first_local_task(bot, table_names[0])
-    first_table_name = table_names[0]
-
-    for name in table_names[1:]:
-        record = await get_first_local_task(bot, name)
-        if record is None:
-            continue
-        if first_record is None \
-                or record['target_time'] < first_record['target_time']:
-            first_record = record
-            first_table_name = name
-
-    return first_table_name, first_record
+    # TODO: rewrite reminders so I can delete this function.
+    table_name = 'reminders'
+    record = await get_first_local_task(bot, table_name)
+    return table_name, record
 
 
 async def get_first_local_task(bot, table_name: str) -> asyncpg.Record:
@@ -92,13 +82,6 @@ async def get_first_local_task(bot, table_name: str) -> asyncpg.Record:
         return await bot.db.fetchrow('''
             SELECT *
             FROM reminders
-            ORDER BY target_time
-            LIMIT 1;
-            ''')
-    elif table_name == 'daily_quotes':
-        return await bot.db.fetchrow('''
-            SELECT *
-            FROM daily_quotes
             ORDER BY target_time
             LIMIT 1;
             ''')
@@ -115,8 +98,6 @@ async def continue_task(bot, table_name: str, task_record: asyncpg.Record) -> No
 
     if table_name == 'reminders':
         await continue_reminder(bot, task_record, destination, remaining_seconds)
-    elif table_name == 'daily_quotes':
-        await continue_daily_quote(bot, task_record, destination, remaining_seconds)
 
 
 async def get_destination(bot, task_record: asyncpg.Record) -> Union[discord.User, discord.TextChannel, None]:
@@ -125,18 +106,6 @@ async def get_destination(bot, task_record: asyncpg.Record) -> Union[discord.Use
         return bot.get_user(task_record['author_id'])
     server = bot.get_guild(task_record['server_id'])
     return server.get_channel(task_record['channel_id'])
-
-
-async def continue_daily_quote(bot, task_record: asyncpg.Record, destination: Union[discord.User, discord.TextChannel, commands.Context], remaining_seconds: int) -> None:
-    """Continues a daily quote that had been stopped by a server restart"""
-    if remaining_seconds > 0:
-        await asyncio.sleep(remaining_seconds)
-
-    await send_quote(destination, bot)
-
-    author_id = task_record['author_id']
-    target_time = task_record['target_time']
-    await update_quote_day(bot, author_id, target_time)
 
 
 async def continue_reminder(bot, task_record: asyncpg.Record, destination: Union[discord.User, discord.TextChannel, commands.Context], remaining_seconds: int) -> None:

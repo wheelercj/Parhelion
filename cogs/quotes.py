@@ -3,9 +3,10 @@ import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
 import asyncio
+import asyncpg
 from aiohttp.client_exceptions import ContentTypeError
 import json
-from typing import Union
+from typing import Union, Tuple
 
 # internal imports
 from common import format_time, safe_send
@@ -23,50 +24,42 @@ from common import format_time, safe_send
 '''
 
 
-async def send_quote(destination: Union[discord.User, discord.TextChannel, commands.Context], bot, author_id: int = None) -> None:
-    """Send a random quote to destination
-
-    If an author_id is received, their daily quote's target time will be updated to the same time the following day.
-    """
-    params = {
-        'lang': 'en',
-        'method': 'getQuote',
-        'format': 'json'
-    }
-    try:
-        async with bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
-            json_text = await response.json()
-        quote, author = json_text['quoteText'], json_text['quoteAuthor']
-        embed = discord.Embed(description=f'"{quote}"\n — {author}')
-        await destination.send(embed=embed)
-    except ContentTypeError as error:
-        print(f'forismatic {error = }')
-    except json.decoder.JSONDecodeError as error:
-        print(f'forismatic {error = }')
-    else:
-        if author_id is not None:
-            # Change the target time to tomorrow in the database.
-            old_target_time = await bot.db.fetchval('''
-                SELECT target_time
-                FROM daily_quotes
-                WHERE author_id = $1;
-                ''', author_id)
-            await update_quote_day(bot, author_id, old_target_time)
-
-
-async def update_quote_day(bot, author_id: int, old_target_time: datetime) -> None:
-    """Changes a daily quote's target datetime in the database to tomorrow"""
-    new_target_time = old_target_time + timedelta(days=1)
-    await bot.db.execute('''
-        UPDATE daily_quotes
-        SET target_time = $1
-        WHERE author_id = $2
-        ''', new_target_time, author_id)
-
-
 class Quotes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self._task = bot.loop.create_task(self.run_daily_quotes())
+        self.previous_quote = 'In the darkest times, hope is something you give yourself. That is the meaning of inner strength.'
+        self.previous_author = 'Iroh'
+
+
+    async def run_daily_quotes(self):
+        try:
+            while not self.bot.is_closed():
+                r = await self.bot.db.fetchrow('''
+                    SELECT *
+                    FROM daily_quotes
+                    ORDER BY target_time
+                    LIMIT 1;
+                    ''')
+                target_time = r['target_time']
+                author_id = r['author_id']
+                if r['is_dm']:
+                    destination = self.bot.get_user(r['author_id'])
+                else:
+                    server = self.bot.get_guild(r['server_id'])
+                    destination = server.get_channel(r['channel_id'])
+
+                now = datetime.utcnow()
+                if now < target_time:
+                    seconds = (target_time - now).total_seconds()
+                    await asyncio.sleep(seconds)
+                await self.update_quote_target_time(target_time, author_id)
+                await self.send_quote(destination)
+                # await self.create_daily_quote_task(destination, r['target_time'], r['author_id'])
+        except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
+            print(f'  run_daily_quotes inner {error = }')
+            self._task.cancel()
+            self._task = self.bot.loop.create_task(self.run_daily_quotes())
 
 
     @commands.group(invoke_without_command=True)
@@ -79,7 +72,7 @@ class Quotes(commands.Cog):
         with `quote stop`.
         """
         if not len(daily_utc_time):
-            await send_quote(ctx, self.bot)
+            await self.send_quote(ctx)
             return
 
         hour, minute = daily_utc_time.split(':')
@@ -102,15 +95,15 @@ class Quotes(commands.Cog):
             (author_id, start_time, target_time, is_dm, server_id, channel_id)
             VALUES ($1, $2, $3, $4, $5, $6)
             ON CONFLICT (author_id)
-            DO
-                UPDATE
-                SET target_time = $3
-                WHERE daily_quotes.author_id = $1;
+            DO UPDATE
+            SET target_time = $3
+            WHERE daily_quotes.author_id = $1;
             ''', ctx.author.id, now, target_time, is_dm, server_id, channel_id)
 
         daily_time = await format_time(target_time)
         await ctx.send(f'Time set! At {daily_time} UTC each day, I will send you a random quote.')
-        await self.begin_daily_quote(ctx, target_time, ctx.author.id)
+        self._task = self.bot.loop.create_task(self.run_daily_quotes())
+        # await self.create_daily_quote_task(ctx, target_time, ctx.author.id)
 
 
     @quote.command(name='stop', aliases=['del', 'delete'])
@@ -174,28 +167,61 @@ class Quotes(commands.Cog):
         await ctx.send(message)
 
 
-    async def begin_daily_quote(self, destination: Union[discord.User, discord.TextChannel, commands.Context], target_time: datetime, author_id: int) -> None:
-        """Creates an asyncio task for a daily quote"""
-        def error_callback(running_task):
-            # Tasks fail silently without this function.
-            if running_task.exception():
-                running_task.print_stack()
+    # async def create_daily_quote_task(self, destination: Union[discord.User, discord.TextChannel, commands.Context], target_time: datetime, author_id: int) -> None:
+    #     """Creates an asyncio task for a daily quote"""
+    #     def error_callback(running_task):
+    #         # Tasks fail silently without this function.
+    #         if running_task.exception():
+    #             running_task.print_stack()
         
-        running_task = asyncio.create_task(self.daily_quote_loop(destination, self.bot, target_time, author_id))
-        running_task.add_done_callback(error_callback)
+    #     running_task = self.bot.loop.create_task(self.daily_quote_loop(destination, target_time, author_id))
+    #     running_task.add_done_callback(error_callback)
 
 
-    async def daily_quote_loop(self, destination: Union[discord.User, discord.TextChannel, commands.Context], bot, target_time: datetime, author_id: int) -> None:
-        """Send a quote once a day at a specific time"""
-        while True:
-            now = datetime.utcnow()
-            if now > target_time:
-                date = now.date() + timedelta(days=1)
-            else:
-                date = now.date()
-            target_time = datetime.combine(date, target_time.time())
-            await discord.utils.sleep_until(target_time)
-            await send_quote(destination, bot, author_id)
+    # async def daily_quote_loop(self, destination: Union[discord.User, discord.TextChannel, commands.Context], target_time: datetime, author_id: int) -> None:
+    #     """Send a quote once a day at a specific time"""
+    #     now = datetime.utcnow()
+    #     if now < target_time:
+    #         seconds = (target_time - now).total_seconds()
+    #         await asyncio.sleep(seconds)
+    #     await self.update_quote_target_time(target_time, author_id)
+    #     await self.send_quote(destination)
+
+
+    async def update_quote_target_time(self, old_target_time: datetime, author_id: int) -> None:
+        """Changes a daily quote's target time in the database to one day later"""
+        new_target_time = old_target_time + timedelta(days=1)
+        await self.bot.db.execute('''
+            UPDATE daily_quotes
+            SET target_time = $1
+            WHERE author_id = $2
+            ''', new_target_time, author_id)
+
+
+    async def send_quote(self, destination: Union[discord.User, discord.TextChannel, commands.Context]) -> None:
+        """Immediately sends a random quote to destination"""
+        quote, author = await self.get_quote()
+        embed = discord.Embed(description=f'"{quote}"\n — {author}')
+        await destination.send(embed=embed)
+
+
+    async def get_quote(self) -> Tuple[str, str]:
+        """Gets a quote and the quote's author from the forismatic API"""
+        params = {
+            'lang': 'en',
+            'method': 'getQuote',
+            'format': 'json'
+        }
+        try:
+            async with self.bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
+                json_text = await response.json()
+            quote, author = json_text['quoteText'], json_text['quoteAuthor']
+            self.previous_quote = quote
+            self.previous_author = author
+            return quote, author
+        except (ContentTypeError, json.decoder.JSONDecodeError) as error:
+            print(f'forismatic {error = }')
+            return self.previous_quote, self.previous_author
 
 
 def setup(bot):
