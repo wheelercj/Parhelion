@@ -6,6 +6,7 @@ import aiohttp
 import os
 import re
 import sys
+import platform
 import logging
 import traceback
 from copy import copy
@@ -113,6 +114,7 @@ class Bot(commands.Bot):
         # This function may be called many times while the
         # bot is running, so it should not do much.
         print('------------------------------------')
+        print(f'Python v{platform.python_version()}')
         print(f'discord.py v{discord.__version__}')
         print(f'{self.user.name}#{self.user.discriminator} ready!')
         print('------------------------------------')
