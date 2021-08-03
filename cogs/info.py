@@ -2,9 +2,10 @@
 import discord
 from discord.ext import commands
 from typing import List, Tuple, Union
+import platform
 
 # internal imports
-from common import format_datetime, format_timestamp, format_timedelta
+from common import format_datetime, format_timestamp, format_timedelta, get_prefixes_list, dev_settings
 
 
 def y_n(boolean: bool) -> str:
@@ -17,17 +18,17 @@ class Info(commands.Cog):
         self.bot = bot
 
 
+    @commands.command(hidden=True)
+    async def ping(self, ctx):
+        """Shows the bot's latency"""
+        await ctx.send(f'Pong! Websocket latency: {self.bot.latency * 1000:.2f} ms')
+
+
     @commands.command(name='time', aliases=['clock', 'UTC', 'utc'])
     async def _time(self, ctx):
         """Shows the current time in UTC"""
         current_time = await format_datetime(ctx.message.created_at)
         await ctx.send(f'The current time in UTC is {current_time}')
-
-
-    @commands.command(hidden=True)
-    async def ping(self, ctx):
-        """Shows the bot's latency"""
-        await ctx.send(f'Pong! Websocket latency: {self.bot.latency * 1000:.2f} ms')
 
 
     @commands.command(hidden=True)
@@ -39,9 +40,67 @@ class Info(commands.Cog):
     
     @commands.command(hidden=True)
     async def stats(self, ctx):
-        """Shows info about this bot"""
-        embed = await self.get_stats(ctx)
+        """Shows statistics about this bot"""
+        embed = discord.Embed()
+        embed.add_field(name='stats',
+            value=f'websocket latency: {self.bot.latency * 1000:.2f} ms\n' \
+                f'uptime: {await self.get_uptime(ctx)}\n' \
+                f'servers: {len(self.bot.guilds)}\n' \
+                f'users: {len(self.bot.users)}\n' \
+                f'commands: {len(self.bot.commands)}\n' \
+                f'commands used since last restart: {self.bot.command_use_count}\n' \
+                f'commands {ctx.author} can use here: {await self.count_available_cmds(ctx)}\n')
         await ctx.send(embed=embed)
+
+
+    @commands.command(hidden=True)
+    async def invite(self, ctx):
+        """Shows the link to invite this bot to another server"""
+        await ctx.send(f'<{dev_settings.bot_invite_link}>')
+
+
+    @commands.command(aliases=['contact'], hidden=True)
+    async def support(self, ctx):
+        """Shows the link to this bot's support server"""
+        await ctx.send(f'<{dev_settings.support_server_link}>')
+
+
+    @commands.command(aliases=['privacy-policy', 'privacypolicy'], hidden=True)
+    async def privacy(self, ctx):
+        """Shows the link to this bot's privacy policy"""
+        await ctx.send(f'<{dev_settings.privacy_policy_link}>')
+
+
+    @commands.command()
+    async def about(self, ctx):
+        """Shows general info about this bot"""
+        embed = discord.Embed(title=f'{self.bot.user.name}#{self.bot.user.discriminator}')
+        owner = self.bot.get_user(self.bot.owner_id)
+        prefixes = await get_prefixes_list(self.bot, ctx.message)
+
+        embed.add_field(name='\u200b\u2800',
+            value=f'Use `{prefixes[0]}help` for help\nwith commands.\u2800\n\u2800')
+        embed.add_field(name='\u2800owner\u2800',
+            value=f'\u2800{owner.name}#{owner.discriminator}\u2800\n\u2800')
+        embed.add_field(name='\u200b',
+            value='\u200b\n\u200b')
+
+        embed.add_field(name='links\u2800',
+            value=f'[bot invite]({dev_settings.bot_invite_link})\u2800\n' \
+                f'[support server]({dev_settings.support_server_link})\u2800\n' \
+                f'[privacy policy]({dev_settings.privacy_policy_link})\u2800\n')
+        embed.add_field(name='\u2800made with\u2800',
+            value=f'\u2800Python v{platform.python_version()}\u2800\n' \
+                f'\u2800and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\u2800\n')
+        embed.add_field(name='\u200b',
+            value='\u200b')
+
+        await ctx.send(embed=embed)
+
+
+    @commands.command(hidden=True)
+    async def source(self, ctx):
+        await ctx.send('I am closed source.')
 
 
 ######################
@@ -195,22 +254,10 @@ class Info(commands.Cog):
     @info.command(name='bot', aliases=['b'])
     async def _bot_info(self, ctx):
         """Shows info about this bot"""
-        embed = await self.get_stats(ctx)
-        await ctx.send(embed=embed)
-
-
-    async def get_stats(self, ctx) -> discord.Embed:
-        """Returns info about this bot"""
-        embed = discord.Embed()
-        embed.add_field(name='stats',
-            value=f'websocket latency: {self.bot.latency * 1000:.2f} ms\n' \
-                f'uptime: {await self.get_uptime(ctx)}\n' \
-                f'servers: {len(self.bot.guilds)}\n' \
-                f'users: {len(self.bot.users)}\n' \
-                f'commands: {len(self.bot.commands)}\n' \
-                f'commands used since last restart: {self.bot.command_use_count}\n' \
-                f'commands {ctx.author} can use here: {await self.count_available_cmds(ctx)}\n')
-        return embed
+        about_command = self.bot.get_command('about')
+        await ctx.invoke(about_command)
+        stats_command = self.bot.get_command('stats')
+        await ctx.invoke(stats_command)
 
 
     async def get_uptime(self, ctx) -> str:
