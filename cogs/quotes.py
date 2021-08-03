@@ -27,35 +27,29 @@ from common import format_time, safe_send
 class Quotes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self._task = bot.loop.create_task(self.run_daily_quotes())
+        self._task = self.bot.loop.create_task(self.run_daily_quotes())
         self.previous_quote = 'In the darkest times, hope is something you give yourself. That is the meaning of inner strength.'
         self.previous_author = 'Iroh'
 
 
+    def cog_unload(self):
+        self._task.cancel()
+
+
     async def run_daily_quotes(self):
+        """A task that finds the next quote time, waits for that time, and sends"""
+        await self.bot.wait_until_ready()
         try:
             while not self.bot.is_closed():
-                r = await self.bot.db.fetchrow('''
-                    SELECT *
-                    FROM daily_quotes
-                    ORDER BY target_time
-                    LIMIT 1;
-                    ''')
-                target_time = r['target_time']
-                author_id = r['author_id']
-                if r['is_dm']:
-                    destination = self.bot.get_user(r['author_id'])
-                else:
-                    server = self.bot.get_guild(r['server_id'])
-                    destination = server.get_channel(r['channel_id'])
+                target_time, author_id, destination = await self.get_next_quote_info()
 
                 now = datetime.utcnow()
                 if now < target_time:
                     seconds = (target_time - now).total_seconds()
                     await asyncio.sleep(seconds)
+
                 await self.update_quote_target_time(target_time, author_id)
                 await self.send_quote(destination)
-                # await self.create_daily_quote_task(destination, r['target_time'], r['author_id'])
         except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
             print(f'  run_daily_quotes inner {error = }')
             self._task.cancel()
@@ -79,7 +73,7 @@ class Quotes(commands.Cog):
         now = ctx.message.created_at
         target_time = datetime(now.year, now.month, now.day, int(hour), int(minute))
         if target_time < now:
-            target_time = target_time + timedelta(days=1)
+            target_time += timedelta(days=1)
 
         if ctx.guild:
             is_dm = False
@@ -103,7 +97,6 @@ class Quotes(commands.Cog):
         daily_time = await format_time(target_time)
         await ctx.send(f'Time set! At {daily_time} UTC each day, I will send you a random quote.')
         self._task = self.bot.loop.create_task(self.run_daily_quotes())
-        # await self.create_daily_quote_task(ctx, target_time, ctx.author.id)
 
 
     @quote.command(name='stop', aliases=['del', 'delete'])
@@ -145,7 +138,7 @@ class Quotes(commands.Cog):
                 SELECT author_id
                 FROM daily_quotes
                 WHERE server_id = $1
-                    AND channel_id = $2; 
+                    AND channel_id = $2;
                 ''', ctx.guild.id, ctx.channel.id)
         except Exception as e:
             await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
@@ -167,25 +160,26 @@ class Quotes(commands.Cog):
         await ctx.send(message)
 
 
-    # async def create_daily_quote_task(self, destination: Union[discord.User, discord.TextChannel, commands.Context], target_time: datetime, author_id: int) -> None:
-    #     """Creates an asyncio task for a daily quote"""
-    #     def error_callback(running_task):
-    #         # Tasks fail silently without this function.
-    #         if running_task.exception():
-    #             running_task.print_stack()
-        
-    #     running_task = self.bot.loop.create_task(self.daily_quote_loop(destination, target_time, author_id))
-    #     running_task.add_done_callback(error_callback)
+    async def get_next_quote_info(self) -> Tuple[datetime, int, Union[discord.User, discord.TextChannel, commands.Context]]:
+        """Gets from the database the info for the nearest (in time) daily quote task
 
+        Returns target_time, author_id, destination.
+        """
+        r = await self.bot.db.fetchrow('''
+            SELECT *
+            FROM daily_quotes
+            ORDER BY target_time
+            LIMIT 1;
+            ''')
+        target_time = r['target_time']
+        author_id = r['author_id']
+        if r['is_dm']:
+            destination = self.bot.get_user(r['author_id'])
+        else:
+            server = self.bot.get_guild(r['server_id'])
+            destination = server.get_channel(r['channel_id'])
 
-    # async def daily_quote_loop(self, destination: Union[discord.User, discord.TextChannel, commands.Context], target_time: datetime, author_id: int) -> None:
-    #     """Send a quote once a day at a specific time"""
-    #     now = datetime.utcnow()
-    #     if now < target_time:
-    #         seconds = (target_time - now).total_seconds()
-    #         await asyncio.sleep(seconds)
-    #     await self.update_quote_target_time(target_time, author_id)
-    #     await self.send_quote(destination)
+        return target_time, author_id, destination
 
 
     async def update_quote_target_time(self, old_target_time: datetime, author_id: int) -> None:
