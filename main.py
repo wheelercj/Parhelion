@@ -18,6 +18,7 @@ def main():
         db: asyncpg.Pool = loop.run_until_complete(get_db_connection())
     except Exception:
         print('Error: unable to connect to the database.', file=sys.stderr)
+        return
 
     bot = Bot()
     bot.db = db
