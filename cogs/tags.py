@@ -6,7 +6,7 @@ import io
 from typing import Optional, List
 
 # internal imports
-from common import Paginator, split_input, get_attachment_url, format_timestamp, safe_send
+from common import Paginator, split_input, get_attachment_url, format_relative_time_stamp, safe_send
 
 
 '''
@@ -570,7 +570,7 @@ class Tags(commands.Cog):
         else:
             owner = record['owner_id']
 
-        created = await format_timestamp(record["created"])
+        created = await format_relative_time_stamp(record["created"])
 
         embed = discord.Embed()
         embed.add_field(name=record['name'],

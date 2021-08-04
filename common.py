@@ -147,8 +147,8 @@ async def split_input(message: str) -> Tuple[str,str]:
 
         return name, content
 
-    
-async def get_14_digit_timestamp() -> str:
+
+async def get_14_digit_datetime() -> str:
     """Gets a timestamp in the format YYYYMMDDhhmmss"""
     now = str(datetime.utcnow())
     now = now[:19]  # Remove the microseconds.
@@ -195,9 +195,28 @@ async def format_timedelta(td: timedelta) -> str:
     return ', '.join(output)
 
 
-async def format_timestamp(dt: datetime) -> str:
-    """Creates a relative timestamp string"""
+async def format_relative_time_stamp(dt: datetime) -> str:
+    """Creates a relative timestamp string
+
+    E.g., 'a month ago', or 'in two hours'
+    """
     return f'<t:{dt.strftime("%s")}:R>'
+
+
+async def format_long_datetime_stamp(dt: datetime) -> str:
+    """Creates a long datetime stamp that shows the correct time in each viewer's timezone
+
+    E.g., 'Tuesday, June 22, 2021 11:14 AM'
+    """
+    return f'<t:{dt.strftime("%s")}:F>'
+
+
+async def format_short_datetime_stamp(dt: datetime) -> str:
+    """Creates a short datetime stamp that shows the correct time in each viewer's timezone
+
+    E.g., 'June 22, 2021 11:14 AM'
+    """
+    return f'<t:{dt.strftime("%s")}:f>'
 
 
 async def parse_time_message(ctx, user_input: str) -> Tuple[datetime, str]:

@@ -6,7 +6,7 @@ import aiohttp
 from textwrap import dedent
 
 # internal imports
-from common import unwrap_code_block, escape_json, get_14_digit_timestamp
+from common import unwrap_code_block, escape_json, get_14_digit_datetime
 
 
 class Owner(commands.Cog):
@@ -72,7 +72,7 @@ class Owner(commands.Cog):
         async with ctx.typing():
             syntax, content = await unwrap_code_block(content)
             content = await escape_json(dedent(content))
-            file_name = await get_14_digit_timestamp()
+            file_name = await get_14_digit_datetime()
             url = 'https://api.github.com/gists'
             data = '{"public":false,"files":{"%s.%s":{"content":"%s"}}}' \
                 % (file_name, syntax, content)

@@ -5,7 +5,7 @@ from typing import List, Tuple, Union
 import platform
 
 # internal imports
-from common import format_datetime, format_timestamp, format_timedelta, get_prefixes_list, dev_settings, yes_or_no
+from common import format_datetime, format_relative_time_stamp, format_timedelta, get_prefixes_list, dev_settings, yes_or_no
 
 
 class Info(commands.Cog):
@@ -121,7 +121,7 @@ class Info(commands.Cog):
         server = self.bot.get_guild(ctx.guild.id)
         bot_count = await self.get_bot_count(ctx, server)
         cat_count = len(server.categories)
-        created = await format_timestamp(server.created_at)
+        created = await format_relative_time_stamp(server.created_at)
 
         embed = discord.Embed(title='server info')
         embed.add_field(name='\u200b',
@@ -182,8 +182,8 @@ class Info(commands.Cog):
         
         To see member permissions, use the `info perms` command.
         """
-        created = await format_timestamp(member.created_at)
-        joined = await format_timestamp(member.joined_at)
+        created = await format_relative_time_stamp(member.created_at)
+        joined = await format_relative_time_stamp(member.joined_at)
 
         embed = discord.Embed()
         embed.add_field(name=f'{member.name}#{member.discriminator}\n\u2800',
@@ -282,7 +282,7 @@ class Info(commands.Cog):
         To see role permissions, use the `info perms` command.
         """
         managing_bot = None
-        created = await format_timestamp(role.created_at)
+        created = await format_relative_time_stamp(role.created_at)
         if role.tags is not None:
             if role.tags.bot_id is not None:
                 managing_bot = ctx.guild.get_member(role.tags.bot_id)
