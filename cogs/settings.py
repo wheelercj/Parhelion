@@ -173,7 +173,7 @@ class Settings(commands.Cog):
             return None
 
 
-    @commands.group(aliases=['set'], invoke_without_command=True)
+    @commands.group(name='set', aliases=['setting'], invoke_without_command=True)
     @commands.has_guild_permissions(manage_guild=True)
     async def setting(self, ctx, command_name: CommandName = None):
         """Shows this server's settings for a command
