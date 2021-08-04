@@ -48,8 +48,41 @@ class Paginator(buttons.Paginator):
     thumbnail: 
         Only available when embed=True. The thumbnail URL to set for the embeded pages.
     """
+    # buttons.Paginator repo: https://github.com/PythonistaGuild/buttons
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+    async def _paginate(self, ctx: commands.Context):
+        if not self.entries and not self.extra_pages:
+            raise AttributeError('You must provide atleast one entry or page for pagination.')  # ^^
+
+        if self.entries:
+            self.entries = [self.formatting(entry) for entry in self.entries]
+            entries = list(self.chunker())
+        else:
+            entries = []
+
+        for i, chunk in enumerate(entries):
+            if not self.use_embed:
+                self._pages.append(self.joiner.join(chunk))
+            else:
+                embed = discord.Embed(title=self.title, description=self.joiner.join(chunk), colour=self.colour)
+                embed.set_footer(text=f'page {i+1}/{len(entries)}')
+
+                if self.thumbnail:
+                    embed.set_thumbnail(url=self.thumbnail)
+
+                self._pages.append(embed)
+
+        self._pages = self._pages + self.extra_pages
+
+        if isinstance(self._pages[0], discord.Embed):
+            self.page = await ctx.send(embed=self._pages[0])
+        else:
+            self.page = await ctx.send(self._pages[0])
+
+        self._session_task = ctx.bot.loop.create_task(self._session(ctx))
 
 
 async def safe_send(ctx, message: str, protect_postgres_host: bool = False) -> None:
