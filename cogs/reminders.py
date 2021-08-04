@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 
 # internal imports
-from common import parse_time_message, format_relative_time_stamp, s, safe_send
+from common import parse_time_message, format_relative_time_stamp, format_long_datetime_stamp, s, safe_send
 
 
 '''
@@ -60,7 +60,8 @@ class Reminders(commands.Cog):
 
             await self.save_reminder_to_db(ctx, start_time, target_time, message)
             relative_timestamp = await format_relative_time_stamp(target_time)
-            await ctx.send(f'Reminder set! {relative_timestamp} I will remind you: {message}')
+            target_time_stamp = await format_long_datetime_stamp(target_time)
+            await ctx.send(f'Reminder set! {relative_timestamp} (at {target_time_stamp}) I will remind you: {message}')
 
         seconds = (target_time - start_time).total_seconds()
         await asyncio.sleep(seconds)
@@ -103,9 +104,10 @@ class Reminders(commands.Cog):
             r_list = 'Here are your first 10 reminders:'
         for r in reminder_records:
             message = r['message']
-            remaining = await format_relative_time_stamp(r['target_time'])
+            remaining_time = await format_relative_time_stamp(r['target_time'])
+            target_time_stamp = await format_long_datetime_stamp(r['target_time'])
 
-            r_list += f'\n\n{r["id"]}.) **{remaining}**' \
+            r_list += f'\n\n{r["id"]}.) **{remaining_time}** ({target_time_stamp})' \
                 + f'\n{message}'
 
         embed = discord.Embed(description=r_list)
