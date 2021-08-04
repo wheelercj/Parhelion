@@ -24,10 +24,17 @@ from common import format_time, safe_send
 '''
 
 
+class RunningQuoteInfo:
+    def __init__(self, target_time: datetime, author_id: int):
+        self.target_time = target_time
+        self.author_id = author_id
+
+
 class Quotes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self._task = self.bot.loop.create_task(self.run_daily_quotes())
+        self.running_quote_info: RunningQuoteInfo = None
         self.previous_quote = 'In the darkest times, hope is something you give yourself. That is the meaning of inner strength.'
         self.previous_author = 'Iroh'
 
@@ -42,6 +49,11 @@ class Quotes(commands.Cog):
         try:
             while not self.bot.is_closed():
                 target_time, author_id, destination = await self.get_next_quote_info()
+                if target_time is None:
+                    self.running_quote_info = None
+                    self._task.cancel()
+                    return
+                self.running_quote_info = RunningQuoteInfo(target_time, author_id)
 
                 now = datetime.utcnow()
                 if now < target_time:
@@ -94,9 +106,14 @@ class Quotes(commands.Cog):
             WHERE daily_quotes.author_id = $1;
             ''', ctx.author.id, now, target_time, is_dm, server_id, channel_id)
 
+        if self.running_quote_info is not None \
+                and (ctx.author.id == self.running_quote_info.author_id \
+                or target_time < self.running_quote_info.target_time):
+            self._task.cancel()
+            self._task = self.bot.loop.create_task(self.run_daily_quotes())
+
         daily_time = await format_time(target_time)
         await ctx.send(f'Time set! At {daily_time} UTC each day, I will send you a random quote.')
-        self._task = self.bot.loop.create_task(self.run_daily_quotes())
 
 
     @quote.command(name='stop', aliases=['del', 'delete'])
@@ -107,6 +124,10 @@ class Quotes(commands.Cog):
                 DELETE FROM daily_quotes
                 WHERE author_id = $1;
                 ''', ctx.author.id)
+            if self.running_quote_info is not None \
+                    and ctx.author.id == self.running_quote_info.author_id:
+                self._task.cancel()
+                self._task = self.bot.loop.create_task(self.run_daily_quotes())
         except Exception as e:
             await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
         else:
@@ -123,6 +144,10 @@ class Quotes(commands.Cog):
                 WHERE author_id = $1
                     AND server_id = $2;
                 ''', member.id, ctx.guild.id)
+            if self.running_quote_info is not None \
+                    and member.id == self.running_quote_info.author_id:
+                self._task.cancel()
+                self._task = self.bot.loop.create_task(self.run_daily_quotes())
         except Exception as e:
             await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
         else:
@@ -163,7 +188,8 @@ class Quotes(commands.Cog):
     async def get_next_quote_info(self) -> Tuple[datetime, int, Union[discord.User, discord.TextChannel, commands.Context]]:
         """Gets from the database the info for the nearest (in time) daily quote task
 
-        Returns target_time, author_id, destination.
+        Returns (target_time, author_id, destination).
+        If there is no next daily quote, this function returns (None, None, None).
         """
         r = await self.bot.db.fetchrow('''
             SELECT *
@@ -171,6 +197,9 @@ class Quotes(commands.Cog):
             ORDER BY target_time
             LIMIT 1;
             ''')
+        if r is None:
+            return None, None, None
+
         target_time = r['target_time']
         author_id = r['author_id']
         if r['is_dm']:
