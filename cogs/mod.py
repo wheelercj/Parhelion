@@ -32,14 +32,11 @@ class Mod(commands.Cog):
 
     async def load_custom_prefixes(self):
         await self.bot.wait_until_ready()
-        print('  Loading custom prefixes')
         try:
             records = await self.bot.db.fetch('''
                 SELECT *
                 FROM prefixes;
                 ''')
-            if records is None or not len(records):
-                print('  No custom prefixes found')
             for r in records:
                 self.bot.custom_prefixes[r['server_id']] = r['custom_prefixes']
                 self.bot.removed_default_prefixes[r['server_id']] = r['removed_default_prefixes']

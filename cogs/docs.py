@@ -1,7 +1,6 @@
 # external imports
 import discord
 from discord.ext import commands
-import asyncio
 import asyncpg
 from bs4 import BeautifulSoup
 from typing import Tuple, List, Dict
@@ -28,21 +27,13 @@ class Docs(commands.Cog):
 
     async def load_docs_urls(self):
         await self.bot.wait_until_ready()
-        if self.bot.db is None:
-            print('Error: self.bot.db is None')
-            return
-        print('  Loading documentation URLs')
         try:
             records = await self.bot.db.fetch('''
                 SELECT *
                 FROM docs;
                 ''')
-            if records is None or not len(records):
-                print('  No documentation URLs found')
             for r in records:
                 self.docs_urls[r['server_id']] = r['url']
-        except asyncio.CancelledError:
-            raise
         except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
             print(f'{error = }')
             self._task.cancel()

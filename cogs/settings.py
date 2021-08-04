@@ -1,7 +1,6 @@
 # external imports
 import discord
 from discord.ext import commands
-import asyncio
 import asyncpg
 from typing import List, Tuple, Any, Optional, Dict, Callable
 import json
@@ -130,21 +129,13 @@ class Settings(commands.Cog):
 
     async def load_settings(self):
         await self.bot.wait_until_ready()
-        while self.bot.db is None:
-            print('Error: self.bot.db is None')
-            return
-        print('  Loading settings')
         try:
             records = await self.bot.db.fetch('''
                 SELECT *
                 FROM command_access_settings;
                 ''')
-            if records is None or not len(records):
-                print('  No settings found')
             for r in records:
                 self.all_cmd_settings[r['cmd_name']] = json.loads(r['cmd_settings'])
-        except asyncio.CancelledError:
-            raise
         except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
             print(f'{error = }')
             self._task.cancel()
