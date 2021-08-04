@@ -12,12 +12,11 @@ from startup import get_db_connection
 
 def main():
     keep_alive()
-
+    loop = asyncio.get_event_loop()
     try:
-        loop = asyncio.get_event_loop()
         db: asyncpg.Pool = loop.run_until_complete(get_db_connection())
-    except Exception:
-        print('Error: unable to connect to the database.', file=sys.stderr)
+    except Exception as error:
+        print(f'Error: unable to connect to the database because {error}.', file=sys.stderr)
         return
 
     bot = Bot()
