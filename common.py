@@ -28,25 +28,11 @@ def s(n: int, msg: str) -> str:
     return f'{n} {msg}'
 
 
-def _on_or_off(boolean: bool) -> str:
-    """Returns either 'enabled' or 'disabled'"""
-    if boolean:
-        return 'enabled'
-    return 'disabled'
-
-
 def yes_or_no(boolean: bool) -> str:
     """Returns either 'yes' or 'no'"""
     if boolean:
         return 'yes'
     return 'no'
-
-
-def emoji(boolean: bool) -> str:
-    """Returns either '✅' or '❌'"""
-    if boolean:
-        return '✅'
-    return '❌'
 
 
 async def escape_json(text: str) -> str:

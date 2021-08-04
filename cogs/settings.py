@@ -6,7 +6,7 @@ from typing import List, Tuple, Any, Optional, Dict, Callable
 import json
 
 # internal imports
-from common import Paginator, _on_or_off, emoji
+from common import Paginator
 
 
 '''
@@ -201,7 +201,8 @@ class Settings(commands.Cog):
 
         embed = discord.Embed(title=f'`{command_name}` command settings')
         if s['_global'] is not None:
-            embed.add_field(name='global', value=emoji(s['_global']), inline=False)
+            boolean = '✅' if s['_global'] else '❌'
+            embed.add_field(name='global', value=boolean, inline=False)
         if len(s['global_servers']):
             content = await self.get_settings_message(s['global_servers'], self.bot.get_guild)
             embed.add_field(name='global servers', value=content, inline=False)
@@ -214,7 +215,8 @@ class Settings(commands.Cog):
             server = self.bot.get_guild(ctx.guild.id)
 
             if ss['server'] is not None:
-                embed.add_field(name='server', value=emoji(ss['server']), inline=False)
+                boolean = '✅' if s['server'] else '❌'
+                embed.add_field(name='server', value=boolean, inline=False)
             if len(ss['roles']):
                 content = await self.get_settings_message(ss['roles'], server.get_role)
                 embed.add_field(name='server roles', value=content, inline=False)
@@ -235,14 +237,15 @@ class Settings(commands.Cog):
     async def global_cmd_setting(self, ctx, on_or_off: bool, command_name: CommandName):
         """Manages absolute commands access globally"""
         await self.set_default_settings(ctx, command_name)
-        self.all_cmd_settings[command_name]['_global'] = on_or_off
+        self.all_cmd_settings[command_name]['server'] = on_or_off
         setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
             UPDATE command_access_settings
             SET cmd_settings = JSONB_SET(cmd_settings, '{_global}', $1::JSONB, TRUE)
             WHERE cmd_name = $2;
             """, setting_json, command_name)
-        await ctx.send(f'New global setting: command `{command_name}` {_on_or_off(on_or_off)}.')
+        on_or_off = 'enabled' if on_or_off else 'disabled'
+        await ctx.send(f'New global setting: command `{command_name}` {on_or_off}.')
 
 
     @setting.command(name='global-server', aliases=['gs', 'globalserver'])
@@ -257,7 +260,8 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
             WHERE cmd_name = $4;
             """, 'global_servers', str(server.id), setting_json, command_name)
-        await ctx.send(f'New global setting: `{command_name}` {_on_or_off(on_or_off)} for server: {server.name}.')
+        on_or_off = 'enabled' if on_or_off else 'disabled'
+        await ctx.send(f'New global setting: `{command_name}` {on_or_off} for server: {server.name}.')
 
 
     @setting.command(name='global-user', aliases=['gu', 'globaluser'])
@@ -272,7 +276,8 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
             WHERE cmd_name = $4;
             """, 'global_users', str(user.id), setting_json, command_name)
-        await ctx.send(f'New global setting: `{command_name}` {_on_or_off(on_or_off)} for user: {user.name}#{user.discriminator}.')
+        on_or_off = 'enabled' if on_or_off else 'disabled'
+        await ctx.send(f'New global setting: `{command_name}` {on_or_off} for user: {user.name}#{user.discriminator}.')
 
 
     @setting.command(name='server', aliases=['s'])
@@ -287,7 +292,8 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3]::TEXT[], $4::JSONB, TRUE)
             WHERE cmd_name = $5;
             """, 'servers', str(ctx.guild.id), 'server', setting_json, command_name)
-        await ctx.send(f'New setting: `{command_name}` {_on_or_off(on_or_off)} for this server.')
+        on_or_off = 'enabled' if on_or_off else 'disabled'
+        await ctx.send(f'New setting: `{command_name}` {on_or_off} for this server.')
 
 
     @setting.command(name='role', aliases=['r'])
@@ -302,7 +308,8 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
             WHERE cmd_name = $6;
             """, 'servers', str(ctx.guild.id), 'roles', str(role.id), setting_json, command_name)
-        await ctx.send(f'New setting: `{command_name}` {_on_or_off(on_or_off)} for role: {role.name}.')
+        on_or_off = 'enabled' if on_or_off else 'disabled'
+        await ctx.send(f'New setting: `{command_name}` {on_or_off} for role: {role.name}.')
 
 
     @setting.command(name='channel', aliases=['c'])
@@ -317,7 +324,8 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
             WHERE cmd_name = $6;
             """, 'servers', str(ctx.guild.id), 'channels', str(channel.id), setting_json, command_name)
-        await ctx.send(f'New setting: `{command_name}` {_on_or_off(on_or_off)} for channel: {channel.name}.')
+        on_or_off = 'enabled' if on_or_off else 'disabled'
+        await ctx.send(f'New setting: `{command_name}` {on_or_off} for channel: {channel.name}.')
 
 
     @setting.command(name='member', aliases=['m'])
@@ -332,7 +340,8 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
             WHERE cmd_name = $6;
             """, 'servers', str(ctx.guild.id), 'members', str(member.id), setting_json, command_name)
-        await ctx.send(f'New setting: `{command_name}` {_on_or_off(on_or_off)} for member: {member.name}.')
+        on_or_off = 'enabled' if on_or_off else 'disabled'
+        await ctx.send(f'New setting: `{command_name}` {on_or_off} for member: {member.name}.')
 
 
 ########################
@@ -582,7 +591,8 @@ class Settings(commands.Cog):
                     raise ValueError
 
                 if boolean is not None:
-                    entries.append(emoji(boolean) + ' ' + command_name)
+                    boolean = '✅' if boolean else '❌'
+                    entries.append(boolean + ' ' + command_name)
             except KeyError:
                 pass
 
@@ -619,7 +629,8 @@ class Settings(commands.Cog):
         content = ''
         for ID, boolean in dictionary.items():
             name = get_function(int(ID))
-            content += f'{emoji(boolean)} {name}\n'
+            boolean = '✅' if boolean else '❌'
+            content += f'{boolean} {name}\n'
 
         return content
 
