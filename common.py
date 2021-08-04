@@ -18,24 +18,12 @@ class Dev_Settings:
 dev_settings = Dev_Settings()
 
 
-async def safe_send(ctx, message: str, protect_postgres_host: bool = False) -> None:
-    """Same as ctx.send but with extra security options"""
-    if protect_postgres_host:
-        postgres_host = os.environ['PostgreSQL host']
-        if postgres_host in message:
-            message = message.replace(postgres_host, '(PostgreSQL host)')
-            await ctx.send(message)
-            return
-    
-    await ctx.send(message)
-
-
 def s(n: int, msg: str) -> str:
     """Appends an 's' to a message if it should be plural
     
-    The output is either `f'{n} {msg}s'` or `f'{n} {msg}'`.
+    The returned value is either f'{n} {msg}s' or f'{n} {msg}'.
     """
-    if n > 1:
+    if n != 1:
         return f'{n} {msg}s'
     return f'{n} {msg}'
 
@@ -49,7 +37,9 @@ def _on_or_off(boolean: bool) -> str:
 
 def yes_or_no(boolean: bool) -> str:
     """Returns either 'yes' or 'no'"""
-    return 'yes' if boolean else 'no'
+    if boolean:
+        return 'yes'
+    return 'no'
 
 
 def emoji(boolean: bool) -> str:
@@ -91,58 +81,6 @@ async def is_supported_type(file_type: str) -> bool:
         return False
     return True
 
-    
-async def get_14_digit_timestamp() -> str:
-    """Gets a timestamp in the format YYYYMMDDhhmmss"""
-    now = str(datetime.utcnow())
-    now = now[:19]  # Remove the microseconds.
-    now = now.replace('-', '').replace(':', '').replace(' ', '')
-    return now
-
-
-async def format_date(dt: datetime) -> str:
-    """Makes an easy-to-read date message"""
-    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-    return f'{dt.day} {months[dt.month-1]} {dt.year}'
-
-
-async def format_time(dt: datetime) -> str:
-    """Makes an easy-to-read time message"""
-    minute = str(dt.minute).zfill(2)
-    return f'{dt.hour}:{minute}'
-
-
-async def format_datetime(dt: datetime) -> str:
-    """Makes an easy-to-read date and time message"""
-    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-    minute = str(dt.minute).zfill(2)
-    return f'{dt.hour}:{minute} on {dt.day} {months[dt.month-1]} {dt.year}'
-
-
-async def format_timedelta(td: timedelta) -> str:
-    """Makes an easy-to-read time duration message"""
-    total_seconds = int(td.total_seconds())
-    hours, remainder = divmod(total_seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    days, hours = divmod(hours, 24)
-
-    output = []
-    if days:
-        output.append(s(days, 'day'))
-    if hours:
-        output.append(s(hours, 'hour'))
-    if minutes:
-        output.append(s(minutes, 'minute'))
-    if seconds:
-        output.append(s(seconds, 'second'))
-
-    return ', '.join(output)
-
-
-async def format_timestamp(dt: datetime) -> str:
-    """Creates a relative timestamp string"""
-    return f'<t:{dt.strftime("%s")}:R>'
-
 
 async def send_traceback(ctx, error: BaseException) -> None:
     """Sends the traceback of an exception to ctx"""
@@ -151,6 +89,18 @@ async def send_traceback(ctx, error: BaseException) -> None:
     lines = traceback.format_exception(etype, error, trace)
     traceback_text = ''.join(lines)
     await ctx.send(f'```\n{traceback_text}\n```')
+
+
+async def safe_send(ctx, message: str, protect_postgres_host: bool = False) -> None:
+    """Same as ctx.send but with extra security options"""
+    if protect_postgres_host:
+        postgres_host = os.environ['PostgreSQL host']
+        if postgres_host in message:
+            message = message.replace(postgres_host, '(PostgreSQL host)')
+            await ctx.send(message)
+            return
+    
+    await ctx.send(message)
 
 
 async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail') -> None:
@@ -210,6 +160,58 @@ async def split_input(message: str) -> Tuple[str,str]:
             content = ' '.join(message.split()[1:])
 
         return name, content
+
+    
+async def get_14_digit_timestamp() -> str:
+    """Gets a timestamp in the format YYYYMMDDhhmmss"""
+    now = str(datetime.utcnow())
+    now = now[:19]  # Remove the microseconds.
+    now = now.replace('-', '').replace(':', '').replace(' ', '')
+    return now
+
+
+async def format_date(dt: datetime) -> str:
+    """Makes an easy-to-read date message"""
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    return f'{dt.day} {months[dt.month-1]} {dt.year}'
+
+
+async def format_time(dt: datetime) -> str:
+    """Makes an easy-to-read time message"""
+    minute = str(dt.minute).zfill(2)
+    return f'{dt.hour}:{minute}'
+
+
+async def format_datetime(dt: datetime) -> str:
+    """Makes an easy-to-read date and time message"""
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    minute = str(dt.minute).zfill(2)
+    return f'{dt.hour}:{minute} on {dt.day} {months[dt.month-1]} {dt.year}'
+
+
+async def format_timedelta(td: timedelta) -> str:
+    """Makes an easy-to-read time duration message"""
+    total_seconds = int(td.total_seconds())
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    days, hours = divmod(hours, 24)
+
+    output = []
+    if days:
+        output.append(s(days, 'day'))
+    if hours:
+        output.append(s(hours, 'hour'))
+    if minutes:
+        output.append(s(minutes, 'minute'))
+    if seconds:
+        output.append(s(seconds, 'second'))
+
+    return ', '.join(output)
+
+
+async def format_timestamp(dt: datetime) -> str:
+    """Creates a relative timestamp string"""
+    return f'<t:{dt.strftime("%s")}:R>'
 
 
 async def parse_time_message(ctx, user_input: str) -> Tuple[datetime, str]:
