@@ -5,12 +5,7 @@ from typing import List, Tuple, Union
 import platform
 
 # internal imports
-from common import format_datetime, format_timestamp, format_timedelta, get_prefixes_list, dev_settings
-
-
-def y_n(boolean: bool) -> str:
-    """Returns 'yes' or 'no'"""
-    return 'yes' if boolean else 'no'
+from common import format_datetime, format_timestamp, format_timedelta, get_prefixes_list, dev_settings, yes_or_no
 
 
 class Info(commands.Cog):
@@ -298,10 +293,10 @@ class Info(commands.Cog):
                 + f'members: {len(role.members)}\n'
                 + f'hierarcy position: {role.position}\n'
                 + f'created: {created}\n'
-                + f'mentionable: {y_n(role.mentionable)}\n'
-                + f'default: {y_n(role.is_default())}\n'
-                + f'premium: {y_n(role.is_premium_subscriber())}\n'
-                + f'3rd-party integration: {y_n(role.managed)}\n'
+                + f'mentionable: {yes_or_no(role.mentionable)}\n'
+                + f'default: {yes_or_no(role.is_default())}\n'
+                + f'premium: {yes_or_no(role.is_premium_subscriber())}\n'
+                + f'3rd-party integration: {yes_or_no(role.managed)}\n'
                 + f'managing bot: {managing_bot}\n'
         )
 

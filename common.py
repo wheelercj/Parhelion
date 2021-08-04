@@ -18,73 +18,6 @@ class Dev_Settings:
 dev_settings = Dev_Settings()
 
 
-class Paginator(buttons.Paginator):
-    """Paginator that uses an interactive session to display buttons
-
-    title: str 
-        Only available when embed=True. The title of the embeded pages. 
-    length: int
-        The number of entries per page. 
-    entries: list
-        The entries to paginate. 
-    extra_pages: list
-        Extra pages to append to our entries. 
-    prefix: Optional[str] 
-        The formatting prefix to apply to our entries. 
-    suffix: Optional[str] 
-        The formatting suffix to apply to our entries. 
-    format: Optional[str] 
-        The format string to wrap around our entries. This should be the first half of the format only, E.g to wrap Entry, we would only provide **. 
-    colour: discord.Colour 
-        Only available when embed=True. The colour of the embeded pages. 
-    use_defaults: bool
-        Option which determines whether we should use default buttons as well. This is True by default. 
-    embed: bool
-        Option that indicates that entries should be embeded. 
-    joiner: str
-        Option which allows us to specify the entries joiner. E.g self.joiner.join(self.entries) 
-    timeout: int
-        The timeout in seconds to wait for reaction responses. 
-    thumbnail: 
-        Only available when embed=True. The thumbnail URL to set for the embeded pages.
-    """
-    # buttons.Paginator repo: https://github.com/PythonistaGuild/buttons
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-
-    async def _paginate(self, ctx: commands.Context):
-        if not self.entries and not self.extra_pages:
-            raise AttributeError('You must provide atleast one entry or page for pagination.')  # ^^
-
-        if self.entries:
-            self.entries = [self.formatting(entry) for entry in self.entries]
-            entries = list(self.chunker())
-        else:
-            entries = []
-
-        for i, chunk in enumerate(entries):
-            if not self.use_embed:
-                self._pages.append(self.joiner.join(chunk))
-            else:
-                embed = discord.Embed(title=self.title, description=self.joiner.join(chunk), colour=self.colour)
-                embed.set_footer(text=f'page {i+1}/{len(entries)}')
-
-                if self.thumbnail:
-                    embed.set_thumbnail(url=self.thumbnail)
-
-                self._pages.append(embed)
-
-        self._pages = self._pages + self.extra_pages
-
-        if isinstance(self._pages[0], discord.Embed):
-            self.page = await ctx.send(embed=self._pages[0])
-        else:
-            self.page = await ctx.send(self._pages[0])
-
-        self._session_task = ctx.bot.loop.create_task(self._session(ctx))
-
-
 async def safe_send(ctx, message: str, protect_postgres_host: bool = False) -> None:
     """Same as ctx.send but with extra security options"""
     if protect_postgres_host:
@@ -105,6 +38,25 @@ def s(n: int, msg: str) -> str:
     if n > 1:
         return f'{n} {msg}s'
     return f'{n} {msg}'
+
+
+def _on_or_off(boolean: bool) -> str:
+    """Returns either 'enabled' or 'disabled'"""
+    if boolean:
+        return 'enabled'
+    return 'disabled'
+
+
+def yes_or_no(boolean: bool) -> str:
+    """Returns either 'yes' or 'no'"""
+    return 'yes' if boolean else 'no'
+
+
+def emoji(boolean: bool) -> str:
+    """Returns either '✅' or '❌'"""
+    if boolean:
+        return '✅'
+    return '❌'
 
 
 async def escape_json(text: str) -> str:
@@ -263,7 +215,7 @@ async def split_input(message: str) -> Tuple[str,str]:
 async def parse_time_message(ctx, user_input: str) -> Tuple[datetime, str]:
     """Parses a string containing both a time description and a message
 
-    The time can be a date, duration, etc. written in natural language.
+    The time can be a date, duration, etc. written in natural language. The time description must be at the front of the input string.
     """
     if not user_input.strip().startswith('in '):
         user_input = f'in {user_input}'
@@ -282,7 +234,7 @@ async def parse_time_message(ctx, user_input: str) -> Tuple[datetime, str]:
 async def split_time_message(user_input: str) -> Tuple[datetime, str]:
     """Splits a string of a time description and a message
     
-    The time can be a date, duration, etc. written in natural language.
+    The time can be a date, duration, etc. written in natural language. The time description must be at the front of the input string.
     """
     split_input = user_input.split(' ')
     dateparser_settings = {
@@ -356,3 +308,99 @@ async def get_prefixes_message(bot, message: discord.Message, display_prefixes: 
         return 'prefix is ' + prefixes_str
     else:
         raise ValueError
+
+
+class Channel(commands.Converter):
+    """Converter for all types of Discord channels
+
+    Precedence:
+        TextChannelConverter
+        VoiceChannelConverter
+        StageChannelConverter
+        StoreChannelConverter
+        CategoryChannelConverter
+    """
+    async def convert(self, ctx, argument):
+        converters = [
+            commands.TextChannelConverter,
+            commands.VoiceChannelConverter,
+            commands.StageChannelConverter,
+            commands.StoreChannelConverter,
+            commands.CategoryChannelConverter,
+        ]
+
+        for converter in converters:
+            try:
+                channel = await converter().convert(ctx, argument)
+                return channel
+            except commands.ChannelNotFound:
+                pass
+        
+        raise commands.BadArgument(f'Channel "{argument}" not found.')
+
+
+class Paginator(buttons.Paginator):
+    """Paginator that uses an interactive session to display buttons
+
+    title: str 
+        Only available when embed=True. The title of the embeded pages. 
+    length: int
+        The number of entries per page. 
+    entries: list
+        The entries to paginate. 
+    extra_pages: list
+        Extra pages to append to our entries. 
+    prefix: Optional[str] 
+        The formatting prefix to apply to our entries. 
+    suffix: Optional[str] 
+        The formatting suffix to apply to our entries. 
+    format: Optional[str] 
+        The format string to wrap around our entries. This should be the first half of the format only, E.g to wrap Entry, we would only provide **. 
+    colour: discord.Colour 
+        Only available when embed=True. The colour of the embeded pages. 
+    use_defaults: bool
+        Option which determines whether we should use default buttons as well. This is True by default. 
+    embed: bool
+        Option that indicates that entries should be embeded. 
+    joiner: str
+        Option which allows us to specify the entries joiner. E.g self.joiner.join(self.entries) 
+    timeout: int
+        The timeout in seconds to wait for reaction responses. 
+    thumbnail: 
+        Only available when embed=True. The thumbnail URL to set for the embeded pages.
+    """
+    # buttons.Paginator repo: https://github.com/PythonistaGuild/buttons
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+    async def _paginate(self, ctx: commands.Context):
+        if not self.entries and not self.extra_pages:
+            raise AttributeError('You must provide atleast one entry or page for pagination.')  # ^^
+
+        if self.entries:
+            self.entries = [self.formatting(entry) for entry in self.entries]
+            entries = list(self.chunker())
+        else:
+            entries = []
+
+        for i, chunk in enumerate(entries):
+            if not self.use_embed:
+                self._pages.append(self.joiner.join(chunk))
+            else:
+                embed = discord.Embed(title=self.title, description=self.joiner.join(chunk), colour=self.colour)
+                embed.set_footer(text=f'page {i+1}/{len(entries)}')
+
+                if self.thumbnail:
+                    embed.set_thumbnail(url=self.thumbnail)
+
+                self._pages.append(embed)
+
+        self._pages = self._pages + self.extra_pages
+
+        if isinstance(self._pages[0], discord.Embed):
+            self.page = await ctx.send(embed=self._pages[0])
+        else:
+            self.page = await ctx.send(self._pages[0])
+
+        self._session_task = ctx.bot.loop.create_task(self._session(ctx))
