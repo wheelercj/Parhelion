@@ -11,11 +11,36 @@ import dateparser
 class Dev_Settings:
     def __init__(self):
         self.default_bot_prefixes = [';', 'par ', 'Par ']
-        self.bot_invite_link = 'https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=836071320328077332&permissions=3402816'
         self.support_server_link = 'https://discord.gg/mCqGhPJVcN'
         self.privacy_policy_link = 'https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853'
 
 dev_settings = Dev_Settings()
+
+
+async def get_bot_invite_link(bot) -> str:
+    """Creates a link to invite a bot to a server
+
+    The link will request some basic permissions.
+    """
+    # Permissions docs: https://discordpy.readthedocs.io/en/latest/api.html?#discord.Permissions
+    perms = discord.Permissions.none()
+    
+    # Text channel permissions.
+    perms.read_messages = True
+    perms.send_messages = True
+    perms.embed_links = True
+    perms.attach_files = True
+    perms.add_reactions = True
+    perms.manage_messages = True
+    perms.read_message_history = True
+
+    # Voice channel permissions.
+    perms.view_channel = True
+    perms.connect = True
+    perms.speak = True
+    
+    bot_invite_link = discord.utils.oauth_url(bot.client_id, perms)
+    return bot_invite_link
 
 
 def s(n: int, msg: str) -> str:

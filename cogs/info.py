@@ -5,7 +5,7 @@ from typing import List, Tuple, Union
 import platform
 
 # internal imports
-from common import format_datetime, format_relative_time_stamp, format_timedelta, get_prefixes_list, dev_settings, yes_or_no
+from common import format_datetime, format_relative_time_stamp, format_timedelta, get_prefixes_list, dev_settings, yes_or_no, get_bot_invite_link
 
 
 class Info(commands.Cog):
@@ -51,7 +51,8 @@ class Info(commands.Cog):
     @commands.command(hidden=True)
     async def invite(self, ctx):
         """Shows the link to invite this bot to another server"""
-        await ctx.send(f'<{dev_settings.bot_invite_link}>')
+        bot_invite_link = await get_bot_invite_link(self.bot)
+        await ctx.send(f'<{bot_invite_link}>')
 
 
     @commands.command(aliases=['contact'], hidden=True)
@@ -72,6 +73,7 @@ class Info(commands.Cog):
         embed = discord.Embed(title=f'{self.bot.user.name}#{self.bot.user.discriminator}')
         owner = self.bot.get_user(self.bot.owner_id)
         prefixes = await get_prefixes_list(self.bot, ctx.message)
+        bot_invite_link = await get_bot_invite_link(self.bot)
 
         embed.add_field(name='\u200b\u2800',
             value=f'Use `{prefixes[0]}help` for help\nwith commands.\u2800\n\u2800')
@@ -81,7 +83,7 @@ class Info(commands.Cog):
             value='\u200b\n\u200b')
 
         embed.add_field(name='links\u2800',
-            value=f'[bot invite]({dev_settings.bot_invite_link})\u2800\n' \
+            value=f'[bot invite]({bot_invite_link})\u2800\n' \
                 f'[support server]({dev_settings.support_server_link})\u2800\n' \
                 f'[privacy policy]({dev_settings.privacy_policy_link})\u2800\n')
         embed.add_field(name='\u2800made with\u2800',
