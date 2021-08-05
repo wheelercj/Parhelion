@@ -173,9 +173,9 @@ class Settings(commands.Cog):
             return None
 
 
-#################
-# setting group #
-#################
+##########################
+# _setting command group #
+##########################
 
 
     @commands.group(name='set', aliases=['setting'], invoke_without_command=True)
@@ -218,53 +218,53 @@ class Settings(commands.Cog):
     async def view_settings(self, ctx, command_name: CommandName):
         """An alias for `setting`; shows the settings for a command"""
         try:
-            s = self.all_cmd_settings[command_name]
+            settings = self.all_cmd_settings[command_name]
         except KeyError:
             await ctx.send(f'No settings found for the `{command_name}` command.')
             return
 
         embed = discord.Embed(title=f'`{command_name}` command settings')
 
-        if s['_global'] is not None:
-            boolean = '✅' if s['_global'] else '❌'
-            embed.add_field(name='global', value=boolean, inline=False)
+        if settings['_global'] is not None:
+            allowed = '✅' if settings['_global'] else '❌'
+            embed.add_field(name='global', value=allowed, inline=False)
 
         # Show ctx.guild.name and its setting if it has a setting.
         try:
-            allowed = s['global_servers'][str(ctx.guild.id)]
-            d = {str(ctx.guild.id): allowed}
-            content = await self.get_settings_message(d, self.bot.get_guild)
+            allowed = settings['global_servers'][str(ctx.guild.id)]
+            setting_dict = {str(ctx.guild.id): allowed}
+            content = await self.get_settings_message(setting_dict, self.bot.get_guild)
             embed.add_field(name='global servers', value=content, inline=False)
         except KeyError:
             pass
 
         # For users in ctx.guild with a global setting, list their names and settings.
         members = dict()
-        for user_id in s['global_users']:
+        for user_id in settings['global_users']:
             member = ctx.guild.get_member(user_id)
             if member is None:
                 continue
-            members[user_id] = s['global_users'][user_id]
-        if len(s['global_users']):
+            members[user_id] = settings['global_users'][user_id]
+        if len(settings['global_users']):
             content = await self.get_settings_message(members, self.bot.get_user)
             embed.add_field(name='global users', value=content, inline=False)
 
         # Show the settings chosen by ctx.guild.
         try:
-            ss = s['servers'][str(ctx.guild.id)]
+            s_settings = settings['servers'][str(ctx.guild.id)]
             server = self.bot.get_guild(ctx.guild.id)
 
-            if ss['server'] is not None:
-                boolean = '✅' if s['server'] else '❌'
-                embed.add_field(name='server', value=boolean, inline=False)
-            if len(ss['roles']):
-                content = await self.get_settings_message(ss['roles'], server.get_role)
+            if s_settings['server'] is not None:
+                allowed = '✅' if settings['server'] else '❌'
+                embed.add_field(name='server', value=allowed, inline=False)
+            if len(s_settings['roles']):
+                content = await self.get_settings_message(s_settings['roles'], server.get_role)
                 embed.add_field(name='server roles', value=content, inline=False)
-            if len(ss['channels']):
-                content = await self.get_settings_message(ss['channels'], server.get_channel)
+            if len(s_settings['channels']):
+                content = await self.get_settings_message(s_settings['channels'], server.get_channel)
                 embed.add_field(name='server channels', value=content, inline=False)
-            if len(ss['members']):
-                content = await self.get_settings_message(ss['members'], server.get_member)
+            if len(s_settings['members']):
+                content = await self.get_settings_message(s_settings['members'], server.get_member)
                 embed.add_field(name='server members', value=content, inline=False)
         except KeyError:
             pass
@@ -384,9 +384,9 @@ class Settings(commands.Cog):
         await ctx.send(f'New setting: `{command_name}` {on_or_off} for member: {member.name}.')
 
 
-########################
-# delete_setting group #
-########################
+################################
+# delete_setting command group #
+################################
 
 
     @setting.group(name='delete', aliases=['del'], invoke_without_command=True)
@@ -533,9 +533,9 @@ class Settings(commands.Cog):
             await ctx.send('No settings found.')
 
 
-#######################
-# list_settings group #
-#######################
+###############################
+# list_settings command group #
+###############################
 
 
     @setting.group(name='list', aliases=['l'], invoke_without_command=True)
@@ -665,19 +665,19 @@ class Settings(commands.Cog):
         for command_name, sub_dict in self.all_cmd_settings.items():
             try:
                 if len(keys) == 1:
-                    boolean = sub_dict[keys[0]]
+                    allowed = sub_dict[keys[0]]
                 elif len(keys) == 2:
-                    boolean = sub_dict[keys[0]][keys[1]]
+                    allowed = sub_dict[keys[0]][keys[1]]
                 elif len(keys) == 3:
-                    boolean = sub_dict[keys[0]][keys[1]][keys[2]]
+                    allowed = sub_dict[keys[0]][keys[1]][keys[2]]
                 elif len(keys) == 4:
-                    boolean = sub_dict[keys[0]][keys[1]][keys[2]][keys[3]]
+                    allowed = sub_dict[keys[0]][keys[1]][keys[2]][keys[3]]
                 else:
                     raise ValueError
 
-                if boolean is not None:
-                    boolean = '✅' if boolean else '❌'
-                    entries.append(boolean + ' ' + command_name)
+                if allowed is not None:
+                    allowed = '✅' if allowed else '❌'
+                    entries.append(allowed + ' ' + command_name)
             except KeyError:
                 pass
 
