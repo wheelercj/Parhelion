@@ -360,25 +360,31 @@ class Settings(commands.Cog):
     @commands.is_owner()
     async def delete_all_global_cmd_settings(self, ctx, command_name: CommandName):
         """Deletes all settings for a command"""
-        del self.all_cmd_settings[command_name]
-        await self.bot.db.execute("""
-            DELETE FROM command_access_settings
-            WHERE cmd_name = $1;
-            """, command_name)
-        await ctx.send(f'Deleted all setting for command `{command_name}`, including the global settings.')
+        try:
+            del self.all_cmd_settings[command_name]
+            await self.bot.db.execute("""
+                DELETE FROM command_access_settings
+                WHERE cmd_name = $1;
+                """, command_name)
+            await ctx.send(f'Deleted all setting for command `{command_name}`, including the global settings.')
+        except KeyError:
+            await ctx.send('No settings found.')
 
 
     @delete_setting.command(name='all')
     @commands.has_guild_permissions(manage_guild=True)
     async def delete_all_server_cmd_settings(self, ctx, command_name: CommandName):
         """Deletes all of this server's settings for a command"""
-        del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]
-        await self.bot.db.execute("""
-            UPDATE command_access_settings
-            SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
-            WHERE cmd_name = $3;
-            """, 'servers', str(ctx.guild.id), command_name)
-        await ctx.send(f'Deleted all server setting for command `{command_name}`.')
+        try:
+            del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]
+            await self.bot.db.execute("""
+                UPDATE command_access_settings
+                SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
+                WHERE cmd_name = $3;
+                """, 'servers', str(ctx.guild.id), command_name)
+            await ctx.send(f'Deleted all server setting for command `{command_name}`.')
+        except KeyError:
+            await ctx.send('No settings found.')
 
 
     @delete_setting.command(name='global', aliases=['g'])
@@ -398,26 +404,32 @@ class Settings(commands.Cog):
     @commands.is_owner()
     async def delete_global_server_cmd_setting(self, ctx, server: discord.Guild, command_name: CommandName):
         """Deletes the global setting for a server's access to a command"""
-        del self.all_cmd_settings[command_name]['global_servers'][str(server.id)]
-        await self.bot.db.execute("""
-            UPDATE command_access_settings
-            SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
-            WHERE cmd_name = $3;
-            """, 'global_servers', str(server.id), command_name)
-        await ctx.send(f'Deleted global setting for command `{command_name}` for server: {server.name}.')
+        try:
+            del self.all_cmd_settings[command_name]['global_servers'][str(server.id)]
+            await self.bot.db.execute("""
+                UPDATE command_access_settings
+                SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
+                WHERE cmd_name = $3;
+                """, 'global_servers', str(server.id), command_name)
+            await ctx.send(f'Deleted global setting for command `{command_name}` for server: {server.name}.')
+        except KeyError:
+            await ctx.send('No settings found.')
 
 
     @delete_setting.command(name='global-user', aliases=['gu', 'globaluser'])
     @commands.is_owner()
     async def delete_global_user_cmd_setting(self, ctx, user: discord.User, command_name: CommandName):
         """Deletes the global setting for a user's access to a command"""
-        del self.all_cmd_settings[command_name]['global_users'][str(user.id)]
-        await self.bot.db.execute("""
-            UPDATE command_access_settings
-            SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
-            WHERE cmd_name = $3;
-            """, 'global_users', str(user.id), command_name)
-        await ctx.send(f'Deleted global setting for command `{command_name}` for user: {user.name}#{user.discriminator}.')
+        try:
+            del self.all_cmd_settings[command_name]['global_users'][str(user.id)]
+            await self.bot.db.execute("""
+                UPDATE command_access_settings
+                SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
+                WHERE cmd_name = $3;
+                """, 'global_users', str(user.id), command_name)
+            await ctx.send(f'Deleted global setting for command `{command_name}` for user: {user.name}#{user.discriminator}.')
+        except KeyError:
+            await ctx.send('No settings found.')
 
 
     @delete_setting.command(name='server', aliases=['s'])
@@ -437,44 +449,53 @@ class Settings(commands.Cog):
     @commands.has_guild_permissions(manage_guild=True)
     async def delete_role_cmd_setting(self, ctx, role: discord.Role, command_name: CommandName):
         """Deletes the setting for a role's access to a command"""
-        del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['roles'][str(role.id)]
-        await self.bot.db.execute("""
-            UPDATE command_access_settings
-            SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
-            WHERE cmd_name = $5;
-            """, 'servers', str(ctx.guild.id), 'roles', str(role.id), command_name)
-        await ctx.send(f'Deleted setting for command `{command_name}` for role: {role.name}.')
+        try:
+            del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['roles'][str(role.id)]
+            await self.bot.db.execute("""
+                UPDATE command_access_settings
+                SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
+                WHERE cmd_name = $5;
+                """, 'servers', str(ctx.guild.id), 'roles', str(role.id), command_name)
+            await ctx.send(f'Deleted setting for command `{command_name}` for role: {role.name}.')
+        except KeyError:
+            await ctx.send('No settings found.')
 
 
     @delete_setting.command(name='channel', aliases=['c'])
     @commands.has_guild_permissions(manage_guild=True)
     async def delete_channel_cmd_setting(self, ctx, channel: discord.TextChannel, command_name: CommandName):
         """Deletes the setting for a channel's access to a command"""
-        del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['channels'][str(channel.id)]
-        await self.bot.db.execute("""
-            UPDATE command_access_settings
-            SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
-            WHERE cmd_name = $5;
-            """, 'servers', str(ctx.guild.id), 'channels', str(channel.id), command_name)
-        await ctx.send(f'Deleted setting for command `{command_name}` for channel: {channel.name}.')
+        try:
+            del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['channels'][str(channel.id)]
+            await self.bot.db.execute("""
+                UPDATE command_access_settings
+                SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
+                WHERE cmd_name = $5;
+                """, 'servers', str(ctx.guild.id), 'channels', str(channel.id), command_name)
+            await ctx.send(f'Deleted setting for command `{command_name}` for channel: {channel.name}.')
+        except KeyError:
+            await ctx.send('No settings found.')
 
 
     @delete_setting.command(name='member', aliases=['m'])
     @commands.has_guild_permissions(manage_guild=True)
     async def delete_member_cmd_setting(self, ctx, member: discord.Member, command_name: CommandName):
         """Deletes the setting for a member's access to a command"""
-        del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['members'][str(member.id)]
-        await self.bot.db.execute("""
-            UPDATE command_access_settings
-            SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
-            WHERE cmd_name = $5;
-            """, 'servers', str(ctx.guild.id), 'members', str(member.id), command_name)
-        await ctx.send(f'Deleted setting for command `{command_name}` for member: {member.name}.')
+        try:
+            del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['members'][str(member.id)]
+            await self.bot.db.execute("""
+                UPDATE command_access_settings
+                SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
+                WHERE cmd_name = $5;
+                """, 'servers', str(ctx.guild.id), 'members', str(member.id), command_name)
+            await ctx.send(f'Deleted setting for command `{command_name}` for member: {member.name}.')
+        except KeyError:
+            await ctx.send('No settings found.')
 
 
-######################
+#######################
 # list_settings group #
-######################
+#######################
 
 
     @setting.group(name='list', aliases=['l'], invoke_without_command=True)
@@ -490,8 +511,11 @@ class Settings(commands.Cog):
         """Shows the names of commands that have any non-default settings for any server"""
         title = 'all commands with any non-default settings'
         names = sorted(list(self.all_cmd_settings.keys()))
-        paginator = Paginator(title=title, embed=True, timeout=90, entries=names, length=15)
-        await paginator.start(ctx)
+        if len(names):
+            paginator = Paginator(title=title, embed=True, timeout=90, entries=names, length=15)
+            await paginator.start(ctx)
+        else:
+            await ctx.send('No settings found.')
 
 
     @list_settings.command(name='global', aliases=['g'])
@@ -499,7 +523,10 @@ class Settings(commands.Cog):
     async def list_global_settings(self, ctx):
         """Shows the names and global settings of commands that have non-default global settings"""
         entries = await self.get_setting_entries(['_global'])
-        await self.paginate_settings(ctx, 'for global', entries)
+        if len(entries):
+            await self.paginate_settings(ctx, 'for global', entries)
+        else:
+            await ctx.send('No settings found.')
 
 
     @list_settings.command(name='global-server', aliases=['gs', 'globalserver'])
@@ -509,7 +536,10 @@ class Settings(commands.Cog):
         if server is None:
             server = ctx.guild
         entries = await self.get_setting_entries(['global_servers', str(server.id)])
-        await self.paginate_settings(ctx, f'for global-server: {server.name}', entries)
+        if len(entries):
+            await self.paginate_settings(ctx, f'for global-server: {server.name}', entries)
+        else:
+            await ctx.send('No settings found.')
 
 
     @list_settings.command(name='global-user', aliases=['gu', 'globaluser'])
@@ -519,7 +549,10 @@ class Settings(commands.Cog):
         if user is None:
             user = ctx.author
         entries = await self.get_setting_entries(['global_users', str(user.id)])
-        await self.paginate_settings(ctx, f'for global-user: {user.name}#{user.discriminator}', entries)
+        if len(entries):
+            await self.paginate_settings(ctx, f'for global-user: {user.name}#{user.discriminator}', entries)
+        else:
+            await ctx.send('No settings found.')
 
 
     @list_settings.command(name='server', aliases=['s'])
@@ -527,7 +560,10 @@ class Settings(commands.Cog):
     async def list_server_settings(self, ctx):
         """Shows the serverwide command settings for this server"""
         entries = await self.get_setting_entries(['servers', str(ctx.guild.id), 'server'])
-        await self.paginate_settings(ctx, 'for this server', entries)
+        if len(entries):
+            await self.paginate_settings(ctx, 'for this server', entries)
+        else:
+            await ctx.send('No settings found.')
 
 
     @list_settings.command(name='role', aliases=['r'])
@@ -535,7 +571,10 @@ class Settings(commands.Cog):
     async def list_role_settings(self, ctx, role: discord.Role):
         """Shows the command settings that apply to a role"""
         entries = await self.get_setting_entries(['servers', str(ctx.guild.id), 'roles', str(role.id)])
-        await self.paginate_settings(ctx, f'for role: {role.name}', entries)
+        if len(entries):
+            await self.paginate_settings(ctx, f'for role: {role.name}', entries)
+        else:
+            await ctx.send('No settings found.')
 
 
     @list_settings.command(name='channel', aliases=['c'])
@@ -543,7 +582,10 @@ class Settings(commands.Cog):
     async def list_channel_settings(self, ctx, channel: discord.TextChannel):
         """Shows the command settings that apply to a text channel"""
         entries = await self.get_setting_entries(['servers', str(ctx.guild.id), 'channels', str(channel.id)])
-        await self.paginate_settings(ctx, f'for channel: {channel.name}', entries)
+        if len(entries):
+            await self.paginate_settings(ctx, f'for channel: {channel.name}', entries)
+        else:
+            await ctx.send('No settings found.')
 
 
     @list_settings.command(name='member', aliases=['m'])
@@ -551,7 +593,10 @@ class Settings(commands.Cog):
     async def list_member_settings(self, ctx, member: discord.Member):
         """Shows the command settings that apply to a member of this server"""
         entries = await self.get_setting_entries(['servers', str(ctx.guild.id), 'members', str(member.id)])
-        await self.paginate_settings(ctx, f'for member: {member.name}#{member.discriminator}', entries)
+        if len(entries):
+            await self.paginate_settings(ctx, f'for member: {member.name}#{member.discriminator}', entries)
+        else:
+            await ctx.send('No settings found.')
 
 
     async def paginate_settings(self, ctx, title: str, entries: List[str]) -> None:
