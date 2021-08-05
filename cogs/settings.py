@@ -173,6 +173,11 @@ class Settings(commands.Cog):
             return None
 
 
+#################
+# setting group #
+#################
+
+
     @commands.group(name='set', aliases=['setting'], invoke_without_command=True)
     @commands.has_guild_permissions(manage_guild=True)
     async def setting(self, ctx, command_name: CommandName = None):
@@ -187,6 +192,25 @@ class Settings(commands.Cog):
             await ctx.invoke(view_setting_command, command_name=command_name)
         else:
             await ctx.send_help('setting')
+
+
+    @setting.commands(name='rename')
+    @commands.is_owner()
+    async def rename_command(self, ctx, old_command_name: str, current_command_name: CommandName):
+        """Changes a command's name in the settings database and dictionary
+
+        Use this command each time a command is renamed in the code.
+        """
+        await self.bot.db.execute('''
+            UPDATE command_access_settings
+            SET cmd_name = $1
+            WHERE cmd_name = $2;
+            ''', current_command_name, old_command_name)
+        try:
+            self.all_cmd_settings[current_command_name] = self.all_cmd_settings.pop(old_command_name)
+            await ctx.send('Command renamed in the settings database and dictionary.')
+        except KeyError:
+            await ctx.send('Command not found.')
 
 
     @setting.command(name='view', aliases=['v'])
