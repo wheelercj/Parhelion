@@ -8,13 +8,13 @@ import re
 import sys
 import platform
 import logging
+from logging.handlers import RotatingFileHandler
 import traceback
 from copy import copy
 from typing import List, Dict
 
 # internal imports
 from common import dev_settings, dev_mail, get_prefixes_message, get_prefixes_list
-from startup import set_up_logger
 
 
 class Bot(commands.Bot):
@@ -100,7 +100,7 @@ class Bot(commands.Bot):
         await self.wait_until_ready()
         self.app_info = await self.application_info()
         self.owner_id = self.app_info.owner.id
-        self.logger = await set_up_logger(__name__, logging.INFO)
+        self.logger = await self.set_up_logger(__name__, logging.INFO)
 
 
     async def on_resumed(self):
@@ -246,3 +246,19 @@ class Bot(commands.Bot):
         if retry_after:
             raise commands.CommandOnCooldown(bucket, retry_after)
         return True
+
+
+    async def set_up_logger(self, name: str, level: int) -> logging.Logger:
+        """Sets up a logger for this module"""
+        # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
+        # Python's intro to logging: https://docs.python.org/3/howto/logging.html#logging-basic-tutorial
+        # Documentation for RotatingFileHandler: https://docs.python.org/3/library/logging.handlers.html?#logging.handlers.RotatingFileHandler
+        logger = logging.getLogger(name)
+        logger.setLevel(level)
+        max_bytes = 1024 * 1024  # 1 MiB
+        handler = RotatingFileHandler(filename='bot.log', encoding='utf-8', mode='a', maxBytes=max_bytes, backupCount=1)
+        formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s%(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+
+        return logger
