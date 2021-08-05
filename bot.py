@@ -14,7 +14,7 @@ from typing import List, Dict
 
 # internal imports
 from common import dev_settings, dev_mail, get_prefixes_message, get_prefixes_list
-from startup import continue_tasks, set_up_logger
+from startup import set_up_logger
 
 
 class Bot(commands.Bot):
@@ -98,12 +98,9 @@ class Bot(commands.Bot):
     async def on_connect(self):
         print('Loading . . . ')
         await self.wait_until_ready()
-
         self.app_info = await self.application_info()
         self.owner_id = self.app_info.owner.id
         self.logger = await set_up_logger(__name__, logging.INFO)
-
-        await continue_tasks(self)
 
 
     async def on_resumed(self):

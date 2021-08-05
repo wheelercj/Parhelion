@@ -31,6 +31,7 @@ async def get_bot_invite_link(bot) -> str:
     perms.embed_links = True
     perms.attach_files = True
     perms.add_reactions = True
+    perms.mention_everyone = True
     perms.manage_messages = True
     perms.read_message_history = True
 

@@ -1,5 +1,6 @@
 # external imports
 import asyncio
+import asyncpg
 from datetime import datetime
 import discord
 from discord.ext import commands
@@ -23,18 +24,76 @@ from common import parse_time_message, format_relative_time_stamp, format_long_d
 '''
 
 
-async def delete_reminder_from_db(bot, author_id: int, start_time: datetime) -> None:
-    """Deletes a row of the reminder table"""
-    await bot.db.execute('''
-        DELETE FROM reminders
-        WHERE author_id = $1
-            AND start_time = $2;
-        ''', author_id, start_time)
+class RunningReminderInfo():
+    def __init__(self, target_time: datetime, id: int):
+        self.target_time = target_time
+        self.id = id
 
 
 class Reminders(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self._task = self.bot.loop.create_task(self.run_reminders())
+        self.running_reminder_info: RunningReminderInfo = None
+
+
+    def cog_unload(self):
+        self._task.cancel()
+
+
+    async def run_reminders(self):
+        """A task that finds the next reminder time, waits for that time, and sends"""
+        await self.bot.wait_until_ready()
+        try:
+            while not self.bot.is_closed():
+                target_time, id, destination, author_id, message = await self.get_next_reminder_info()
+                if target_time is None:
+                    self.running_reminder_info = None
+                    self._task.cancel()
+                    return
+                self.running_reminder_info = RunningReminderInfo(target_time, id)
+
+                now = datetime.utcnow()
+                if now < target_time:
+                    seconds = (target_time - now).total_seconds()
+                    await asyncio.sleep(seconds)
+                    # The maximum reliable sleep duration is 24.85 days.
+                    # For details, see https://bugs.python.org/issue20493
+
+                await destination.send(f'<@!{author_id}>, here is your reminder: {message}')
+                await self.delete_reminder_from_db(id)
+        except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
+            print(f'  run_reminders {error = }')
+            self._task.cancel()
+            self._task = self.bot.loop.create_task(self.run_reminders())
+
+
+    async def get_next_reminder_info(self):
+        """Gets from the database the info for the nearest (in time) reminder task
+
+        Returns (target_time, id, destination, author_id, message).
+        If there is no next daily quote, this function returns (None, None, None, None, None).
+        """
+        r = await self.bot.db.fetchrow('''
+            SELECT *
+            FROM reminders
+            ORDER BY target_time
+            LIMIT 1;
+            ''')
+        if r is None:
+            return None, None, None, None, None
+
+        target_time = r['target_time']
+        author_id = r['author_id']
+        id = r['id']
+        message = r['message']
+        if r['is_dm']:
+            destination = self.bot.get_user(r['author_id'])
+        else:
+            server = self.bot.get_guild(r['server_id'])
+            destination = server.get_channel(r['channel_id'])
+
+        return target_time, id, destination, author_id, message
 
 
     @commands.group(aliases=['r', 'reminder', 'remindme', 'timer'], invoke_without_command=True)
@@ -54,25 +113,18 @@ class Reminders(commands.Cog):
         async with ctx.typing():
             start_time = ctx.message.created_at
             target_time, message = await parse_time_message(ctx, time_and_message)
-
             if target_time < start_time:
                 raise commands.BadArgument('Please choose a time in the future.')
 
             await self.save_reminder_to_db(ctx, start_time, target_time, message)
+            if self.running_reminder_info is not None \
+                    and target_time < self.running_reminder_info.target_time:
+                self._task.cancel()
+                self._task = self.bot.loop.create_task(self.run_reminders())
+
             relative_timestamp = await format_relative_time_stamp(target_time)
             target_time_stamp = await format_long_datetime_stamp(target_time)
             await ctx.send(f'Reminder set! {relative_timestamp} (at {target_time_stamp}) I will remind you: {message}')
-
-        seconds = (target_time - start_time).total_seconds()
-        await asyncio.sleep(seconds)
-        # The maximum reliable sleep duration is 24.85 days.
-        # For details, see https://bugs.python.org/issue20493
-
-        if datetime.utcnow() < target_time:
-            raise ValueError('Reminder sleep failed.')
-
-        await ctx.reply(f'{ctx.author.mention}, here is your reminder: {message}')
-        await delete_reminder_from_db(self.bot, ctx.author.id, start_time)
 
 
     @remind.command(name='create', aliases=['c'])
@@ -121,12 +173,17 @@ class Reminders(commands.Cog):
         Currently, this only deletes a reminder from the database, not from the program. A deleted reminder will then only be canceled if the bot is restarted.
         """
         try:
-            reminder_message = await self.bot.db.fetchval('''
+            record = await self.bot.db.fetchrow('''
                 DELETE FROM reminders
                 WHERE id = $1
                     AND author_id = $2
-                RETURNING message
+                RETURNING *;
                 ''', ID, ctx.author.id)
+            if self.running_reminder_info is not None \
+                    and record['id'] == self.running_reminder_info.id:
+                self._task.cancel()
+                self._task = self.bot.loop.create_task(self.run_reminders())
+            reminder_message = record['message']
             await ctx.send(f'Reminder deleted: "{reminder_message}"')
         except Exception as e:
             await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
@@ -147,10 +204,17 @@ class Reminders(commands.Cog):
         Currently, this only deletes reminders from the database, not from the program. Deleted reminders will then only be canceled if the bot is restarted.
         """
         try:
-            await self.bot.db.execute('''
+            records = await self.bot.db.fetch('''
                 DELETE FROM reminders
-                WHERE author_id = $1;
+                WHERE author_id = $1
+                RETURNING *;
                 ''', ctx.author.id)
+            for r in records:
+                if self.running_reminder_info is not None \
+                        and r['id'] == self.running_reminder_info.id:
+                    self._task.cancel()
+                    self._task = self.bot.loop.create_task(self.run_reminders())
+                    break
         except Exception as e:
             await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
         else:
@@ -169,8 +233,12 @@ class Reminders(commands.Cog):
                 DELETE FROM reminders
                 WHERE id = $1
                     AND server_id = $2
-                RETURNING *
+                RETURNING *;
                 ''', reminder_ID, ctx.guild.id)
+            if self.running_reminder_info is not None \
+                    and record['id'] == self.running_reminder_info.id:
+                self._task.cancel()
+                self._task = self.bot.loop.create_task(self.run_reminders())
         except Exception as e:
             await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
         else:
@@ -210,6 +278,14 @@ class Reminders(commands.Cog):
             (author_id, start_time, target_time, message, is_dm, server_id, channel_id)
             VALUES ($1, $2, $3, $4, $5, $6, $7);
             ''', ctx.author.id, start_time, target_time, message, is_dm, server_id, channel_id)
+
+
+    async def delete_reminder_from_db(self, reminder_id: int) -> None:
+        """Deletes a row of the reminder table"""
+        await self.bot.db.execute('''
+            DELETE FROM reminders
+            WHERE id = $1;
+            ''', reminder_id)
 
 
 def setup(bot):
