@@ -2,7 +2,6 @@
 import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
-import asyncio
 import asyncpg
 from aiohttp.client_exceptions import ContentTypeError
 import json
@@ -84,24 +83,7 @@ class Quotes(commands.Cog):
         if target_time < now:
             target_time += timedelta(days=1)
 
-        if ctx.guild:
-            is_dm = False
-            server_id = ctx.guild.id
-            channel_id = ctx.channel.id
-        else:
-            is_dm = True
-            server_id = 0
-            channel_id = 0
-
-        await self.bot.db.execute('''
-            INSERT INTO daily_quotes
-            (author_id, start_time, target_time, is_dm, server_id, channel_id)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            ON CONFLICT (author_id)
-            DO UPDATE
-            SET target_time = $3
-            WHERE daily_quotes.author_id = $1;
-            ''', ctx.author.id, now, target_time, is_dm, server_id, channel_id)
+        await self.save_daily_quote_to_db(ctx, now, target_time)
 
         if self.running_quote_info is None:
             self._task = self.bot.loop.create_task(self.run_daily_quotes())
@@ -180,6 +162,28 @@ class Quotes(commands.Cog):
             message += '\n' + name
 
         await ctx.send(message)
+
+
+    async def save_daily_quote_to_db(self, ctx, start_time: datetime, target_time: datetime) -> None:
+        """Saves one daily quote to the database"""
+        if ctx.guild:
+            is_dm = False
+            server_id = ctx.guild.id
+            channel_id = ctx.channel.id
+        else:
+            is_dm = True
+            server_id = 0
+            channel_id = 0
+
+        await self.bot.db.execute('''
+            INSERT INTO daily_quotes
+            (author_id, start_time, target_time, is_dm, server_id, channel_id)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (author_id)
+            DO UPDATE
+            SET target_time = $3
+            WHERE daily_quotes.author_id = $1;
+            ''', ctx.author.id, start_time, target_time, is_dm, server_id, channel_id)
 
 
     async def get_next_quote_info(self) -> Tuple[datetime, int, Union[discord.User, discord.TextChannel, commands.Context]]:
