@@ -3,7 +3,7 @@ import re
 import traceback
 import discord
 from discord.ext import commands
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Union
 
 
 class Dev_Settings:
@@ -42,14 +42,29 @@ async def get_bot_invite_link(bot) -> str:
     return bot_invite_link
 
 
-def s(n: int, msg: str) -> str:
-    """Appends an 's' to a message if it should be plural
-    
-    The returned value is either f'{n} {msg}s' or f'{n} {msg}'.
+def plural(number: Union[int, float], root_and_suffixes: str) -> str:
+    """Returns the number and either a singular or plural word
+
+    Separate the root and each suffix with | (pipe symbols).
+    Put the singular suffix before the plural one.
+    If there is no singular suffix, separate the root and plural suffix with || (two pipe symbols).
+    Example uses:
+        plural(1, 'societ|y|ies') -> '1 society'
+        plural(2, 'societ|y|ies') -> '2 societies'
+        plural(0, 'p|erson|eople') -> '0 people'
+        plural(1, 'child||ren') -> '1 child'
+        plural(2, '|cow|kine') -> '2 kine'
     """
-    if n != 1:
-        return f'{n} {msg}s'
-    return f'{n} {msg}'
+    if not isinstance(number, (int, float)):
+        number = float(number)
+    if root_and_suffixes.count('|') != 2:
+        raise ValueError('Two pipe symbols required in root_and_suffixes.')
+
+    root, singular, plural = root_and_suffixes.split('|')
+
+    if number == 1:
+        return f'{number} {root}{singular}'
+    return f'{number} {root}{plural}'
 
 
 async def escape_json(text: str) -> str:

@@ -7,7 +7,7 @@ from discord.ext import commands
 # internal imports
 from cogs.utils.time import parse_time_message, format_relative_time_stamp, format_long_datetime_stamp
 from cogs.utils.paginator import Paginator
-from common import s, safe_send
+from common import plural, safe_send
 
 
 '''
@@ -125,7 +125,7 @@ class Reminders(commands.Cog):
             target_time = await format_long_datetime_stamp(r['target_time'])
             r_list.append(f'{r["id"]}.) **{remaining_time}** ({target_time})\n{message}')
 
-        title = f'You currently have {s(len(records), "reminder")}:'
+        title = f'You currently have {plural(len(records), "reminder||s")}:'
         paginator = Paginator(title=title, embed=True, timeout=90, entries=r_list, length=10)
         await paginator.start(ctx)
 

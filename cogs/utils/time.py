@@ -5,7 +5,7 @@ import dateparser
 from typing import Tuple
 
 # internal imports
-from common import s
+from common import plural
 
 
 async def get_14_digit_datetime() -> str:
@@ -44,13 +44,13 @@ async def format_timedelta(td: timedelta) -> str:
 
     output = []
     if days:
-        output.append(s(days, 'day'))
+        output.append(plural(days, 'day||s'))
     if hours:
-        output.append(s(hours, 'hour'))
+        output.append(plural(hours, 'hour||s'))
     if minutes:
-        output.append(s(minutes, 'minute'))
+        output.append(plural(minutes, 'minute||s'))
     if seconds:
-        output.append(s(seconds, 'second'))
+        output.append(plural(seconds, 'second||s'))
 
     return ', '.join(output)
 
