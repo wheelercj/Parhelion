@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 
 # internal imports
-from common import parse_time_message, format_relative_time_stamp, format_long_datetime_stamp, s, safe_send
+from common import parse_time_message, format_relative_time_stamp, format_long_datetime_stamp, s, safe_send, Paginator
 
 
 '''
@@ -91,7 +91,7 @@ class Reminders(commands.Cog):
 
             relative_timestamp = await format_relative_time_stamp(target_time)
             target_time_stamp = await format_long_datetime_stamp(target_time)
-            await ctx.send(f'Reminder set! {relative_timestamp} (at {target_time_stamp}) I will remind you: {message}')
+            await ctx.send(f'Reminder set! {relative_timestamp} ({target_time_stamp}) I will remind you: {message}')
 
 
     @remind.command(name='create', aliases=['c'])
@@ -104,7 +104,7 @@ class Reminders(commands.Cog):
     @remind.command(name='list', aliases=['l'])
     async def list_reminders(self, ctx):
         """Shows all of your reminders"""
-        reminder_records = await self.bot.db.fetch('''
+        records = await self.bot.db.fetch('''
             SELECT *
             FROM reminders
             WHERE author_id = $1
@@ -112,25 +112,20 @@ class Reminders(commands.Cog):
             LIMIT 10;
             ''', ctx.author.id)
 
-        if not len(reminder_records):
+        if not len(records):
             await ctx.send('You have no saved reminders.')
             return
 
-        n = len(reminder_records)
-        if n < 10:
-            r_list = f'You currently have {s(n, "reminder")}:'
-        elif n == 10:
-            r_list = 'Here are your first 10 reminders:'
-        for r in reminder_records:
+        r_list = []
+        for r in records:
             message = r['message']
             remaining_time = await format_relative_time_stamp(r['target_time'])
-            target_time_stamp = await format_long_datetime_stamp(r['target_time'])
+            target_time = await format_long_datetime_stamp(r['target_time'])
+            r_list.append(f'{r["id"]}.) **{remaining_time}** ({target_time})\n{message}')
 
-            r_list += f'\n\n{r["id"]}.) **{remaining_time}** ({target_time_stamp})' \
-                + f'\n{message}'
-
-        embed = discord.Embed(description=r_list)
-        await ctx.send(embed=embed)
+        title = f'You currently have {s(len(records), "reminder")}:'
+        paginator = Paginator(title=title, embed=True, timeout=90, entries=r_list, length=10)
+        await paginator.start(ctx)
 
 
     @remind.command(name='delete', aliases=['del'])
