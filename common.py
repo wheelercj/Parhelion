@@ -52,13 +52,6 @@ def s(n: int, msg: str) -> str:
     return f'{n} {msg}'
 
 
-def yes_or_no(boolean: bool) -> str:
-    """Returns either 'yes' or 'no'"""
-    if boolean:
-        return 'yes'
-    return 'no'
-
-
 async def escape_json(text: str) -> str:
     """Escapes slashes, backslashes, double quotes, and all JSON escape sequences"""
     text = text.replace('\\', '\\\\').replace('"', r'\"').replace('\n', r'\n').replace('\t', r'\t').replace('\r', r'\r').replace('\b', r'\b').replace('\f', r'\f').replace(r'\u', r'\\u').replace('/', '\/')

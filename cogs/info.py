@@ -6,7 +6,14 @@ import platform
 
 # internal imports
 from cogs.utils.time import format_datetime, format_timedelta, format_relative_time_stamp
-from common import get_prefixes_list, dev_settings, yes_or_no, get_bot_invite_link
+from common import get_prefixes_list, dev_settings, get_bot_invite_link
+
+
+def yes_or_no(boolean: bool) -> str:
+    """Returns either 'yes' or 'no'"""
+    if boolean:
+        return 'yes'
+    return 'no'
 
 
 class Info(commands.Cog):
