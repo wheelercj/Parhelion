@@ -53,12 +53,7 @@ class Reminders(commands.Cog):
                     return
                 self.running_reminder_info = RunningReminderInfo(target_time, id)
 
-                now = datetime.utcnow()
-                if now < target_time:
-                    seconds = (target_time - now).total_seconds()
-                    await asyncio.sleep(seconds)
-                    # The maximum reliable sleep duration is 24.85 days.
-                    # For details, see https://bugs.python.org/issue20493
+                await discord.utils.sleep_until(target_time)
 
                 await destination.send(f'<@!{author_id}>, here is your reminder: {message}')
                 await self.delete_reminder_from_db(id)
@@ -117,8 +112,9 @@ class Reminders(commands.Cog):
                 raise commands.BadArgument('Please choose a time in the future.')
 
             await self.save_reminder_to_db(ctx, start_time, target_time, message)
-            if self.running_reminder_info is not None \
-                    and target_time < self.running_reminder_info.target_time:
+            if self.running_reminder_info is None:
+                self._task = self.bot.loop.create_task(self.run_reminders())
+            elif target_time < self.running_reminder_info.target_time:
                 self._task.cancel()
                 self._task = self.bot.loop.create_task(self.run_reminders())
 

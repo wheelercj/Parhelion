@@ -55,13 +55,10 @@ class Quotes(commands.Cog):
                     return
                 self.running_quote_info = RunningQuoteInfo(target_time, author_id)
 
-                now = datetime.utcnow()
-                if now < target_time:
-                    seconds = (target_time - now).total_seconds()
-                    await asyncio.sleep(seconds)
+                await discord.utils.sleep_until(target_time)
 
-                await self.update_quote_target_time(target_time, author_id)
                 await self.send_quote(destination)
+                await self.update_quote_target_time(target_time, author_id)
         except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
             print(f'  run_daily_quotes inner {error = }')
             self._task.cancel()
@@ -106,9 +103,9 @@ class Quotes(commands.Cog):
             WHERE daily_quotes.author_id = $1;
             ''', ctx.author.id, now, target_time, is_dm, server_id, channel_id)
 
-        if self.running_quote_info is not None \
-                and (ctx.author.id == self.running_quote_info.author_id \
-                or target_time < self.running_quote_info.target_time):
+        if self.running_quote_info is None:
+            self._task = self.bot.loop.create_task(self.run_daily_quotes())
+        elif target_time < self.running_quote_info.target_time:
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.run_daily_quotes())
 
