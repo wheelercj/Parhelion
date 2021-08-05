@@ -277,7 +277,7 @@ class Settings(commands.Cog):
     async def global_cmd_setting(self, ctx, on_or_off: bool, command_name: CommandName):
         """Manages absolute commands access globally"""
         await self.set_default_settings(ctx, command_name)
-        self.all_cmd_settings[command_name]['server'] = on_or_off
+        self.all_cmd_settings[command_name]['_global'] = on_or_off
         setting_json = json.dumps(on_or_off)
         await self.bot.db.execute("""
             UPDATE command_access_settings
