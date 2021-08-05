@@ -6,7 +6,7 @@ import aiohttp
 from textwrap import dedent
 
 # internal imports
-from cogs.utilities.time import get_14_digit_datetime
+from cogs.utils.time import get_14_digit_datetime
 from common import unwrap_code_block, escape_json
 
 

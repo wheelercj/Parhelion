@@ -6,7 +6,7 @@ from typing import List, Tuple, Any, Optional, Dict, Callable
 import json
 
 # internal imports
-from cogs.utilities.paginator import Paginator
+from cogs.utils.paginator import Paginator
 
 
 '''
@@ -173,9 +173,9 @@ class Settings(commands.Cog):
             return None
 
 
-##########################
-# _setting command group #
-##########################
+#########################
+# setting command group #
+#########################
 
 
     @commands.group(name='set', aliases=['setting'], invoke_without_command=True)
