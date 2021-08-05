@@ -6,7 +6,8 @@ import aiohttp
 from textwrap import dedent
 
 # internal imports
-from common import unwrap_code_block, escape_json, get_14_digit_datetime
+from cogs.utilities.time import get_14_digit_datetime
+from common import unwrap_code_block, escape_json
 
 
 class Owner(commands.Cog):

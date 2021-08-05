@@ -8,7 +8,8 @@ import json
 from typing import Union, Tuple
 
 # internal imports
-from common import format_time, safe_send
+from cogs.utilities.time import format_time
+from common import safe_send
 
 
 '''

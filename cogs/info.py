@@ -5,7 +5,8 @@ from typing import List, Tuple, Union
 import platform
 
 # internal imports
-from common import format_datetime, format_relative_time_stamp, format_timedelta, get_prefixes_list, dev_settings, yes_or_no, get_bot_invite_link
+from cogs.utilities.time import format_datetime, format_timedelta, format_relative_time_stamp
+from common import get_prefixes_list, dev_settings, yes_or_no, get_bot_invite_link
 
 
 class Info(commands.Cog):
