@@ -40,7 +40,7 @@ async def get_bot_invite_link(bot) -> str:
     perms.connect = True
     perms.speak = True
     
-    bot_invite_link = discord.utils.oauth_url(bot.client_id, perms)
+    bot_invite_link = discord.utils.oauth_url(bot.user.id, perms)
     return bot_invite_link
 
 
