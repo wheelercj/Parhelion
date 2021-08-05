@@ -1,5 +1,4 @@
 # external imports
-import asyncio
 import asyncpg
 from datetime import datetime
 import discord
@@ -61,34 +60,6 @@ class Reminders(commands.Cog):
             print(f'  run_reminders {error = }')
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.run_reminders())
-
-
-    async def get_next_reminder_info(self):
-        """Gets from the database the info for the nearest (in time) reminder task
-
-        Returns (target_time, id, destination, author_id, message).
-        If there is no next daily quote, this function returns (None, None, None, None, None).
-        """
-        r = await self.bot.db.fetchrow('''
-            SELECT *
-            FROM reminders
-            ORDER BY target_time
-            LIMIT 1;
-            ''')
-        if r is None:
-            return None, None, None, None, None
-
-        target_time = r['target_time']
-        author_id = r['author_id']
-        id = r['id']
-        message = r['message']
-        if r['is_dm']:
-            destination = self.bot.get_user(r['author_id'])
-        else:
-            server = self.bot.get_guild(r['server_id'])
-            destination = server.get_channel(r['channel_id'])
-
-        return target_time, id, destination, author_id, message
 
 
     @commands.group(aliases=['r', 'reminder', 'remindme', 'timer'], invoke_without_command=True)
@@ -256,6 +227,34 @@ class Reminders(commands.Cog):
             ''', ctx.author.id)
 
         return len(records)
+
+
+    async def get_next_reminder_info(self):
+        """Gets from the database the info for the nearest (in time) reminder task
+
+        Returns (target_time, id, destination, author_id, message).
+        If there is no next daily quote, this function returns (None, None, None, None, None).
+        """
+        r = await self.bot.db.fetchrow('''
+            SELECT *
+            FROM reminders
+            ORDER BY target_time
+            LIMIT 1;
+            ''')
+        if r is None:
+            return None, None, None, None, None
+
+        target_time = r['target_time']
+        author_id = r['author_id']
+        id = r['id']
+        message = r['message']
+        if r['is_dm']:
+            destination = self.bot.get_user(r['author_id'])
+        else:
+            server = self.bot.get_guild(r['server_id'])
+            destination = server.get_channel(r['channel_id'])
+
+        return target_time, id, destination, author_id, message
 
 
     async def save_reminder_to_db(self, ctx, start_time: datetime, target_time: datetime, message: str) -> None:
