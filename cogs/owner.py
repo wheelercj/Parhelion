@@ -52,12 +52,19 @@ class Owner(commands.Cog):
 
     @commands.command(name='server-id', aliases=['sid', 'serverid'])
     async def get_server_id(self, ctx, *, server_name: str):
-        """Gets the ID of a server by its name, if the bot can see the server"""
+        """Gets the ID of a server by its name, if the bot can see the server
+
+        May send multiple server IDs if multiple servers have the same name.
+        """
+        # This can be useful for when I need to update the database manually for servers that I'm not in.
         servers = self.bot.guilds
+        sent = False
         for server in servers:
             if server_name == server.name:
                 await ctx.send(server.id)
-        await ctx.message.add_reaction('✅')
+                sent = True
+        if not sent:
+            await ctx.send('No servers found with that name.')
 
 
     @commands.command()
