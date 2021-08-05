@@ -194,7 +194,7 @@ class Settings(commands.Cog):
             await ctx.send_help('setting')
 
 
-    @setting.commands(name='rename')
+    @setting.command(name='rename')
     @commands.is_owner()
     async def rename_command(self, ctx, old_command_name: str, current_command_name: CommandName):
         """Changes a command's name in the settings database and dictionary
@@ -224,16 +224,32 @@ class Settings(commands.Cog):
             return
 
         embed = discord.Embed(title=f'`{command_name}` command settings')
+
         if s['_global'] is not None:
             boolean = '✅' if s['_global'] else '❌'
             embed.add_field(name='global', value=boolean, inline=False)
-        if len(s['global_servers']):
-            content = await self.get_settings_message(s['global_servers'], self.bot.get_guild)
+
+        # Show ctx.guild.name and its setting if it has a setting.
+        try:
+            allowed = s['global_servers'][str(ctx.guild.id)]
+            d = {str(ctx.guild.id): allowed}
+            content = await self.get_settings_message(d, self.bot.get_guild)
             embed.add_field(name='global servers', value=content, inline=False)
+        except KeyError:
+            pass
+
+        # For users in ctx.guild with a global setting, list their names and settings.
+        members = dict()
+        for user_id in s['global_users']:
+            member = ctx.guild.get_member(user_id)
+            if member is None:
+                continue
+            members[user_id] = s['global_users'][user_id]
         if len(s['global_users']):
-            content = await self.get_settings_message(s['global_users'], self.bot.get_user)
+            content = await self.get_settings_message(members, self.bot.get_user)
             embed.add_field(name='global users', value=content, inline=False)
 
+        # Show the settings chosen by ctx.guild.
         try:
             ss = s['servers'][str(ctx.guild.id)]
             server = self.bot.get_guild(ctx.guild.id)
@@ -690,16 +706,16 @@ class Settings(commands.Cog):
                 """, 'servers', str(server_id), self.default_server_settings_json, command_name)
 
 
-    async def get_settings_message(self, dictionary: Dict[str, bool], get_function: Callable[[int], object]) -> str:
+    async def get_settings_message(self, settings_dict: Dict[str, bool], get_function: Callable[[int], object]) -> str:
         """Creates a str listing whether each setting in a settings dict is on or off
         
         The dict keys must be Discord object IDs, and the values must be booleans. The function to get the objects must be synchronous.
         """
         content = ''
-        for ID, boolean in dictionary.items():
+        for ID, allowed in settings_dict.items():
             name = get_function(int(ID))
-            boolean = '✅' if boolean else '❌'
-            content += f'{boolean} {name}\n'
+            allowed = '✅' if allowed else '❌'
+            content += f'{allowed} {name}\n'
 
         return content
 
