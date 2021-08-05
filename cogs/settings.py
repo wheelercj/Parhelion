@@ -6,7 +6,7 @@ from typing import List, Tuple, Any, Optional, Dict, Callable
 import json
 
 # internal imports
-from common import Paginator
+from cogs.utilities.paginator import Paginator
 
 
 '''

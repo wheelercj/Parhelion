@@ -18,6 +18,7 @@ asyncpg = "^0.23.0"
 aiofiles = "^0.7.0"
 buttons = "^0.1.9"
 bs4 = "^0.0.1"
+utils = "^1.0.1"
 
 [tool.poetry.dev-dependencies]
 

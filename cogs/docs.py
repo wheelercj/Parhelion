@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from typing import Tuple, List, Dict
 
 # internal imports
-from common import Paginator
+from cogs.utilities.paginator import Paginator
 
 
 '''

@@ -6,7 +6,8 @@ import io
 from typing import Optional, List
 
 # internal imports
-from common import Paginator, split_input, get_attachment_url, format_relative_time_stamp, safe_send
+from cogs.utilities.paginator import Paginator
+from common import split_input, get_attachment_url, format_relative_time_stamp, safe_send
 
 
 '''
