@@ -14,7 +14,8 @@ from copy import copy
 from typing import List, Dict
 
 # internal imports
-from common import dev_settings, dev_mail, get_prefixes_message, get_prefixes_list
+from cogs.utils.io import dev_mail
+from common import dev_settings, get_prefixes_message, get_prefixes_list
 
 
 class Bot(commands.Bot):

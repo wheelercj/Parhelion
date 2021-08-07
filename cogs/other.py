@@ -7,7 +7,7 @@ from textwrap import dedent
 import random
 
 # internal imports
-from common import unwrap_code_block, send_traceback, get_attachment_url
+from cogs.utils.io import unwrap_code_block, send_traceback, get_attachment_url
 
 
 class Other(commands.Cog):

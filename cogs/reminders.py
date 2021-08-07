@@ -5,9 +5,10 @@ import discord
 from discord.ext import commands
 
 # internal imports
+from cogs.utils.io import safe_send
 from cogs.utils.time import parse_time_message, format_relative_time_stamp, format_long_datetime_stamp
 from cogs.utils.paginator import Paginator
-from common import plural, safe_send
+from common import plural
 
 
 '''

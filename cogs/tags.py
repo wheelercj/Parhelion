@@ -6,9 +6,10 @@ import io
 from typing import Optional, List
 
 # internal imports
+from cogs.utils.io import split_input, get_attachment_url
 from cogs.utils.time import format_relative_time_stamp
 from cogs.utils.paginator import Paginator
-from common import split_input, get_attachment_url, plural
+from common import plural
 
 
 '''
