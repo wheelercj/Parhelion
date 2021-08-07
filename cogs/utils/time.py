@@ -5,7 +5,7 @@ import dateparser
 from typing import Tuple
 
 # internal imports
-from common import plural
+from cogs.utils.common import plural
 
 
 async def get_14_digit_datetime() -> str:

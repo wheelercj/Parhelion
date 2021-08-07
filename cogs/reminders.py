@@ -8,7 +8,7 @@ from discord.ext import commands
 from cogs.utils.io import safe_send
 from cogs.utils.time import parse_time_message, format_relative_time_stamp, format_long_datetime_stamp
 from cogs.utils.paginator import Paginator
-from common import plural
+from cogs.utils.common import plural
 
 
 '''

@@ -5,7 +5,7 @@ import asyncpg
 from typing import List
 
 # internal imports
-from common import dev_settings, get_prefixes_message, get_prefixes_str
+from cogs.utils.common import dev_settings, get_prefixes_message, get_prefixes_str
 
 
 '''

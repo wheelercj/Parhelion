@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 
 # internal imports
-from common import get_prefixes_message
+from cogs.utils.common import get_prefixes_message
 
 
 # Guide on subclassing HelpCommand: https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96

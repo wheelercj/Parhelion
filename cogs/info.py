@@ -6,7 +6,7 @@ import platform
 
 # internal imports
 from cogs.utils.time import format_datetime, format_timedelta, format_relative_time_stamp
-from common import get_prefixes_list, dev_settings, get_bot_invite_link
+from cogs.utils.common import get_prefixes_list, dev_settings, get_bot_invite_link
 
 
 def yes_or_no(boolean: bool) -> str:

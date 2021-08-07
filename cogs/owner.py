@@ -8,7 +8,7 @@ from textwrap import dedent
 # internal imports
 from cogs.utils.io import unwrap_code_block
 from cogs.utils.time import get_14_digit_datetime
-from common import escape_json
+from cogs.utils.common import escape_json
 
 
 class Owner(commands.Cog):
