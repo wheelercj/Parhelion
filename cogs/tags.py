@@ -8,22 +8,25 @@ from typing import Optional, List
 # internal imports
 from cogs.utils.time import format_relative_time_stamp
 from cogs.utils.paginator import Paginator
-from common import split_input, get_attachment_url, safe_send
+from common import split_input, get_attachment_url, plural
 
 
 '''
-    CREATE TABLE IF NOT EXISTS tags (
+    CREATE TABLE tags (
         id SERIAL PRIMARY KEY,
         name VARCHAR(50) NOT NULL,
-        content VARCHAR(1500) NOT NULL,
+        parent_tag_id INT,
+        content VARCHAR(1500),
         file_url TEXT,
         created TIMESTAMP NOT NULL,
         owner_id BIGINT NOT NULL,
         server_id BIGINT NOT NULL,
         views INT DEFAULT 0,
         UNIQUE (name, server_id)
-    )
+    );
 '''
+# Either parent_tag_id is NULL, or content and file_url are both NULL
+# (though either content or file_url may be NULL regardless).
 
 
 class Tags(commands.Cog):
@@ -60,8 +63,7 @@ class Tags(commands.Cog):
                 AND server_id = $2
             RETURNING *;
             ''', tag_name, ctx.guild.id)
-        
-        await self.send_tag(ctx, record)
+        await self.send_tag_contents(ctx, record)
 
 
     @tag.command(name='create', aliases=['c'])
@@ -70,36 +72,22 @@ class Tags(commands.Cog):
 
         If the tag name has spaces, surround it with double quotes. If the tag has an attachment, the message in which the tag was created must not be deleted, or the attachment will be lost.
         """
-        if await self.count_members_tags(ctx.author) >= self.tag_count_limit \
-                and self.bot.owner_id != ctx.author.id:
-            await ctx.send(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
-            return
+        await self.check_tag_ownership_permission(ctx, ctx.author)
+        name, content = await split_input(name_and_content)
+        await self.validate_new_tag_info(name, content)
+        now = ctx.message.created_at
+        file_url = await get_attachment_url(ctx)
 
         try:
-            name, content = await split_input(name_and_content)
-            if len(name) > self.tag_name_length_limit:
-                raise ValueError(f'Tag name length must be {self.tag_name_length_limit} characters or fewer.')
-            if len(content) > self.tag_content_length_limit:
-                raise ValueError(f'Tag content length must be {self.tag_content_length_limit} characters or fewer.')
-
-            now = ctx.message.created_at
-            file_url = await get_attachment_url(ctx)
-
-            ret = await self.bot.db.execute('''
+            await self.bot.db.execute('''
                 INSERT INTO tags
                 (name, content, file_url, created, owner_id, server_id)
                 VALUES ($1, $2, $3, $4, $5, $6)
                 ''', name, content, file_url, now, ctx.author.id, ctx.guild.id)
-
-            if ret == 'INSERT 0':
-                await ctx.send('Error. Unable to create tag.')
-                return
+            
+            await ctx.send(f'Successfully created tag "{name}"')
         except asyncpg.exceptions.UniqueViolationError:
             await ctx.send(f'A tag named "{name}" already exists.')
-        except Exception as e:
-            await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
-        else:
-            await ctx.send(f'Successfully created tag "{name}"')
 
 
     @tag.command(name='list', aliases=['l'])
@@ -149,121 +137,94 @@ class Tags(commands.Cog):
 
         If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
-        name, content = await split_input(name_and_content)
-        if len(content) > self.tag_content_length_limit:
-            raise ValueError(f'Tag content length must be {self.tag_content_length_limit} characters or fewer.')
+        tag_name, content = await split_input(name_and_content)
+        await self.validate_new_tag_info(tag_name, content)
 
-        file_url = await get_attachment_url(ctx)
-
-        returned_tag_name = await self.bot.db.fetchval('''
-            UPDATE tags
-            SET content = $1,
-                file_url = $2
-            WHERE name = $3
-                AND owner_id = $4
-                AND server_id = $5
-            RETURNING name;
-            ''', content, file_url, name, ctx.author.id, ctx.guild.id)
-
-        if returned_tag_name is None:
+        record = await self.bot.db.fetchrow(''' 
+            SELECT *
+            FROM tags
+            WHERE name = $1,
+                AND owner_id = $2
+                AND server_id = $3;
+            ''', tag_name, ctx.author.id, ctx.guild.id)
+        if record is None:
             await ctx.send('Tag not found.')
-        else:
-            await ctx.send(f'Successfully edited tag "{name}"')
+        if record['parent_tag_id']:
+            await ctx.send('You cannot edit a tag alias.')
+
+        await self.handle_tag_edit(ctx, record, content)
 
 
     @tag.command(name='delete', aliases=['del'])
     async def delete_tag(self, ctx, *, tag_name: str):
-        """Deletes one of your tags"""
-        returned_tag_name = await self.bot.db.fetchval('''
+        """Deletes one of your tags (or aliases) and all aliases it may have"""
+        record = await self.bot.db.fetchrow('''
             DELETE FROM tags
             WHERE name = $1
                 AND owner_id = $2
                 AND server_id = $3
-            RETURNING name;
+            RETURNING *;
             ''', tag_name, ctx.author.id, ctx.guild.id)
-
-        if returned_tag_name is None:
-            await ctx.send('Tag not found.')
-        else:
-            await ctx.send(f'Successfully deleted tag "{tag_name}"')
+        await self.handle_tag_cleanup(ctx, record)
 
 
     @tag.command(name='mod-delete', aliases=['mdel', 'moddelete'])
     @commands.has_guild_permissions(manage_messages=True)
     async def mod_delete_tag(self, ctx, *, tag_name: str):
-        """Deletes one of anyone's tags"""
-        returned_tag_name = await self.bot.db.fetchval('''
+        """Deletes one of anyone's tags (or aliases) and all aliases it may have"""
+        record = await self.bot.db.fetchrow('''
             DELETE FROM tags
             WHERE name = $1
                 AND server_id = $2
-            RETURNING name;
+            RETURNING *;
             ''', tag_name, ctx.guild.id)
-        
-        if returned_tag_name is None:
-            await ctx.send('Tag not found.')
-        else:
-            await ctx.send(f'Successfully deleted tag "{tag_name}"')
+        await self.handle_tag_cleanup(ctx, record)
 
 
     @tag.command(name='claim', aliases=['cl'])
     async def claim_tag(self, ctx, *, tag_name: str):
         """Gives you ownership of a tag if its owner left the server"""
-        if await self.count_members_tags(ctx.author) >= self.tag_count_limit \
-                and self.bot.owner_id != ctx.author.id:
-            await ctx.send(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
-            return
+        await self.check_tag_ownership_permission(ctx, ctx.author)
 
-        owner_id = await self.get_tag_owner_id_by_name(ctx, tag_name)
-        if owner_id is None:
+        record = await self.bot.db.fetchrow('''
+            SELECT *
+            FROM tags
+            WHERE name = $1
+                AND server_id = $2;
+            ''', tag_name, ctx.guild.id)
+        if record is None:
             await ctx.send('Tag not found.')
             return
-        if owner_id == ctx.author.id:
+        if record['owner_id'] == ctx.author.id:
             await ctx.send('This tag already belongs to you.')
             return
-
-        owner = ctx.guild.get_member(owner_id)
+        owner = ctx.guild.get_member(record['owner_id'])
         if owner is not None:
             await ctx.send("The tag's owner is still in this server.")
             return
 
-        returned_tag_name = await self.bot.db.fetchval('''
-            UPDATE tags
-            SET owner_id = $1
-            WHERE name = $2
-                AND server_id = $3
-            RETURNING name;
-            ''', ctx.author.id, tag_name, ctx.guild.id)
-
-        if returned_tag_name is None:
-            await ctx.send(f'Error. Unable to claim tag.')
-        else:
-            await ctx.reply(f'Tag "{tag_name}" now belongs to you!')
+        await self.handle_tag_transfer(ctx, record, ctx.author)
 
 
     @tag.command(name='transfer', aliases=['t'])
     async def transfer_tag(self, ctx, member: discord.Member, *, tag_name: str):
         """Gives a server member ownership of one of your tags"""
-        if member.bot:
-            await ctx.send('Bots cannot own tags.')
+        await self.check_tag_ownership_permission(ctx, member)
+
+        record = await self.bot.db.fetchrow('''
+            SELECT *
+            FROM tags
+            WHERE tag_name = $1
+                AND server_id = $2;
+            ''', tag_name, ctx.guild.id)
+        if record is None:
+            await ctx.send('Tag not found.')
             return
-        if await self.count_members_tags(member) >= self.tag_count_limit \
-                and self.bot.owner_id != ctx.author.id:
-            await ctx.send(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
+        if record['owner_id'] != ctx.author.id:
+            await ctx.send('This tag does not belong to you.')
             return
 
-        returned_tag_name = await self.bot.db.fetchval('''
-            UPDATE tags
-            SET owner_id = $1
-            WHERE owner_id = $2
-                AND name = $3
-                AND server_id = $4
-            RETURNING name;
-            ''', member.id, ctx.author.id, tag_name, ctx.guild.id)
-
-        if returned_tag_name is None:
-            await ctx.send(f'Tag not found.')
-        else:
-            await ctx.send(f'Tag "{returned_tag_name}" now belongs to {member.name}#{member.discriminator}!')
+        await self.handle_tag_transfer(ctx, record, member)
 
 
     @tag.command(name='raw', aliases=['r'])
@@ -276,12 +237,7 @@ class Tags(commands.Cog):
                 AND server_id = $2
             RETURNING *;
             ''', tag_name, ctx.guild.id)
-
-        if record is None:
-            await ctx.send('Tag not found.')
-        else:
-            content = record['content'].replace('`', '\`')
-            await ctx.send(content)
+        await self.send_tag_contents(ctx, record, send_raw=True)
 
 
     @tag.command(name='search', aliases=['s'])
@@ -324,27 +280,39 @@ class Tags(commands.Cog):
         await self.paginate_tag_list(ctx, '', records)
 
     
-    @tag.command(name='alias', hidden=True)
-    async def create_tag_alias(self, ctx):
+    @tag.command(name='alias')
+    async def create_tag_alias(self, ctx, existing_tag_name: str, *, new_alias: str):
         """Creates another name for an existing tag"""
-        await ctx.send('This command is under construction.')
+        await self.check_tag_ownership_permission(ctx, ctx.author)
+        await self.validate_new_tag_info(new_alias)
+
+        record = await self.bot.db.fetchrow('''
+            SELECT *
+            FROM tags
+            WHERE name = $1
+                AND server_id = $2;
+            ''', existing_tag_name, ctx.guild.id)
+
+        await self.handle_tag_alias_creation(ctx, record, new_alias)
 
 
     @tag.command(name='stats', hidden=True)
     async def tag_stats(self, ctx):
         """Shows tag statistics about a member or the server"""
+        # TODO
         await ctx.send('This command is under construction.')
 
 
     @tag.command(name='make', hidden=True)
     async def make_tag(self, ctx):
         """Interactively helps you create a tag"""
+        # TODO
         await ctx.send('This command is under construction.')
 
 
-################
-# tag_ID group #
-################
+########################
+# tag_ID command group #
+########################
 
 
     @tag.group(name='id')
@@ -359,16 +327,17 @@ class Tags(commands.Cog):
         """An alias for `tag id` in case you're used to having a view subcommand"""
         if tag_ID is None:
             await ctx.send_help('tag id')
-        else:
-            record = await self.bot.db.fetchrow('''
-                UPDATE tags
-                SET views = views + 1
-                WHERE id = $1
-                    AND server_id = $2
-                RETURNING *;
-                ''', tag_ID, ctx.guild.id)
+            return
 
-            await self.send_tag(ctx, record)
+        record = await self.bot.db.fetchrow('''
+            UPDATE tags
+            SET views = views + 1
+            WHERE id = $1
+                AND server_id = $2
+            RETURNING *;
+            ''', tag_ID, ctx.guild.id)
+
+        await self.send_tag_contents(ctx, record)
 
 
     @tag_id.command(name='info', aliases=['i'])
@@ -385,125 +354,98 @@ class Tags(commands.Cog):
 
 
     @tag_id.command(name='edit', aliases=['e'])
-    async def edit_tag_by_id(self, ctx, tag_ID: int, *, content: str):
+    async def edit_tag_by_id(self, ctx, tag_ID: int, *, new_content: str):
         """Rewrites one of your tags
 
         If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
-        if len(content) > self.tag_content_length_limit:
-            raise ValueError(f'Tag content length must be {self.tag_content_length_limit} characters or fewer.')
+        await self.validate_new_tag_info(content=new_content)
 
-        file_url = await get_attachment_url(ctx)
-
-        returned_tag_name = await self.bot.db.fetchval('''
-            UPDATE tags
-            SET content = $1,
-                file_url = $2
-            WHERE id = $3
-                AND owner_id = $4
-                AND server_id = $5
-            RETURNING name;
-            ''', content, file_url, tag_ID, ctx.author.id, ctx.guild.id)
-
-        if returned_tag_name is None:
+        record = await self.bot.db.fetchrow('''
+            SELECT *
+            FROM tags
+            WHERE id = $1,
+                AND owner_id = $2
+                AND server_id = $3;
+            ''', tag_ID, ctx.author.id, ctx.guild.id)
+        if record is None:
             await ctx.send('Tag not found.')
-        else:
-            await ctx.send(f'Successfully edited tag "{returned_tag_name}"')
+        if record['parent_tag_id']:
+            await ctx.send('You cannot edit a tag alias.')
+
+        await self.handle_tag_edit(ctx, record, new_content)
 
 
     @tag_id.command(name='delete', aliases=['del'])
     async def delete_tag_by_id(self, ctx, tag_ID: int):
-        """Deletes one of your tags"""
-        returned_tag_name = await self.bot.db.fetchval('''
+        """Deletes one of your tags (or aliases) and all aliases it may have"""
+        record = await self.bot.db.fetchrow('''
             DELETE FROM tags
             WHERE id = $1
                 AND owner_id = $2
                 AND server_id = $3
-            RETURNING name;
+            RETURNING *;
             ''', tag_ID, ctx.author.id, ctx.guild.id)
-
-        if returned_tag_name is None:
-            await ctx.send('Tag not found.')
-        else:
-            await ctx.send(f'Successfully deleted tag "{returned_tag_name}"')
+        await self.handle_tag_cleanup(ctx, record)
 
 
     @tag_id.command(name='mod-delete', aliases=['mdel', 'moddelete'])
     @commands.has_guild_permissions(manage_messages=True)
     async def mod_delete_tag_by_id(self, ctx, tag_ID: int):
-        """Deletes one of anyone's tags"""
-        returned_tag_name = await self.bot.db.fetchval('''
+        """Deletes one of anyone's tags (or aliases) and all aliases it may have"""
+        record = await self.bot.db.fetchrow('''
             DELETE FROM tags
             WHERE id = $1
                 AND server_id = $2
-            RETURNING name;
+            RETURNING *;
             ''', tag_ID, ctx.guild.id)
-
-        if returned_tag_name is None:
-            await ctx.send('Tag not found.')
-        else:
-            await ctx.send(f'Successfully deleted tag "{returned_tag_name}"')
+        await self.handle_tag_cleanup(ctx, record)
 
 
     @tag_id.command(name='claim', aliases=['cl'])
     async def claim_tag_by_id(self, ctx, tag_ID: int):
         """Gives you ownership of a tag if its owner left the server"""
-        if await self.count_members_tags(ctx.author) >= self.tag_count_limit \
-                and self.bot.owner_id != ctx.author.id:
-            await ctx.send(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
-            return
+        await self.check_tag_ownership_permission(ctx, ctx.author)
 
-        owner_id = await self.get_tag_owner_id_by_id(ctx, tag_ID)
-        if owner_id is None:
+        record = await self.bot.db.fetchrow('''
+            SELECT *
+            FROM tags
+            WHERE id = $1
+                AND server_id = $2;
+            ''', tag_ID, ctx.guild.id)
+        if record is None:
             await ctx.send('Tag not found.')
             return
-        if owner_id == ctx.author.id:
+        if record['owner_id'] == ctx.author.id:
             await ctx.send('This tag already belongs to you.')
             return
-
-        owner = ctx.guild.get_member(owner_id)
+        owner = ctx.guild.get_member(record['owner_id'])
         if owner is not None:
             await ctx.send("The tag's owner is still in this server.")
             return
 
-        returned_tag_name = await self.bot.db.fetchval('''
-            UPDATE tags
-            SET owner_id = $1
-            WHERE id = $2
-                AND server_id = $3
-            RETURNING name;
-            ''', ctx.author.id, tag_ID, ctx.guild.id)
-
-        if returned_tag_name is None:
-            await ctx.send(f'Error. Unable to claim tag.')
-        else:
-            await ctx.reply(f'Tag "{returned_tag_name}" now belongs to you!')
+        await self.handle_tag_transfer(ctx, record, ctx.author)
 
 
     @tag_id.command(name='transfer', aliases=['t'])
     async def transfer_tag_by_id(self, ctx, member: discord.Member, tag_ID: int):
         """Gives a server member ownership of one of your tags"""
-        if member.bot:
-            await ctx.send('Bots cannot own tags.')
+        await self.check_tag_ownership_permission(ctx, member)
+
+        record = await self.bot.db.fetchrow('''
+            SELECT *
+            FROM tags
+            WHERE id = $1
+                AND server_id = $2;
+            ''', tag_ID, ctx.guild.id)
+        if record is None:
+            await ctx.send('Tag not found.')
             return
-        if await self.count_members_tags(member) >= self.tag_count_limit \
-                and self.bot.owner_id != ctx.author.id:
-            await ctx.send(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
+        if record['owner_id'] != ctx.author.id:
+            await ctx.send('This tag does not belong to you.')
             return
 
-        returned_tag_name = await self.bot.db.fetchval('''
-            UPDATE tags
-            SET owner_id = $1
-            WHERE owner_id = $2
-                AND id = $3
-                AND server_id = $4
-            RETURNING name;
-            ''', member.id, ctx.author.id, tag_ID, ctx.guild.id)
-
-        if returned_tag_name is None:
-            await ctx.send(f'Tag not found.')
-        else:
-            await ctx.send(f'Tag "{returned_tag_name}" now belongs to {member.name}#{member.discriminator}!')
+        await self.handle_tag_transfer(ctx, record, member)
 
 
     @tag_id.command(name='raw', aliases=['r'])
@@ -516,48 +458,89 @@ class Tags(commands.Cog):
                 AND server_id = $2
             RETURNING *;
             ''', tag_ID, ctx.guild.id)
-
-        if record is None:
-            await ctx.send('Tag not found.')
-        else:
-            content = record['content'].replace('`', '\`')
-            await ctx.send(content)
+        await self.send_tag_contents(ctx, record, send_raw=True)
 
 
-    @tag_id.command(name='alias', hidden=True)
-    async def create_tag_alias_by_id(self, ctx, tag_ID: int):
+    @tag_id.command(name='alias')
+    async def create_tag_alias_by_id(self, ctx, tag_ID: int, *, new_alias: str):
         """Creates another name for an existing tag"""
-        await ctx.send('This command is under construction.')
+        await self.check_tag_ownership_permission(ctx, ctx.author)
+        await self.validate_new_tag_info(new_alias)
+
+        record = await self.bot.db.fetchrow('''
+            SELECT *
+            FROM tags
+            WHERE id = $1
+                AND server_id = $2;
+            ''', tag_ID, ctx.guild.id)
+
+        await self.handle_tag_alias_creation(ctx, record, new_alias)
 
 
     @tag_id.command(name='stats', hidden=True)
     async def tag_stats_by_id(self, ctx, tag_ID: int):
         """Shows tag statistics about a member or the server"""
+        # TODO
         await ctx.send('This command is under construction.')
 
 
-    async def send_tag(self, ctx, record: asyncpg.Record) -> None:
-        """Sends ctx the contents of a tag or an error message if necessary"""
+    async def send_tag_contents(self, ctx, record: asyncpg.Record, send_raw: bool = False) -> None:
+        """Sends ctx the contents of a tag or an error message if necessary
+        
+        If record is an alias, the parent record will be retrieved.
+        """
         if record is None:
             await ctx.send('Tag not found.')
+            return
+        
+        if record['parent_tag_id']:
+            record = await self.bot.db.fetchrow('''
+                SELECT *
+                FROM tags
+                WHERE id = $1;
+                ''', record['parent_tag_id'])
+
+        if send_raw:
+            content = record['content'].replace('`', '\`')
+            if record['file_url']:
+                content += '\n' + record['file_url']
+            await ctx.send(content)
         elif record['file_url'] is None:
             await ctx.send(record['content'])
         else:
-            try:
-                async with self.bot.session.get(record['file_url']) as response:
-                    if not response.ok:
-                        await ctx.send(record['content'])
-                        await ctx.send("This tag's attachment cannot be accessed for some reason. The message that created the tag may have been deleted.")
-                    else:
-                        image_bytes = await response.read()
-                with io.BytesIO(image_bytes) as binary_stream:
-                    file_name = record['file_url'].split('.')[-2]
-                    file_type = record['file_url'].split('.')[-1]
-                    file = discord.File(binary_stream, f'{file_name}.{file_type}')
-                    await ctx.send(record['content'], file=file)
-            except discord.errors.HTTPException as e:
-                if 'empty message' in e.text:
-                    await ctx.send("This tag is empty. It may contain a type of attachment that Discord doesn't provide working URLs to.")
+            await self.handle_attachment_sending(ctx, record)
+
+
+    async def handle_attachment_sending(self, ctx, record: asyncpg.Record) -> None:
+        """Gets and sends to ctx a tag's attachment, as well as any content it may have
+        
+        An attachment is required, but text content is optional.
+        Assumes record['file_url'] is not None. Sends ctx an error message if necessary.
+        """
+        file_bytes = await self.get_attachment_bytes(ctx, record)
+        if file_bytes:
+            with io.BytesIO(file_bytes) as binary_stream:
+                file_name = record['file_url'].split('.')[-2]
+                file_type = record['file_url'].split('.')[-1]
+                file = discord.File(binary_stream, f'{file_name}.{file_type}')
+                await ctx.send(record['content'], file=file)
+        else:
+            await ctx.send('This tag may contain a type of attachment that is not compatible with Discord bots.\n')
+            await ctx.send(record['content'])
+
+
+    async def get_attachment_bytes(self, ctx, record: asyncpg.Record) -> Optional[bytes]:
+        """Gets the bytes of the tag's attachment with an async GET request
+
+        Assumes record['file_url'] is not None. Sends ctx an error message and returns None if the request fails.
+        """
+        async with self.bot.session.get(record['file_url']) as response:
+            if not response.ok:
+                await ctx.send("This tag's attachment cannot be accessed for some reason. The message that created the tag may have been deleted.")
+                return None
+            else:
+                file_bytes = await response.read()
+                return file_bytes
 
 
     async def send_tag_info(self, ctx, record: asyncpg.Record) -> None:
@@ -572,14 +555,18 @@ class Tags(commands.Cog):
         else:
             owner = record['owner_id']
 
-        created = await format_relative_time_stamp(record["created"])
+        created = await format_relative_time_stamp(record['created'])
+
+        if record['parent_tag_id']:
+            parent_tag = f'This tag is an alias to\nthe tag with ID {record["parent_tag_id"]}.\n'
 
         embed = discord.Embed()
         embed.add_field(name=record['name'],
             value=f'owner: {owner}\n'
                 + f'created: {created}\n'
                 + f'views: {record["views"]}\n'
-                + f'ID: {record["id"]}')
+                + f'ID: {record["id"]}\n'
+                + parent_tag)
 
         await ctx.send(embed=embed)
 
@@ -597,6 +584,21 @@ class Tags(commands.Cog):
         await paginator.start(ctx)
 
 
+    async def check_tag_ownership_permission(self, ctx, member: discord.Member) -> bool:
+        """Checks whether member has permission to create or receive a tag
+
+        Raises commands.UserInputError if they don't. Does NOT check whether they own the tag.
+        """
+        if member.bot:
+            raise commands.UserInputError('Bots cannot own tags.')
+        members_tag_count = await self.count_members_tags(ctx.author)
+        if members_tag_count >= self.tag_count_limit \
+                and self.bot.owner_id != ctx.author.id:
+            raise commands.UserInputError(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
+
+        return True
+
+
     async def count_members_tags(self, member: discord.Member) -> int:
         """Counts how many tags a member has globally"""
         records = await self.bot.db.fetch('''
@@ -604,40 +606,148 @@ class Tags(commands.Cog):
             FROM tags
             WHERE owner_id = $1;
             ''', member.id)
-
         if records:
             return len(records)
         return 0
 
 
-    async def get_tag_owner_id_by_name(self, ctx, tag_name: str) -> Optional[int]:
-        """Gets the user ID of a tag's owner
+    async def validate_new_tag_info(self, name: Optional[str], content: str = None) -> bool:
+        """Makes sure the name and/or content of a tag is not too long or too short
 
-        Returns None if the tag does not exist at ctx.guild.
+        Raises commands.BadArgument if either is too long or too short.
+        If either of the args is None, it will be ignored.
         """
-        owner_id = await self.bot.db.fetchval('''
-            SELECT owner_id
-            FROM tags
-            WHERE name = $1
-                AND server_id = $2;
-        ''', tag_name, ctx.guild.id)
-        
-        return owner_id
+        if name is not None:
+            if len(name) > self.tag_name_length_limit:
+                raise commands.BadArgument(f'Tag name length must be {self.tag_name_length_limit} characters or fewer.')
+            if len(name) == 0:
+                raise commands.BadArgument(f'Tag name length must be at least 1 character.')
+        if content is not None:
+            if len(content) > self.tag_content_length_limit:
+                raise commands.BadArgument(f'Tag content length must be {self.tag_content_length_limit} characters or fewer.')
+            if len(content) == 0:
+                raise commands.BadArgument(f'Tag content length must be at least 1 character.')
+
+        return True
 
 
-    async def get_tag_owner_id_by_id(self, ctx, tag_ID: int) -> Optional[int]:
-        """Gets the user ID of a tag's owner
+    async def handle_tag_cleanup(self, ctx, record: asyncpg.Record) -> None:
+        """Deletes any aliases if and only if record is not an alias, and sends ctx a status update
 
-        Returns None if the tag does not exist at ctx.guild.
+        Assumes the tag in record was just deleted, or that record is None because the tag wasn't found.
         """
-        owner_id = await self.bot.db.fetchval('''
-            SELECT owner_id
-            FROM tags
-            WHERE id = $1
-                AND server_id = $2;
-        ''', tag_ID, ctx.guild.id)
+        if record is None:
+            await ctx.send('Tag not found.')
+            return
+
+        tag_name = record['name']
+        if record['parent_tag_id']:
+            await ctx.send(f'Successfully deleted alias "{tag_name}".')
+        else:
+            n_deleted = await self.delete_tag_aliases(ctx, tag_name, record['id'])
+            if n_deleted:
+                await ctx.send(f'Successfully deleted tag "{tag_name}" and {plural(n_deleted, "alias||es")}.')
+            else:
+                await ctx.send(f'Successfully deleted tag "{tag_name}".')
+
+
+    async def delete_tag_aliases(self, ctx, tag_name: str, tag_ID: int) -> int:
+        """Deletes any aliases if and only if tag_name is not an alias
         
-        return owner_id
+        Returns the number of aliases deleted.
+        """
+        ret = await self.bot.db.execute('''
+            DELETE FROM tags
+            WHERE parent_tag_id = $1;
+            ''', tag_ID)
+        n_deleted = int(ret.replace('DELETE ', ''))
+        return n_deleted
+
+
+    async def handle_tag_transfer(self, ctx, record: asyncpg.Record, new_owner: discord.Member) -> None:
+        """Transfers ownership of a tag and all its aliases, and sends ctx a status update
+
+        If record is an alias, the parent tag and all its aliases will still be transferred.
+        Assumes ctx.author has permission to transfer the tag and new_owner has permission to receive the tag.
+        Assumes the tag was not found if record is None.
+        """
+        if record is None:
+            await ctx.send('Tag not found.')
+            return
+
+        tag_name = record['name']
+        owner_name = f'{new_owner.name}#{new_owner.discriminator}'
+        n_transferred = await self.transfer_tag_ownership(ctx, record, new_owner)
+        if n_transferred:
+            await ctx.reply(f'Tag "{tag_name}" and its {n_transferred-1} aliases now belong to {owner_name}!')
+        else:
+            await ctx.reply(f'Tag "{tag_name}" now belongs to {owner_name}!')
+
+
+    async def transfer_tag_ownership(self, ctx, record: asyncpg.Record, new_owner: discord.Member) -> int:
+        """Transfers ownership of a tag and all its aliases, and returns the number transferred
+
+        If record is an alias, the parent tag and all its aliases will still be transferred.
+        Assumes ctx.author has permission to transfer the tag and new_owner has permission to receive the tag.
+        """
+        if record['parent_tag_id'] is None:
+            parent_tag_id = record['id']
+        else:
+            parent_tag_id = record['parent_tag_id']
+        ret = await self.bot.db.execute('''
+            UPDATE tags
+            SET owner_id = $1
+            WHERE id = $2
+                OR parent_tag_id = $2;
+            ''', new_owner.id, parent_tag_id)
+
+        n_transferred = int(ret.replace('UPDATE ', ''))
+        return n_transferred
+
+
+    async def handle_tag_edit(self, ctx, record: asyncpg.Record, new_content: str) -> None:
+        """Edits a tag's content and/or attachment URL, and sends ctx a status update
+        
+        Any attachment URL is automatically retrieved from ctx.
+        """
+        file_url = await get_attachment_url(ctx)
+        await self.bot.db.execute('''
+            UPDATE tags
+            SET content = $1,
+                file_url = $2
+            WHERE id = $3;
+            ''', new_content, file_url, record['id'])
+
+        tag_name = record['name']
+        await ctx.send(f'Successfully edited tag "{tag_name}"')
+
+
+    async def handle_tag_alias_creation(self, ctx, record: asyncpg.Record, new_alias: str) -> None:
+        """Validates alias creation options, creates the alias, and sends ctx a status update
+        
+        Assumes the tag was not found if record is None.
+        """
+        if record is None:
+            await ctx.send('Tag not found.')
+            return
+        if record['owner_id'] != ctx.author.id:
+            await ctx.send('You cannot create an alias for a tag that does not belong to you.')
+            return
+        if record['parent_tag_id'] is not None:
+            await ctx.send('You cannot create an alias for an alias.')
+            return
+
+        now = ctx.message.created_at
+        try:
+            await self.bot.db.execute('''
+                INSERT INTO tags
+                (name, parent_tag_id, created, owner_id, server_id)
+                VALUES ($1, $2, $3, $4, $5);
+                ''', new_alias, record['parent_tag_id'], now, ctx.author.id, ctx.guild.id)
+            
+            await ctx.send(f'Successfully created tag alias "{new_alias}"')
+        except asyncpg.exceptions.UniqueViolationError:
+            await ctx.send(f'A tag named "{new_alias}" already exists.')
 
 
 def setup(bot):
