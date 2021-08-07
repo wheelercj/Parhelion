@@ -562,11 +562,17 @@ class Settings(commands.Cog):
     @commands.is_owner()
     async def list_non_default_servers(self, ctx, command_name: CommandName):
         """Shows all servers that have non-default server settings for a command"""
-        server_ids = self.all_cmd_settings[command_name]['servers']
-        if len(server_ids):
-            server_names = [self.bot.get_guild(server_id).name for server_id in server_ids]
+        # nds: non-default-servers
+        nds = self.all_cmd_settings[command_name]['servers']
+        nds_IDs: List[str] = list(nds.keys())
+        nds_names = []
+        for server in self.bot.guilds:
+            if str(server.id) in nds_IDs:
+                nds_names.append(server.name)
+
+        if len(nds_names):
             title = f'servers with non-default settings for `{command_name}`'
-            paginator = Paginator(title=title, embed=True, timeout=90, entries=server_names, length=15)
+            paginator = Paginator(title=title, embed=True, timeout=90, entries=nds_names, length=15)
             await paginator.start(ctx)
         else:
             await ctx.send('No servers found with non-default settings for this command.')
