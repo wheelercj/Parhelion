@@ -49,11 +49,11 @@ def plural(number: Union[int, float], root_and_suffixes: str) -> str:
     Put the singular suffix before the plural one.
     If there is no singular suffix, separate the root and plural suffix with || (two pipe symbols).
     Example uses:
-        plural(1, 'societ|y|ies') -> '1 society'
-        plural(2, 'societ|y|ies') -> '2 societies'
-        plural(0, 'p|erson|eople') -> '0 people'
+        plural(25, 'pe|rson|ople') -> '25 people'
+        plural(1, 'pe|rson|ople') -> '1 person'
+        plural(0, 'societ|y|ies') -> '0 societies'
         plural(1, 'child||ren') -> '1 child'
-        plural(2, '|cow|kine') -> '2 kine'
+        plural(-4.5, '|is|are') -> '-4.5 are'
     """
     if not isinstance(number, (int, float)):
         number = float(number)
