@@ -1,8 +1,10 @@
 # external imports
 import discord
 from discord.ext import commands
+import os
 from typing import List, Tuple, Union
 import platform
+from functools import lru_cache
 
 # internal imports
 from cogs.utils.time import format_datetime, format_timedelta, format_relative_time_stamp
@@ -52,8 +54,33 @@ class Info(commands.Cog):
                 f'users: {len(self.bot.users)}\n' \
                 f'commands: {len(self.bot.commands)}\n' \
                 f'commands used since last restart: {self.bot.command_use_count}\n' \
-                f'commands {ctx.author} can use here: {await self.count_available_cmds(ctx)}\n')
+                f'commands {ctx.author} can use here: {await self.count_available_cmds(ctx)}\n' \
+                f'lines of code: {self.count_bot_loc()}')
         await ctx.send(embed=embed)
+
+
+    @lru_cache
+    def count_bot_loc(self) -> int:
+        """Counts the lines of Python code in the entire bot"""
+        return self.count_dir_loc('.')
+
+
+    def count_dir_loc(self, dir_path: str) -> int:
+        """Counts the lines of Python code in a directory and its subdirectories"""
+        line_count = 0
+
+        for name in os.listdir(dir_path):
+            if name in ('.git', '__pycache__'):
+                continue
+            path = os.path.join(dir_path, name)
+            if os.path.isdir(path):
+                line_count += self.count_dir_loc(path)
+            elif os.path.isfile(path):
+                if path.endswith('.py'):
+                    with open(path, 'r') as file:
+                        line_count += len(file.readlines())
+
+        return line_count
 
 
     @commands.command(hidden=True)
