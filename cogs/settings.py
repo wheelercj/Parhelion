@@ -194,29 +194,13 @@ class Settings(commands.Cog):
             await ctx.send_help('setting')
 
 
-    @setting.command(name='rename')
-    @commands.is_owner()
-    async def rename_command(self, ctx, old_command_name: str, current_command_name: CommandName):
-        """Changes a command's name in the settings database and dictionary
-
-        Use this command each time a command is renamed in the code.
-        """
-        await self.bot.db.execute('''
-            UPDATE command_access_settings
-            SET cmd_name = $1
-            WHERE cmd_name = $2;
-            ''', current_command_name, old_command_name)
-        try:
-            self.all_cmd_settings[current_command_name] = self.all_cmd_settings.pop(old_command_name)
-            await ctx.send('Command renamed in the settings database and dictionary.')
-        except KeyError:
-            await ctx.send('Command not found.')
-
-
     @setting.command(name='view', aliases=['v'])
     @commands.has_guild_permissions(manage_guild=True)
     async def view_settings(self, ctx, command_name: CommandName):
-        """An alias for `setting`; shows the settings for a command"""
+        """An alias for `setting`; shows the settings for a command
+
+        Only settings that are relevant to ctx.guild are shown.
+        """
         try:
             settings = self.all_cmd_settings[command_name]
         except KeyError:
@@ -270,6 +254,25 @@ class Settings(commands.Cog):
             pass
 
         await ctx.send(embed=embed)
+
+
+    @setting.command(name='rename')
+    @commands.is_owner()
+    async def rename_command(self, ctx, old_command_name: str, current_command_name: CommandName):
+        """Changes a command's name in the settings database and dictionary
+
+        Use this command each time a command is renamed in the code.
+        """
+        await self.bot.db.execute('''
+            UPDATE command_access_settings
+            SET cmd_name = $1
+            WHERE cmd_name = $2;
+            ''', current_command_name, old_command_name)
+        try:
+            self.all_cmd_settings[current_command_name] = self.all_cmd_settings.pop(old_command_name)
+            await ctx.send('Command renamed in the settings database and dictionary.')
+        except KeyError:
+            await ctx.send('Command not found.')
 
 
     @setting.command(name='global', aliases=['g'])
@@ -437,6 +440,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, '{_global}', $1::JSONB, TRUE)
             WHERE cmd_name = $2;
             """, 'null', command_name)
+        await self.cleanup_after_setting_delete(command_name)
         await ctx.send(f'Deleted global setting for command `{command_name}`.')
 
 
@@ -451,6 +455,7 @@ class Settings(commands.Cog):
                 SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
                 WHERE cmd_name = $3;
                 """, 'global_servers', str(server.id), command_name)
+            await self.cleanup_after_setting_delete(command_name)
             await ctx.send(f'Deleted global setting for command `{command_name}` for server: {server.name}.')
         except KeyError:
             await ctx.send('No settings found.')
@@ -467,6 +472,7 @@ class Settings(commands.Cog):
                 SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
                 WHERE cmd_name = $3;
                 """, 'global_users', str(user.id), command_name)
+            await self.cleanup_after_setting_delete(command_name)
             await ctx.send(f'Deleted global setting for command `{command_name}` for user: {user.name}#{user.discriminator}.')
         except KeyError:
             await ctx.send('No settings found.')
@@ -482,6 +488,7 @@ class Settings(commands.Cog):
             SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3]::TEXT[], $4::JSONB, TRUE)
             WHERE cmd_name = $5;
             """, 'servers', str(ctx.guild.id), 'server', 'null', command_name)
+        await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
         await ctx.send(f'Deleted setting for command `{command_name}` for this server.')
 
 
@@ -496,6 +503,7 @@ class Settings(commands.Cog):
                 SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
                 WHERE cmd_name = $5;
                 """, 'servers', str(ctx.guild.id), 'roles', str(role.id), command_name)
+            await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
             await ctx.send(f'Deleted setting for command `{command_name}` for role: {role.name}.')
         except KeyError:
             await ctx.send('No settings found.')
@@ -512,6 +520,7 @@ class Settings(commands.Cog):
                 SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
                 WHERE cmd_name = $5;
                 """, 'servers', str(ctx.guild.id), 'channels', str(channel.id), command_name)
+            await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
             await ctx.send(f'Deleted setting for command `{command_name}` for channel: {channel.name}.')
         except KeyError:
             await ctx.send('No settings found.')
@@ -528,9 +537,46 @@ class Settings(commands.Cog):
                 SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
                 WHERE cmd_name = $5;
                 """, 'servers', str(ctx.guild.id), 'members', str(member.id), command_name)
+            await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
             await ctx.send(f'Deleted setting for command `{command_name}` for member: {member.name}.')
         except KeyError:
             await ctx.send('No settings found.')
+
+
+    async def cleanup_after_setting_delete(self, command_name: CommandName, server_id: int = None) -> None:
+        """Deletes a command's settings if and only if they are empty
+        
+        If server_id is given, this function will only check that server's settings for the given command.
+        If server_id is not given, all the settings for the command will be checked.
+        The data is deleted from both the settings dict and the database.
+        """
+        if server_id:
+            settings = self.all_cmd_settings[command_name]['servers'][str(server_id)]
+        else:
+            settings = self.all_cmd_settings[command_name]
+        for category, value in settings.items():
+            if value is not None:
+                if isinstance(value, bool):
+                    # Found non-empty bool setting.
+                    return
+                elif len(value):
+                    # Found non-empty dict setting.
+                    return
+
+        # Found empty settings. Delete them.
+        del settings
+
+        if server_id:
+            await self.bot.db.execute("""
+                UPDATE command_access_settings
+                SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
+                WHERE cmd_name = $3;
+                """, 'servers', str(server_id), command_name)
+        else:
+            await self.bot.db.execute('''
+                DELETE FROM command_access_settings
+                WHERE cmd_name = $1;
+                ''', command_name)
 
 
 ###############################
