@@ -213,45 +213,9 @@ class Settings(commands.Cog):
             allowed = '✅' if settings['_global'] else '❌'
             embed.add_field(name='global', value=allowed, inline=False)
 
-        # Show ctx.guild.name and its setting if it has a setting.
-        try:
-            allowed = settings['global_servers'][str(ctx.guild.id)]
-            setting_dict = {str(ctx.guild.id): allowed}
-            content = await self.get_settings_message(setting_dict, self.bot.get_guild)
-            embed.add_field(name='global servers', value=content, inline=False)
-        except KeyError:
-            pass
-
-        # For users in ctx.guild with a global setting, list their names and settings.
-        members = dict()
-        for user_id in settings['global_users']:
-            member = ctx.guild.get_member(user_id)
-            if member is None:
-                continue
-            members[user_id] = settings['global_users'][user_id]
-        if len(settings['global_users']):
-            content = await self.get_settings_message(members, self.bot.get_user)
-            embed.add_field(name='global users', value=content, inline=False)
-
-        # Show the settings chosen by ctx.guild.
-        try:
-            s_settings = settings['servers'][str(ctx.guild.id)]
-            server = self.bot.get_guild(ctx.guild.id)
-
-            if s_settings['server'] is not None:
-                allowed = '✅' if settings['server'] else '❌'
-                embed.add_field(name='server', value=allowed, inline=False)
-            if len(s_settings['roles']):
-                content = await self.get_settings_message(s_settings['roles'], server.get_role)
-                embed.add_field(name='server roles', value=content, inline=False)
-            if len(s_settings['channels']):
-                content = await self.get_settings_message(s_settings['channels'], server.get_channel)
-                embed.add_field(name='server channels', value=content, inline=False)
-            if len(s_settings['members']):
-                content = await self.get_settings_message(s_settings['members'], server.get_member)
-                embed.add_field(name='server members', value=content, inline=False)
-        except KeyError:
-            pass
+        embed = await self.append_global_server_setting(ctx, embed, settings)
+        embed = await self.append_global_users_settings(ctx, embed, settings)
+        embed = await self.append_server_settings(ctx, embed, settings)
 
         await ctx.send(embed=embed)
 
@@ -385,6 +349,94 @@ class Settings(commands.Cog):
             """, 'servers', str(ctx.guild.id), 'members', str(member.id), setting_json, command_name)
         on_or_off = 'enabled' if on_or_off else 'disabled'
         await ctx.send(f'New setting: `{command_name}` {on_or_off} for member: {member.name}.')
+
+
+    async def set_default_settings(self, ctx, command_name: str, server_id: int = None) -> None:
+        """Sets default settings for a command if and only if it has no settings yet
+
+        The defaults are set in both this program and in the database.
+        """
+        self.all_cmd_settings.setdefault(command_name, self.default_cmd_settings)
+        await self.bot.db.execute("""
+            INSERT INTO command_access_settings
+            (cmd_name)
+            VALUES ($1)
+            ON CONFLICT (cmd_name)
+            DO NOTHING;
+            """, command_name)
+        if server_id:
+            self.all_cmd_settings[command_name]['servers'].setdefault(str(server_id), self.default_server_settings)
+            await self.bot.db.execute("""
+                UPDATE command_access_settings
+                SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
+                WHERE cmd_name = $4;
+                """, 'servers', str(server_id), self.default_server_settings_json, command_name)
+
+
+    async def get_settings_message(self, settings_dict: Dict[str, bool], get_function: Callable[[int], object]) -> str:
+        """Creates a str listing whether each setting in a settings dict is on or off
+        
+        The dict keys must be Discord object IDs, and the values must be booleans. The function to get the objects must be synchronous.
+        """
+        content = ''
+        for ID, allowed in settings_dict.items():
+            name = get_function(int(ID))
+            allowed = '✅' if allowed else '❌'
+            content += f'{allowed} {name}\n'
+
+        return content
+
+        
+    async def append_global_server_setting(self, ctx, embed: discord.Embed, settings: dict) -> discord.Embed:
+        """Adds an embed field with ctx.guild.name and ctx.guild's setting if it has a setting"""
+        try:
+            allowed = settings['global_servers'][str(ctx.guild.id)]
+            setting_dict = {str(ctx.guild.id): allowed}
+            content = await self.get_settings_message(setting_dict, self.bot.get_guild)
+            embed.add_field(name='global servers', value=content, inline=False)
+        except KeyError:
+            pass
+
+        return embed
+
+
+    async def append_global_users_settings(self, ctx, embed: discord.Embed, settings: dict) -> discord.Embed:
+        """Adds an embed field with the names and settings of users in ctx.guild with a global setting"""
+        members = dict()
+        for user_id in settings['global_users']:
+            member = ctx.guild.get_member(user_id)
+            if member is None:
+                continue
+            members[user_id] = settings['global_users'][user_id]
+        if len(settings['global_users']):
+            content = await self.get_settings_message(members, self.bot.get_user)
+            embed.add_field(name='global users', value=content, inline=False)
+
+        return embed
+
+
+    async def append_global_users_settings(self, ctx, embed: discord.Embed, settings: dict) -> discord.Embed:
+        """Adds an embed field with the settings chosen by ctx.guild"""
+        try:
+            s_settings = settings['servers'][str(ctx.guild.id)]
+            server = self.bot.get_guild(ctx.guild.id)
+
+            if s_settings['server'] is not None:
+                allowed = '✅' if settings['server'] else '❌'
+                embed.add_field(name='server', value=allowed, inline=False)
+            if len(s_settings['roles']):
+                content = await self.get_settings_message(s_settings['roles'], server.get_role)
+                embed.add_field(name='server roles', value=content, inline=False)
+            if len(s_settings['channels']):
+                content = await self.get_settings_message(s_settings['channels'], server.get_channel)
+                embed.add_field(name='server channels', value=content, inline=False)
+            if len(s_settings['members']):
+                content = await self.get_settings_message(s_settings['members'], server.get_member)
+                embed.add_field(name='server members', value=content, inline=False)
+        except KeyError:
+            pass
+
+        return embed
 
 
 ################################
@@ -748,42 +800,6 @@ class Settings(commands.Cog):
                 pass
 
         return entries
-
-
-    async def set_default_settings(self, ctx, command_name: str, server_id: int = None) -> None:
-        """Sets default settings for a command if and only if it has no settings yet
-
-        The defaults are set in both this program and in the database.
-        """
-        self.all_cmd_settings.setdefault(command_name, self.default_cmd_settings)
-        await self.bot.db.execute("""
-            INSERT INTO command_access_settings
-            (cmd_name)
-            VALUES ($1)
-            ON CONFLICT (cmd_name)
-            DO NOTHING;
-            """, command_name)
-        if server_id:
-            self.all_cmd_settings[command_name]['servers'].setdefault(str(server_id), self.default_server_settings)
-            await self.bot.db.execute("""
-                UPDATE command_access_settings
-                SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
-                WHERE cmd_name = $4;
-                """, 'servers', str(server_id), self.default_server_settings_json, command_name)
-
-
-    async def get_settings_message(self, settings_dict: Dict[str, bool], get_function: Callable[[int], object]) -> str:
-        """Creates a str listing whether each setting in a settings dict is on or off
-        
-        The dict keys must be Discord object IDs, and the values must be booleans. The function to get the objects must be synchronous.
-        """
-        content = ''
-        for ID, allowed in settings_dict.items():
-            name = get_function(int(ID))
-            allowed = '✅' if allowed else '❌'
-            content += f'{allowed} {name}\n'
-
-        return content
 
 
 def setup(bot):
