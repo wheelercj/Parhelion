@@ -55,7 +55,7 @@ class Other(commands.Cog):
                 await ctx.send(f'`{language}` output:\n' + str(result))
 
 
-    @_exec.command(name='list', aliases=['l'])
+    @_exec.command(name='languages', aliases=['l', 'langs', 'list'])
     async def list_languages(self, ctx, prefix: str = None):
         """Lists the languages supported by the `exec` command
         
