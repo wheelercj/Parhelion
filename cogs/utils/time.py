@@ -60,7 +60,7 @@ async def format_relative_time_stamp(dt: datetime) -> str:
 
     E.g., 'a month ago', or 'in two hours'
     """
-    return f'<t:{dt.strftime("%s")}:R>'
+    return f'<t:{int(dt.timestamp())}:R>'
 
 
 async def format_long_datetime_stamp(dt: datetime) -> str:
@@ -68,7 +68,7 @@ async def format_long_datetime_stamp(dt: datetime) -> str:
 
     E.g., 'Tuesday, June 22, 2021 11:14 AM'
     """
-    return f'<t:{dt.strftime("%s")}:F>'
+    return f'<t:{int(dt.timestamp())}:F>'
 
 
 async def format_short_datetime_stamp(dt: datetime) -> str:
@@ -76,7 +76,7 @@ async def format_short_datetime_stamp(dt: datetime) -> str:
 
     E.g., 'June 22, 2021 11:14 AM'
     """
-    return f'<t:{dt.strftime("%s")}:f>'
+    return f'<t:{int(dt.timestamp())}:f>'
 
 
 async def parse_time_message(ctx, user_input: str) -> Tuple[datetime, str]:
@@ -123,4 +123,6 @@ async def split_time_message(user_input: str) -> Tuple[datetime, str]:
         if date_time is not None:
             break
 
+    if date_time is None:
+        raise commands.BadArgument('Unable to parse time.')
     return date_time, time_description
