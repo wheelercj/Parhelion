@@ -7,6 +7,10 @@ from discord.ext import buttons
 class Paginator(buttons.Paginator):
     """Paginator that uses an interactive session to display buttons
 
+    Typical use:   
+        paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=entries_list, length=15)  
+        await paginator.start(ctx)  
+
     title: str 
         Only available when embed=True. The title of the embeded pages. 
     length: int
