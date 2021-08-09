@@ -1,5 +1,6 @@
 # external imports
 import os
+from dotenv import load_dotenv
 import sys
 import asyncio
 import asyncpg
@@ -20,16 +21,17 @@ def main():
 
     bot = Bot()
     bot.db = db
-    token = os.environ.get('DISCORD_BOT_SECRET_TOKEN')
+    token = os.environ['DISCORD_BOT_SECRET_TOKEN']
     bot.run(token, bot=True, reconnect=True)
 
 
 async def get_db_connection() -> asyncpg.Pool:
     """Connects to the PostgreSQL database"""
-    user = os.environ['PostgreSQL user']
-    password = os.environ['PostgreSQL password']
-    database = os.environ['PostgreSQL database']
-    host = os.environ['PostgreSQL host']
+    load_dotenv()
+    user = os.environ['PostgreSQL_user']
+    password = os.environ['PostgreSQL_password']
+    database = os.environ['PostgreSQL_database']
+    host = os.environ['PostgreSQL_host']
 
     credentials = {'user': user, 'password': password, 'database': database, 'host': host}
     return await asyncpg.create_pool(**credentials, command_timeout=60)
