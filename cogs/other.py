@@ -1,8 +1,10 @@
 # external imports
+from cogs.utils.paginator import Paginator
 import discord
 from discord.ext import commands
 import json
 import mystbin
+import async_tio
 from textwrap import dedent
 import random
 
@@ -33,6 +35,47 @@ class Other(commands.Cog):
                 paste = await mystbin_client.post(text, syntax=syntax)
 
                 await ctx.reply(f'New Mystb.in paste created at <{paste.url}>')
+
+
+    @commands.group(name='exec', invoke_without_command=True)
+    async def _exec(self, ctx, *, code_block: str):
+        """Executes code; use `exec list` to see supported languages
+        
+        When using the `exec list` command, you can optionally choose a prefix to search for,
+        e.g. `exec list py` will only show languages that start with `py`.
+        """
+        # https://pypi.org/project/async-tio/
+        async with ctx.typing():
+            language, expression = await unwrap_code_block(code_block)
+            async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
+                if language not in tio.languages:
+                    await ctx.send(f'Invalid language: {language}')
+                    return
+
+                result = await tio.execute(expression, language=language)
+                await ctx.send(f'`{language}` output:\n' + str(result))
+
+
+    @_exec.command(name='list', aliases=['l'])
+    async def list_languages(self, ctx, prefix: str = None):
+        """Lists the languages supported by the `exec` command
+        
+        The optional prefix argument will limit results to languages that start with the prefix.
+        You can also see a full list of supported languages here: https://tio.run/#
+        """
+        async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
+            languages = tio.languages
+            if not prefix:
+                title = 'languages supported by the `exec` command'
+            else:
+                languages = [x for x in languages if x.startswith(prefix)]
+                if not len(languages):
+                    await ctx.send('No matching languages found.')
+                    return
+                title = f'supported languages that start with `{prefix}`'
+
+            paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=languages, length=20)
+            await paginator.start(ctx)
 
 
     @commands.command(aliases=['calc', 'solve', 'maths'])
