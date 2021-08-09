@@ -41,8 +41,7 @@ class Other(commands.Cog):
     async def _exec(self, ctx, *, code_block: str):
         """Executes code; use `exec list` to see supported languages
         
-        When using the `exec list` command, you can optionally choose a prefix to search for,
-        e.g. `exec list py` will only show languages that start with `py`.
+        When using the `exec list` command, you can optionally choose a prefix to search for, e.g. `exec list py` will only show languages that start with `py`.
         """
         # https://pypi.org/project/async-tio/
         async with ctx.typing():
