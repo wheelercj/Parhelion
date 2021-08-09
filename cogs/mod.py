@@ -68,10 +68,7 @@ class Mod(commands.Cog):
         
         If the prefix contains any spaces, surround it with double quotes.
         """
-        if new_prefix.startswith('"'):
-                new_prefix = new_prefix[1:]
-                if new_prefix.endswith('"'):
-                    new_prefix = new_prefix[:-1]
+        new_prefix = await self.strip_quotes(new_prefix)
         if new_prefix.startswith(' '):
             await ctx.send('Prefixes cannot begin with a space.')
             return
@@ -138,10 +135,7 @@ class Mod(commands.Cog):
         except KeyError:
             custom_prefixes = []
 
-        if old_prefix.startswith('"'):
-            old_prefix = old_prefix[1:]
-            if old_prefix.endswith('"'):
-                old_prefix = old_prefix[:-1]
+        new_prefix = await self.strip_quotes(old_prefix)
 
         if old_prefix in custom_prefixes:
             custom_prefixes.remove(old_prefix)
@@ -235,6 +229,18 @@ class Mod(commands.Cog):
 
         deleted = await ctx.channel.purge(limit=amount, check=check)
         await ctx.send(f':thumbsup: Deleted {len(deleted)} messages.', delete_after=8)
+
+
+    async def strip_quotes(self, message: str) -> str:
+        """Removes one pair of double quotes around a message
+
+        Works with both types of commonly used double quotes.
+        """
+        if message[0] in ('"', '“'):
+            message = message[1:]
+            if message[-1] in ('"', '“'):
+                message = message[:-1]
+        return message
 
 
 def setup(bot):
