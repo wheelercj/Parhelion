@@ -5,9 +5,10 @@ import os
 from typing import List, Tuple, Union
 import platform
 from functools import lru_cache
+from textwrap import dedent
 
 # internal imports
-from cogs.utils.time import format_datetime, format_timedelta, format_relative_time_stamp
+from cogs.utils.time import split_time_message, format_datetime, format_timedelta, format_relative_time_stamp
 from cogs.utils.common import get_prefixes_list, dev_settings, get_bot_invite_link
 
 
@@ -34,6 +35,48 @@ class Info(commands.Cog):
         """Shows the current time in UTC"""
         current_time = await format_datetime(ctx.message.created_at)
         await ctx.send(f'The current time in UTC is {current_time}')
+
+
+    @commands.group(name='timestamp', invoke_without_command=True)
+    async def _timestamp(self, ctx, *, _time: str):
+        """Shows a timestamp that works with each device's timezone
+
+        The time you enter must be in UTC, but can be in natural language.
+        """
+        async with ctx.typing():
+            dt, _ = await split_time_message(_time)
+            unix_time = int(dt.timestamp())
+            output = f'<t:{unix_time}:F>'
+            await ctx.send(output)
+
+
+    @_timestamp.command(name='raw')
+    async def show_raw_timestamp(self, ctx, *, _time: str):
+        """Shows how you can create timestamps that work with each device's timezone
+
+        The time you enter must be in UTC, but can be in natural language. You can copy and paste a raw timestamp into your discord messages.
+        """
+        async with ctx.typing():
+            dt, _ = await split_time_message(_time)
+            unix_time = int(dt.timestamp())
+            output = dedent(f'''
+                short time:
+                    `<t:{unix_time}:t>` → <t:{unix_time}:t>
+                long time:
+                    `<t:{unix_time}:T>` → <t:{unix_time}:T>
+                short date:
+                    `<t:{unix_time}:d>` → <t:{unix_time}:d>
+                long date:
+                    `<t:{unix_time}:D>` → <t:{unix_time}:D>
+                short date/time:
+                    `<t:{unix_time}:f>` → <t:{unix_time}:f>
+                long date/time:
+                    `<t:{unix_time}:F>` → <t:{unix_time}:F>
+                relative time:
+                    `<t:{unix_time}:R>` → <t:{unix_time}:R>
+                ''')
+
+            await ctx.send(output)
 
 
     @commands.command(hidden=True)
