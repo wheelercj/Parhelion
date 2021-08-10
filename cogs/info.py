@@ -6,6 +6,7 @@ from typing import List, Tuple, Union
 import platform
 from functools import lru_cache
 from textwrap import dedent
+from datetime import datetime
 import pytz
 
 # internal imports
@@ -43,7 +44,10 @@ class Info(commands.Cog):
     async def _time(self, ctx):
         """Shows the current time in UTC"""
         current_time = await format_datetime(ctx.message.created_at)
-        await ctx.send(f'The current time in UTC is {current_time}')
+        unix_time = int(datetime.utcnow().timestamp())
+        message = f'The current time in UTC is {current_time}' \
+                f'The current time in your device\'s timezone is <t:{unix_time}:f'
+        await ctx.send(message)
 
 
     @commands.command(name='set-timezone', aliases=['set-tz', 'settz', 'settimezone'])
@@ -53,6 +57,7 @@ class Info(commands.Cog):
         If you don't set a timezone, those commands will assume you are using the UTC timezone.
         See the valid timezone options here: <https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568>.
         """
+        # https://github.com/stub42/pytz/blob/master/src/README.rst
         if timezone is None:
             await self.send_timezones_info(ctx)
             return
