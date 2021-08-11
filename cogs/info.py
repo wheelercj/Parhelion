@@ -10,7 +10,7 @@ from datetime import datetime
 import pytz
 
 # internal imports
-from cogs.utils.time import split_time_message, format_datetime, format_timedelta, format_relative_time_stamp
+from cogs.utils.time import parse_time_message, format_datetime, format_timedelta, create_relative_timestamp, create_long_datetime_stamp
 from cogs.utils.common import get_prefixes_list, dev_settings, get_bot_invite_link
 
 
@@ -44,9 +44,9 @@ class Info(commands.Cog):
     async def _time(self, ctx):
         """Shows the current time in UTC"""
         current_time = await format_datetime(ctx.message.created_at)
-        unix_time = int(datetime.utcnow().timestamp())
-        message = f'The current time in UTC is {current_time}' \
-                f'The current time in your device\'s timezone is <t:{unix_time}:f'
+        now_timestamp = await create_relative_timestamp(datetime.utcnow())
+        message = f'The current time in UTC is {current_time}\n' \
+                f'The current time in your device\'s timezone is {now_timestamp}'
         await ctx.send(message)
 
 
@@ -111,12 +111,12 @@ class Info(commands.Cog):
     async def _timestamp(self, ctx, *, _time: str):
         """Shows a timestamp that works with each device's timezone
 
-        The time you enter must be in UTC, but can be in natural language.
+        You can enter the date/time/duration in natural language.
+        If you have not chosen a timezone with the `set-tz` command, UTC will be assumed.
         """
-        dt, _ = await split_time_message(_time)
-        unix_time = int(dt.timestamp())
-        output = f'<t:{unix_time}:F>'
-        await ctx.send(output)
+        dt, _ = await parse_time_message(ctx, _time)
+        timestamp = await create_long_datetime_stamp(dt)
+        await ctx.send(timestamp)
 
 
     @_timestamp.command(name='raw')
@@ -125,8 +125,8 @@ class Info(commands.Cog):
 
         The time you enter must be in UTC, but can be in natural language. You can copy and paste a raw timestamp into your discord messages.
         """
-        dt, _ = await split_time_message(_time)
-        unix_time = int(dt.timestamp())
+        dt, _ = await parse_time_message(ctx, _time)
+        unix_time = int(dt)
         output = dedent(f'''
             short time:
                 `<t:{unix_time}:t>` → <t:{unix_time}:t>
@@ -269,7 +269,7 @@ class Info(commands.Cog):
         server = self.bot.get_guild(ctx.guild.id)
         bot_count = await self.get_bot_count(ctx, server)
         cat_count = len(server.categories)
-        created = await format_relative_time_stamp(server.created_at)
+        created = await create_relative_timestamp(server.created_at)
 
         embed = discord.Embed(title='server info')
         embed.add_field(name='\u200b',
@@ -330,15 +330,15 @@ class Info(commands.Cog):
         
         To see member permissions, use the `info perms` command.
         """
-        created = await format_relative_time_stamp(member.created_at)
-        joined = await format_relative_time_stamp(member.joined_at)
+        creation_timestamp = await create_relative_timestamp(member.created_at)
+        join_timestamp = await create_relative_timestamp(member.joined_at)
 
         embed = discord.Embed()
         embed.add_field(name=f'{member.name}#{member.discriminator}\n\u2800',
             value=f'**display name:** {member.display_name}\n'
                 + await self.get_whether_bot(member)
-                + f'**account created:** {created}\n'
-                + f'**joined server:** {joined}\n'
+                + f'**account created:** {creation_timestamp}\n'
+                + f'**joined server:** {join_timestamp}\n'
                 + f'**top server role:** {member.top_role}\n'
                 + await self.get_server_roles(member)
                 + await self.get_premium_since(member)
@@ -430,7 +430,7 @@ class Info(commands.Cog):
         To see role permissions, use the `info perms` command.
         """
         managing_bot = None
-        created = await format_relative_time_stamp(role.created_at)
+        creation_timestamp = await create_relative_timestamp(role.created_at)
         if role.tags is not None:
             if role.tags.bot_id is not None:
                 managing_bot = ctx.guild.get_member(role.tags.bot_id)
@@ -440,7 +440,7 @@ class Info(commands.Cog):
             value=f'name: {role.name}\n'
                 + f'members: {len(role.members)}\n'
                 + f'hierarcy position: {role.position}\n'
-                + f'created: {created}\n'
+                + f'created: {creation_timestamp}\n'
                 + f'mentionable: {yes_or_no(role.mentionable)}\n'
                 + f'default: {yes_or_no(role.is_default())}\n'
                 + f'premium: {yes_or_no(role.is_premium_subscriber())}\n'

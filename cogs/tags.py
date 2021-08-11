@@ -7,7 +7,7 @@ from typing import Optional, List
 
 # internal imports
 from cogs.utils.io import split_input, get_attachment_url
-from cogs.utils.time import format_relative_time_stamp
+from cogs.utils.time import create_relative_timestamp
 from cogs.utils.paginator import Paginator
 from cogs.utils.common import plural
 
@@ -556,15 +556,14 @@ class Tags(commands.Cog):
         else:
             owner = record['owner_id']
 
-        created = await format_relative_time_stamp(record['created'])
-
         if record['parent_tag_id']:
             parent_tag = f'This tag is an alias to\nthe tag with ID {record["parent_tag_id"]}.\n'
 
         embed = discord.Embed()
+        timestamp = await create_relative_timestamp(record['created'])
         embed.add_field(name=record['name'],
             value=f'owner: {owner}\n'
-                + f'created: {created}\n'
+                + f'created: {timestamp}\n'
                 + f'views: {record["views"]}\n'
                 + f'ID: {record["id"]}\n'
                 + parent_tag)

@@ -2,6 +2,7 @@
 import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
+import pytz
 import asyncpg
 from aiohttp.client_exceptions import ContentTypeError
 import json
@@ -9,7 +10,7 @@ from typing import Union, Tuple
 
 # internal imports
 from cogs.utils.io import safe_send
-from cogs.utils.time import format_time
+from cogs.utils.time import parse_time_message, create_short_timestamp
 
 
 '''
@@ -60,27 +61,28 @@ class Quotes(commands.Cog):
                 await self.send_quote(destination)
                 await self.update_quote_target_time(target_time, author_id)
         except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
-            print(f'  run_daily_quotes inner {error = }')
+            print(f'  run_daily_quotes {error = }')
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.run_daily_quotes())
 
 
     @commands.group(invoke_without_command=True)
-    async def quote(self, ctx, daily_utc_time: str = ''):
+    async def quote(self, ctx, _time: str = None):
         """Shows a random famous quote
         
-        If a UTC time is provided in HH:mm format, a quote will be
-        sent each day at that time. You can use the `time` command
-        to see the current UTC time. You can cancel daily quotes
-        with `quote stop`.
+        If a time is provided in HH:mm format, a quote will be sent each day at that time.
+        You can cancel daily quotes with `quote stop`.
+        If you have not chosen a timezone with the `set-tz` command, UTC will be assumed.
         """
-        if not len(daily_utc_time):
+        if _time is None:
             await self.send_quote(ctx)
             return
 
-        hour, minute = daily_utc_time.split(':')
+        if _time.count(':') != 1 or _time[-1] == ':':
+            raise commands.BadArgument('Please enter a time in HH:mm format. You may use 24-hour time or either AM or PM.')
+        dt, _ = await parse_time_message(ctx, _time, 'UTC')
         now = ctx.message.created_at
-        target_time = datetime(now.year, now.month, now.day, int(hour), int(minute))
+        target_time = datetime(now.year, now.month, now.day, int(dt.hour), int(dt.minute))
         if target_time < now:
             target_time += timedelta(days=1)
 
@@ -91,9 +93,11 @@ class Quotes(commands.Cog):
         elif target_time < self.running_quote_info.target_time:
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.run_daily_quotes())
-
-        daily_time = await format_time(target_time)
-        await ctx.send(f'Time set! At {daily_time} UTC each day, I will send you a random quote.')
+        
+        utc_tz = pytz.timezone('UTC')
+        target_time = utc_tz.localize(target_time)
+        timestamp = await create_short_timestamp(target_time)
+        await ctx.send(f'Time set! At {timestamp} each day, I will send you a random quote.')
 
 
     @quote.command(name='stop', aliases=['del', 'delete'])

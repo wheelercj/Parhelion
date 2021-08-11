@@ -2,10 +2,38 @@
 from discord.ext import commands
 from datetime import datetime, timedelta
 import dateparser
-from typing import Tuple
+from typing import Tuple, Optional
+import asyncpg
 
 # internal imports
 from cogs.utils.common import plural
+
+
+async def create_relative_timestamp(dt: datetime) -> str:
+    """Creates a relative timestamp string
+
+    E.g., 'a month ago', or 'in two hours'
+    """
+    unix_time = int(dt.timestamp())
+    return f'<t:{unix_time}:R>'
+
+
+async def create_long_datetime_stamp(dt: datetime) -> str:
+    """Creates a long datetime stamp that shows the correct time in each viewer's timezone
+
+    E.g., 'Tuesday, June 22, 2021 11:14 AM'
+    """
+    unix_time = int(dt.timestamp())
+    return f'<t:{unix_time}:F>'
+
+
+async def create_short_timestamp(dt: datetime) -> str:
+    """Creates a short datetime stamp that shows the correct time in each viewer's timezone
+
+    E.g., 'June 22, 2021 11:14 AM'
+    """
+    unix_time = int(dt.timestamp())
+    return f'<t:{unix_time}:f>'
 
 
 async def get_14_digit_datetime() -> str:
@@ -14,18 +42,6 @@ async def get_14_digit_datetime() -> str:
     now = now[:19]  # Remove the microseconds.
     now = now.replace('-', '').replace(':', '').replace(' ', '')
     return now
-
-
-async def format_date(dt: datetime) -> str:
-    """Makes an easy-to-read date message"""
-    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-    return f'{dt.day} {months[dt.month-1]} {dt.year}'
-
-
-async def format_time(dt: datetime) -> str:
-    """Makes an easy-to-read time message"""
-    minute = str(dt.minute).zfill(2)
-    return f'{dt.hour}:{minute}'
 
 
 async def format_datetime(dt: datetime) -> str:
@@ -55,74 +71,48 @@ async def format_timedelta(td: timedelta) -> str:
     return ', '.join(output)
 
 
-async def format_relative_time_stamp(dt: datetime) -> str:
-    """Creates a relative timestamp string
-
-    E.g., 'a month ago', or 'in two hours'
-    """
-    return f'<t:{int(dt.timestamp())}:R>'
-
-
-async def format_long_datetime_stamp(dt: datetime) -> str:
-    """Creates a long datetime stamp that shows the correct time in each viewer's timezone
-
-    E.g., 'Tuesday, June 22, 2021 11:14 AM'
-    """
-    return f'<t:{int(dt.timestamp())}:F>'
-
-
-async def format_short_datetime_stamp(dt: datetime) -> str:
-    """Creates a short datetime stamp that shows the correct time in each viewer's timezone
-
-    E.g., 'June 22, 2021 11:14 AM'
-    """
-    return f'<t:{int(dt.timestamp())}:f>'
-
-
-async def parse_time_message(ctx, user_input: str) -> Tuple[datetime, str]:
+async def parse_time_message(ctx, user_input: str, to_timezone: str = None) -> Tuple[datetime, str]:
     """Parses a string containing both a time description and a message
 
-    The time can be a date, duration, etc. written in natural language. The time description must be at the front of the input string.
+    The user's input can have a date, duration, etc. written in natural language,
+    and that time description must be at the front of the user's input.
+    The timezone-naive result will be in UTC unless the user set a timezone for the bot,
+    or the optional to_timezone argument is used.
     """
-    if not user_input.strip().startswith('in '):
-        user_input = f'in {user_input}'
-    date_time, time_description = await split_time_message(user_input)
+    # https://dateparser.readthedocs.io/en/latest/
 
-    if date_time is None:
-        raise commands.BadArgument('Invalid time description')
+    timezone = await get_timezone(ctx.bot.db, ctx.author.id)
+    if timezone is None:
+        timezone = 'UTC'
+    if to_timezone is None:
+        to_timezone = timezone
 
-    now = ctx.message.created_at
-    date_time = date_time.replace(tzinfo=now.tzinfo)
-    message = user_input.replace(time_description, '')[1:]
-
-    return date_time, message
-
-
-async def split_time_message(user_input: str) -> Tuple[datetime, str]:
-    """Splits a string of a time description and a message
-    
-    The time can be a date, duration, etc. written in natural language. The time description must be at the front of the input string.
-    """
-    split_input = user_input.split(' ')
     dateparser_settings = {
-        'TIMEZONE': 'UTC',
-        'TO_TIMEZONE': 'UTC',
+        'TIMEZONE': str(timezone),
+        'TO_TIMEZONE': str(to_timezone),
         'RETURN_AS_TIMEZONE_AWARE': True,
         'PREFER_DATES_FROM': 'future'
     }
+    split_input = user_input.split(' ')
+    max_length = len(split_input[:7])  # The longest possible time description accepted is 7 words long.
 
-    # The longest possible time description accepted is 7 words long.
-    max_length = len(split_input[:7])
-    date_time = None
-    time_description = ''
-    
     # Gradually try parsing fewer words as a time description until a valid one is found.
     for i in range(max_length, 0, -1):
         time_description = ' '.join(split_input[:i])
         date_time = dateparser.parse(time_description, settings=dateparser_settings)
         if date_time is not None:
+            message = user_input.replace(f'{time_description} ', '')
             break
 
     if date_time is None:
-        raise commands.BadArgument('Unable to parse time.')
-    return date_time, time_description
+        raise commands.BadArgument('Invalid time description')
+    return date_time, message
+
+
+async def get_timezone(db: asyncpg.Pool, user_id: int) -> Optional[str]:
+    """Get's a user's chosen timezone from the database"""
+    return await db.fetchval('''
+        SELECT timezone
+        FROM timezones
+        WHERE user_id = $1;
+        ''', user_id)

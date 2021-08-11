@@ -6,7 +6,7 @@ from discord.ext import commands
 
 # internal imports
 from cogs.utils.io import safe_send
-from cogs.utils.time import parse_time_message, format_relative_time_stamp, format_long_datetime_stamp
+from cogs.utils.time import create_long_datetime_stamp, create_relative_timestamp, parse_time_message
 from cogs.utils.paginator import Paginator
 from cogs.utils.common import plural
 
@@ -81,7 +81,7 @@ class Reminders(commands.Cog):
 
         async with ctx.typing():
             start_time = ctx.message.created_at
-            target_time, message = await parse_time_message(ctx, time_and_message)
+            target_time, message = await parse_time_message(ctx, time_and_message, 'UTC')
             if target_time < start_time:
                 raise commands.BadArgument('Please choose a time in the future.')
 
@@ -92,9 +92,10 @@ class Reminders(commands.Cog):
                 self._task.cancel()
                 self._task = self.bot.loop.create_task(self.run_reminders())
 
-            relative_timestamp = await format_relative_time_stamp(target_time)
-            target_time_stamp = await format_long_datetime_stamp(target_time)
-            await ctx.send(f'Reminder set! {relative_timestamp} ({target_time_stamp}) I will remind you: {message}')
+            relative_timestamp = await create_relative_timestamp(target_time)
+            long_datetime_stamp = await create_long_datetime_stamp(target_time)
+            await ctx.send(f'Reminder set! {relative_timestamp} ({long_datetime_stamp})' \
+                ' I will remind you: {message}')
 
 
     @remind.command(name='create', aliases=['c'])
@@ -111,8 +112,7 @@ class Reminders(commands.Cog):
             SELECT *
             FROM reminders
             WHERE author_id = $1
-            ORDER BY target_time
-            LIMIT 10;
+            ORDER BY target_time;
             ''', ctx.author.id)
 
         if not len(records):
@@ -122,9 +122,9 @@ class Reminders(commands.Cog):
         r_list = []
         for r in records:
             message = r['message']
-            remaining_time = await format_relative_time_stamp(r['target_time'])
-            target_time = await format_long_datetime_stamp(r['target_time'])
-            r_list.append(f'{r["id"]}.) **{remaining_time}** ({target_time})\n{message}')
+            relative_timestamp = await create_relative_timestamp(r['target_time'])
+            long_datetime_stamp = await create_long_datetime_stamp(r['target_time'])
+            r_list.append(f'{r["id"]}.) **{relative_timestamp}** ({long_datetime_stamp})\n{message}')
 
         title = f'You currently have {plural(len(records), "reminder||s")}:'
         paginator = Paginator(title=title, embed=True, timeout=90, entries=r_list, length=10)
