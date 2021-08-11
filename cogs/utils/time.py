@@ -76,7 +76,7 @@ async def parse_time_message(ctx, user_input: str, to_timezone: str = None) -> T
 
     The user's input can have a date, duration, etc. written in natural language,
     and that time description must be at the front of the user's input.
-    The timezone-naive result will be in UTC unless the user set a timezone for the bot,
+    The timezone-aware result will be in UTC unless the user set a timezone for the bot,
     or the optional to_timezone argument is used.
     """
     # https://dateparser.readthedocs.io/en/latest/
