@@ -72,7 +72,7 @@ class Quotes(commands.Cog):
         
         If a time is provided in HH:mm format, a quote will be sent each day at that time.
         You can cancel daily quotes with `quote stop`.
-        If you have not chosen a timezone with the `set-tz` command, UTC will be assumed.
+        If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
         """
         if _time is None:
             await self.send_quote(ctx)
@@ -80,7 +80,7 @@ class Quotes(commands.Cog):
 
         if _time.count(':') != 1 or _time[-1] == ':':
             raise commands.BadArgument('Please enter a time in HH:mm format. You may use 24-hour time or either AM or PM.')
-        dt, _ = await parse_time_message(ctx, _time, 'UTC')
+        dt, _ = await parse_time_message(ctx, _time)
         now = ctx.message.created_at
         target_time = datetime(now.year, now.month, now.day, int(dt.hour), int(dt.minute))
         if target_time < now:

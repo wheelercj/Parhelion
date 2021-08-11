@@ -71,22 +71,20 @@ async def format_timedelta(td: timedelta) -> str:
     return ', '.join(output)
 
 
-async def parse_time_message(ctx, user_input: str, to_timezone: str = None) -> Tuple[datetime, str]:
-    """Parses a string containing both a time description and a message
+async def parse_time_message(ctx, user_input: str, to_timezone: str = 'UTC') -> Tuple[datetime, str]:
+    """Parses a string containing both a time description and a message, or just a time description
 
     The user's input can have a date, duration, etc. written in natural language,
     and that time description must be at the front of the user's input.
-    The timezone-aware result will be in UTC unless the user set a timezone for the bot,
-    or the optional to_timezone argument is used.
+    The entered time will be assumed to be in UTC unless the user set a timezone for the bot.
+    The timezone-aware result will be in UTC unless the optional to_timezone argument is used.
+    If the entire user_input is converted to a datetime, the second returned value will be an empty string.
     """
-    # https://dateparser.readthedocs.io/en/latest/
-
     timezone = await get_timezone(ctx.bot.db, ctx.author.id)
     if timezone is None:
         timezone = 'UTC'
-    if to_timezone is None:
-        to_timezone = timezone
 
+    # https://dateparser.readthedocs.io/en/latest/
     dateparser_settings = {
         'TIMEZONE': str(timezone),
         'TO_TIMEZONE': str(to_timezone),
@@ -97,11 +95,12 @@ async def parse_time_message(ctx, user_input: str, to_timezone: str = None) -> T
     max_length = len(split_input[:7])  # The longest possible time description accepted is 7 words long.
 
     # Gradually try parsing fewer words as a time description until a valid one is found.
+    message = ''
     for i in range(max_length, 0, -1):
         time_description = ' '.join(split_input[:i])
         date_time = dateparser.parse(time_description, settings=dateparser_settings)
         if date_time is not None:
-            message = user_input.replace(f'{time_description} ', '')
+            message = user_input.replace(time_description, '')[1:]
             break
 
     if date_time is None:
