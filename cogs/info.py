@@ -78,7 +78,7 @@ class Info(commands.Cog):
         if timezone is not None:
             await ctx.send(f'Your current timezone setting is `{timezone}`')
         else:
-            await ctx.send_help('time set-tz')
+            await ctx.send_help('set-tz')
 
 
     async def parse_timezone(self, timezone: str) -> str:
