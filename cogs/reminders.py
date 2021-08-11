@@ -133,10 +133,7 @@ class Reminders(commands.Cog):
 
     @remind.command(name='delete', aliases=['del'])
     async def delete_reminder(self, ctx, ID: int):
-        """Deletes one of your reminders by its ID shown with the `remind list` command
-
-        Currently, this only deletes a reminder from the database, not from the program. A deleted reminder will then only be canceled if the bot is restarted.
-        """
+        """Deletes one of your reminders by its ID shown with the `remind list` command"""
         try:
             record = await self.bot.db.fetchrow('''
                 DELETE FROM reminders
@@ -164,10 +161,7 @@ class Reminders(commands.Cog):
 
     @remind.command(name='delete-all', aliases=['deleteall'])
     async def delete_all_reminders(self, ctx):
-        """Deletes all of your reminders
-
-        Currently, this only deletes reminders from the database, not from the program. Deleted reminders will then only be canceled if the bot is restarted.
-        """
+        """Deletes all of your reminders"""
         try:
             records = await self.bot.db.fetch('''
                 DELETE FROM reminders
@@ -189,10 +183,7 @@ class Reminders(commands.Cog):
     @remind.command(name='mod-delete', aliases=['mdel', 'moddelete'])
     @commands.has_guild_permissions(manage_messages=True)
     async def mod_delete_reminder(self, ctx, reminder_ID: int):
-        """Delete's one of anyone's reminders made on this server
-        
-        Currently, this only deletes a reminder from the database, not from the program. A deleted reminder will then only be canceled if the bot is restarted.
-        """
+        """Delete's one of anyone's reminders made on this server"""
         try:
             record = await self.bot.db.fetch('''
                 DELETE FROM reminders
