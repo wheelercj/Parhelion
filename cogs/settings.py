@@ -415,7 +415,7 @@ class Settings(commands.Cog):
         return embed
 
 
-    async def append_global_users_settings(self, ctx, embed: discord.Embed, settings: dict) -> discord.Embed:
+    async def append_server_settings(self, ctx, embed: discord.Embed, settings: dict) -> discord.Embed:
         """Adds an embed field with the settings chosen by ctx.guild"""
         try:
             s_settings = settings['servers'][str(ctx.guild.id)]
