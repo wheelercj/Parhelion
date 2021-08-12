@@ -606,7 +606,7 @@ class Settings(commands.Cog):
             settings = self.all_cmd_settings[command_name]['servers'][str(server_id)]
         else:
             settings = self.all_cmd_settings[command_name]
-        for category, value in settings.items():
+        for value in settings.values():
             if value is not None:
                 if isinstance(value, bool):
                     # Found non-empty bool setting.
@@ -616,15 +616,15 @@ class Settings(commands.Cog):
                     return
 
         # Found empty settings. Delete them.
-        del settings
-
         if server_id:
+            del self.all_cmd_settings[command_name]['servers'][str(server_id)]
             await self.bot.db.execute("""
                 UPDATE command_access_settings
                 SET cmd_settings = cmd_settings #- ARRAY[$1, $2]::TEXT[]
                 WHERE cmd_name = $3;
                 """, 'servers', str(server_id), command_name)
         else:
+            del self.all_cmd_settings[command_name]
             await self.bot.db.execute('''
                 DELETE FROM command_access_settings
                 WHERE cmd_name = $1;
