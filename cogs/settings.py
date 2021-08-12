@@ -647,10 +647,17 @@ class Settings(commands.Cog):
     @commands.has_guild_permissions(manage_guild=True)
     async def list_all_settings(self, ctx):
         """Shows the names of commands that have any non-default settings for any server"""
-        title = 'all commands with any non-default settings'
-        names = sorted(list(self.all_cmd_settings.keys()))
-        if len(names):
-            paginator = Paginator(title=title, embed=True, timeout=90, entries=names, length=15)
+        entries = []
+        for key, value in sorted(self.all_cmd_settings.items()):
+            if value['_global']:
+                entries.append(f'✅ {key}')
+            elif value['_global'] is None:
+                entries.append(f'⬛ {key}')
+            else:
+                entries.append(f'❌ {key}')
+        if len(entries):
+            title = 'all commands with any non-default settings, and their global setting'
+            paginator = Paginator(title=title, embed=True, timeout=90, entries=entries, length=15)
             await paginator.start(ctx)
         else:
             await ctx.send('No settings found.')
