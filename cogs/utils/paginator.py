@@ -2,6 +2,7 @@
 import discord
 from discord.ext import commands
 from discord.ext import buttons
+from typing import List
 
 
 class Paginator(buttons.Paginator):
@@ -73,3 +74,18 @@ class Paginator(buttons.Paginator):
             self.page = await ctx.send(self._pages[0])
 
         self._session_task = ctx.bot.loop.create_task(self._session(ctx))
+
+
+async def paginate_search(ctx, embed_title: str, search_list: List[str], query: str = None, results_per_page: int = 20):
+    """Paginates a subset of a list, where each entry contains `query`
+    
+    The query is not case-sensitive. If no query is given, the entire list will be used.
+    If no search results are found, commands.BadArgument will be raised.
+    """
+    async with ctx.typing():
+        if query is not None:
+            search_list = [x for x in search_list if query.lower() in x.lower()]
+        if not len(search_list):
+            raise commands.BadArgument('No matches found.')
+        paginator = Paginator(title=embed_title, embed=True, timeout=90, use_defaults=True, entries=search_list, length=results_per_page)
+    await paginator.start(ctx)

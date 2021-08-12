@@ -1,5 +1,5 @@
 # external imports
-from cogs.utils.paginator import Paginator
+from cogs.utils.paginator import paginate_search
 import discord
 from discord.ext import commands
 import json
@@ -41,7 +41,7 @@ class Other(commands.Cog):
     async def _exec(self, ctx, *, code_block: str):
         """Executes code; use `exec list` to see supported languages
         
-        When using the `exec list` command, you can optionally choose a prefix to search for, e.g. `exec list py` will only show languages that start with `py`.
+        When using the `exec languages` command, you can optionally choose a search word, e.g. `exec languages py` will only show languages that contain `py`.
         """
         # https://pypi.org/project/async-tio/
         async with ctx.typing():
@@ -55,26 +55,18 @@ class Other(commands.Cog):
                 await ctx.send(f'`{language}` output:\n' + str(result))
 
 
-    @_exec.command(name='languages', aliases=['l', 'langs', 'list'])
-    async def list_languages(self, ctx, prefix: str = None):
-        """Lists the languages supported by the `exec` command
+    @_exec.command(name='languages', aliases=['l', 'langs', 'list', 'search'])
+    async def list_languages(self, ctx, *, query: str = None):
+        """Lists the languages supported by the `exec` command that contain a search word
         
-        The optional prefix argument will limit results to languages that start with the prefix.
         You can also see a full list of supported languages here: https://tio.run/#
         """
+        if query is None:
+            title = 'languages supported by the `exec` command'
+        else:
+            title = f'supported languages that contain `{query}`'
         async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
-            languages = tio.languages
-            if not prefix:
-                title = 'languages supported by the `exec` command'
-            else:
-                languages = [x for x in languages if x.startswith(prefix)]
-                if not len(languages):
-                    await ctx.send('No matching languages found.')
-                    return
-                title = f'supported languages that start with `{prefix}`'
-
-            paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=languages, length=20)
-            await paginator.start(ctx)
+            await paginate_search(ctx, title, tio.languages, query)
 
 
     @commands.command(aliases=['calc', 'solve', 'maths'])

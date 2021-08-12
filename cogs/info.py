@@ -8,11 +8,12 @@ from functools import lru_cache
 from textwrap import dedent
 from datetime import datetime
 import pytz
+from typing import List
 
 # internal imports
 from cogs.utils.time import parse_time_message, format_datetime, format_timedelta, create_relative_timestamp, create_long_datetime_stamp
 from cogs.utils.common import get_prefixes_list, dev_settings, get_bot_invite_link
-from cogs.utils.paginator import Paginator
+from cogs.utils.paginator import paginate_search
 
 
 '''
@@ -220,25 +221,18 @@ class Info(commands.Cog):
             await ctx.send_help('timezone')
 
 
-    @_timezone.command(name='search')
-    async def search_timezones(self, ctx, query: str = None):
+    @_timezone.command(name='search', aliases=['l', 'list'])
+    async def search_timezones(self, ctx, *, query: str = None):
         """Shows all the valid timezone options that contain a search word
         
         You can also see the valid timezone options here: <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>.
         If the valid timezones change, the update to the GitHub gist may be delayed unlike this search command.
         """
-        async with ctx.typing():
-            timezones = pytz.all_timezones
-            if not query:
-                title = 'timezones supported by the `timezone set` command'
-            else:
-                timezones = [x for x in timezones if query.lower() in x.lower()]
-                if not len(timezones):
-                    raise commands.BadArgument('No matching timezones found.')
-                title = f'supported timezones that contain `{query}`'
-
-            paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=timezones, length=20)
-        await paginator.start(ctx)
+        if query is None:
+            title = 'timezones supported by the `timezone set` command'
+        else:
+            title = f'supported timezones that contain `{query}`'
+        await paginate_search(ctx, title, pytz.all_timezones, query)
 
 
     @_timezone.command(name='set')
