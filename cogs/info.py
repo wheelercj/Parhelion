@@ -177,7 +177,7 @@ class Info(commands.Cog):
         If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
         """
         dt, _ = await parse_time_message(ctx, _time)
-        unix_time = int(dt)
+        unix_time = int(dt.timestamp())
         output = dedent(f'''
             short time:
                 `<t:{unix_time}:t>` → <t:{unix_time}:t>
