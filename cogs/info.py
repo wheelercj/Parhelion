@@ -232,6 +232,7 @@ class Info(commands.Cog):
         if query is None:
             title = 'timezones supported by the `timezone set` command'
         else:
+            query = query.replace(' ', '_')
             title = f'supported timezones that contain `{query}`'
         await paginate_search(ctx, title, pytz.all_timezones, query)
 
