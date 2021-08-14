@@ -27,13 +27,22 @@ async def create_long_datetime_stamp(dt: datetime) -> str:
     return f'<t:{unix_time}:F>'
 
 
-async def create_short_timestamp(dt: datetime) -> str:
+async def create_short_datetime_stamp(dt: datetime) -> str:
     """Creates a short datetime stamp that shows the correct time in each viewer's timezone
 
     E.g., 'June 22, 2021 11:14 AM'
     """
     unix_time = int(dt.timestamp())
     return f'<t:{unix_time}:f>'
+
+
+async def create_short_timestamp(dt: datetime) -> str:
+    """Creates a short timestamp that shows the correct time in each viewer's timezone
+
+    E.g., '11:14 AM'
+    """
+    unix_time = int(dt.timestamp())
+    return f'<t:{unix_time}:t>'
 
 
 async def get_14_digit_datetime() -> str:
