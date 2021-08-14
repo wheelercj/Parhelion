@@ -22,6 +22,7 @@ class Bot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
         intents.members = True
+        intents.presences = False
 
         super().__init__(intents=intents, command_prefix=self.get_command_prefixes)
 
