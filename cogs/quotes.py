@@ -248,9 +248,8 @@ class Quotes(commands.Cog):
         }
         async with self.bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
             json_text = await response.json()
-        quote, author = json_text['quoteText'], json_text['quoteAuthor']
-        self.previous_quote = quote
-        self.previous_author = author
+        quote = json_text['quoteText']
+        author = json_text['quoteAuthor']
         
         return quote, author
 
