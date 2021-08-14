@@ -158,6 +158,14 @@ class Bot(commands.Bot):
         return False
 
 
+    async def answer_mention(self, message: discord.Message) -> None:
+        """Shows a list of the bot's command prefixes"""
+        prefixes = await get_prefixes_list(self, message)
+        prefixes_message = await get_prefixes_message(self, message, prefixes)
+        
+        await message.channel.send(f'Hello {message.author.display_name}! My command {prefixes_message}. Use `{prefixes[0]}help` to get help with commands.')
+
+
     async def on_command(self, ctx):
         log_message = f'[author {ctx.author.display_name}][guild {ctx.guild}][command {ctx.message.content}]'
         self.logger.info(log_message)
@@ -222,14 +230,6 @@ class Bot(commands.Bot):
         f'"{guild.name}"!\nI am now in ' \
         f'{len(self.guilds)} servers.'
         await dev_mail(self, message, use_embed=False)
-
-
-    async def answer_mention(self, message: discord.Message) -> None:
-        """Shows a list of the bot's command prefixes"""
-        prefixes = await get_prefixes_list(self, message)
-        prefixes_message = await get_prefixes_message(self, message, prefixes)
-        
-        await message.channel.send(f'Hello {message.author.display_name}! My command {prefixes_message}. Use `{prefixes[0]}help` to get help with commands.')
 
 
     async def check_global_cooldown(self, ctx) -> bool:
