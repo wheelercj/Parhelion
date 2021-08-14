@@ -2,7 +2,6 @@
 import discord
 from discord.ext import commands
 from datetime import datetime, timedelta, timezone
-import pytz
 import asyncpg
 from aiohttp.client_exceptions import ContentTypeError
 import json
