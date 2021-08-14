@@ -70,14 +70,11 @@ class Mod(commands.Cog):
         """
         new_prefix = await self.strip_quotes(new_prefix)
         if new_prefix.startswith(' '):
-            await ctx.send('Prefixes cannot begin with a space.')
-            return
+            raise commands.BadArgument('Prefixes cannot begin with a space.')
         if not new_prefix or new_prefix == '':
-            await ctx.send('Prefixless command invocation is not supported in servers.')
-            return
+            raise commands.BadArgument('Prefixless command invocation is not supported in servers.')
         if len(new_prefix) > 15:
-            await ctx.send('The maximum length of each command prefix is 15 characters.')
-            return
+            raise commands.BadArgument('The maximum length of each command prefix is 15 characters.')
 
         # Remove the new prefix from the removed default prefixes, if it is there.
         try:
@@ -99,11 +96,9 @@ class Mod(commands.Cog):
         except KeyError:
             custom_prefixes = []
         if new_prefix in custom_prefixes:
-            await ctx.send(f'The `{new_prefix}` command prefix already exists.')
-            return
+            raise commands.BadArgument(f'The `{new_prefix}` command prefix already exists.')
         if len(custom_prefixes) >= 10:
-            await ctx.send('The maximum number of custom command prefixes per server is 10.')
-            return
+            raise commands.UserInputError('The maximum number of custom command prefixes per server is 10.')
 
         custom_prefixes.append(new_prefix)
         self.bot.custom_prefixes[ctx.guild.id] = custom_prefixes
@@ -157,8 +152,7 @@ class Mod(commands.Cog):
             except KeyError:
                 removed_default_prefixes = []
             if old_prefix in removed_default_prefixes:
-                await ctx.send(f'The `{old_prefix}` command prefix has already been deleted.')
-                return
+                raise commands.BadArgument(f'The `{old_prefix}` command prefix has already been deleted.')
             removed_default_prefixes.append(old_prefix)
             self.bot.removed_default_prefixes[ctx.guild.id] = removed_default_prefixes
             await self.bot.db.execute('''

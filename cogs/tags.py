@@ -105,8 +105,7 @@ class Tags(commands.Cog):
             ''', member.id, ctx.guild.id)
 
         if not records or not len(records):
-            await ctx.send(f'{member.name}#{member.discriminator} has no tags on this server.')
-            return
+            raise commands.BadArgument(f'{member.name}#{member.discriminator} has no tags on this server.')
 
         title = f"{member.name}#{member.discriminator}'s tags"
         await self.paginate_tag_list(ctx, title, records)
@@ -194,15 +193,12 @@ class Tags(commands.Cog):
                 AND server_id = $2;
             ''', tag_name, ctx.guild.id)
         if record is None:
-            await ctx.send('Tag not found.')
-            return
+            raise commands.BadArgument('Tag not found.')
         if record['owner_id'] == ctx.author.id:
-            await ctx.send('This tag already belongs to you.')
-            return
+            raise commands.BadArgument('This tag already belongs to you.')
         owner = ctx.guild.get_member(record['owner_id'])
         if owner is not None:
-            await ctx.send("The tag's owner is still in this server.")
-            return
+            raise commands.BadArgument("The tag's owner is still in this server.")
 
         await self.handle_tag_transfer(ctx, record, ctx.author)
 
@@ -219,11 +215,9 @@ class Tags(commands.Cog):
                 AND server_id = $2;
             ''', tag_name, ctx.guild.id)
         if record is None:
-            await ctx.send('Tag not found.')
-            return
+            raise commands.BadArgument('Tag not found.')
         if record['owner_id'] != ctx.author.id:
-            await ctx.send('This tag does not belong to you.')
-            return
+            raise commands.BadArgument('This tag does not belong to you.')
 
         await self.handle_tag_transfer(ctx, record, member)
 
@@ -259,8 +253,7 @@ class Tags(commands.Cog):
             ''', ctx.guild.id, query)
 
         if not records or not len(records):
-            await ctx.send(f'No matches found.')
-            return
+            raise commands.BadArgument(f'No matches found.')
 
         await self.paginate_tag_list(ctx, '', records)
 
@@ -275,8 +268,7 @@ class Tags(commands.Cog):
             ''', ctx.guild.id)
 
         if not records or not len(records):
-            await ctx.send(f'There are no tags on this server.')
-            return
+            raise commands.UserInputError(f'There are no tags on this server.')
 
         await self.paginate_tag_list(ctx, '', records)
 
@@ -415,15 +407,12 @@ class Tags(commands.Cog):
                 AND server_id = $2;
             ''', tag_ID, ctx.guild.id)
         if record is None:
-            await ctx.send('Tag not found.')
-            return
+            raise commands.BadArgument('Tag not found.')
         if record['owner_id'] == ctx.author.id:
-            await ctx.send('This tag already belongs to you.')
-            return
+            raise commands.BadArgument('This tag already belongs to you.')
         owner = ctx.guild.get_member(record['owner_id'])
         if owner is not None:
-            await ctx.send("The tag's owner is still in this server.")
-            return
+            raise commands.BadArgument("The tag's owner is still in this server.")
 
         await self.handle_tag_transfer(ctx, record, ctx.author)
 
@@ -440,11 +429,9 @@ class Tags(commands.Cog):
                 AND server_id = $2;
             ''', tag_ID, ctx.guild.id)
         if record is None:
-            await ctx.send('Tag not found.')
-            return
+            raise commands.BadArgument('Tag not found.')
         if record['owner_id'] != ctx.author.id:
-            await ctx.send('This tag does not belong to you.')
-            return
+            raise commands.BadArgument('This tag does not belong to you.')
 
         await self.handle_tag_transfer(ctx, record, member)
 
@@ -491,8 +478,7 @@ class Tags(commands.Cog):
         If record is an alias, the parent record will be retrieved.
         """
         if record is None:
-            await ctx.send('Tag not found.')
-            return
+            raise commands.BadArgument('Tag not found.')
         
         if record['parent_tag_id']:
             record = await self.bot.db.fetchrow('''
@@ -547,8 +533,7 @@ class Tags(commands.Cog):
     async def send_tag_info(self, ctx, record: asyncpg.Record) -> None:
         """Sends ctx the info of a tag or an error message if necessary"""
         if record is None:
-            await ctx.send('Tag not found.')
-            return
+            raise commands.BadArgument('Tag not found.')
 
         owner = ctx.guild.get_member(record['owner_id'])
         if owner is not None:
@@ -637,8 +622,7 @@ class Tags(commands.Cog):
         Assumes the tag in record was just deleted, or that record is None because the tag wasn't found.
         """
         if record is None:
-            await ctx.send('Tag not found.')
-            return
+            raise commands.BadArgument('Tag not found.')
 
         tag_name = record['name']
         if record['parent_tag_id']:
@@ -672,8 +656,7 @@ class Tags(commands.Cog):
         Assumes the tag was not found if record is None.
         """
         if record is None:
-            await ctx.send('Tag not found.')
-            return
+            raise commands.BadArgument('Tag not found.')
 
         tag_name = record['name']
         owner_name = f'{new_owner.name}#{new_owner.discriminator}'
@@ -728,14 +711,11 @@ class Tags(commands.Cog):
         Assumes the tag was not found if record is None.
         """
         if record is None:
-            await ctx.send('Tag not found.')
-            return
+            raise commands.BadArgument('Tag not found.')
         if record['owner_id'] != ctx.author.id:
-            await ctx.send('You cannot create an alias for a tag that does not belong to you.')
-            return
+            raise commands.BadArgument('You cannot create an alias for a tag that does not belong to you.')
         if record['parent_tag_id'] is not None:
-            await ctx.send('You cannot create an alias for an alias.')
-            return
+            raise commands.BadArgument('You cannot create an alias for an alias.')
 
         now = ctx.message.created_at
         try:

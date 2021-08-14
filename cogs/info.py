@@ -307,8 +307,7 @@ class Info(commands.Cog):
     async def server_info(self, ctx):
         """Shows info about the current server"""
         if ctx.guild.unavailable:
-            await ctx.send("The server's data is unavailable.")
-            return
+            raise commands.UserInputError("The server's data is unavailable.")
 
         server = self.bot.get_guild(ctx.guild.id)
         bot_count = await self.get_bot_count(ctx, server)
@@ -508,8 +507,7 @@ class Info(commands.Cog):
             member_or_role = ctx.author
         server_perms, overwrites, title = await self.get_perms(ctx, member_or_role)
         if not len(server_perms):
-            await ctx.send('Could not find the user or role.')
-            return
+            raise commands.BadArgument('Could not find the user or role.')
 
         embed = discord.Embed(title=title)
         embed.add_field(name=f'server permissions', value=server_perms)

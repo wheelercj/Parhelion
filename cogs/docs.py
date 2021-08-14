@@ -53,8 +53,7 @@ class Docs(commands.Cog):
         try:
             url = self.docs_urls[ctx.guild.id]
         except KeyError:
-            await ctx.send('This server hasn\'t chosen a ReadTheDocs URL for this command yet. If you have the "manage server" permission, you can choose the URL with the `doc set` command.')
-            return
+            raise commands.UserInputError('This server hasn\'t chosen a ReadTheDocs URL for this command yet. If you have the "manage server" permission, you can choose the URL with the `doc set` command.')
 
         if query is None:
             await ctx.send(f'<{url}>')
@@ -76,8 +75,7 @@ class Docs(commands.Cog):
             result_pages = await self.parse_search_results(json_text, language)
 
             if not len(result_pages):
-                await ctx.send('No matches found')
-                return
+                raise commands.BadArgument('No matches found')
 
         title = f'search results for `{query}`'
         paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=result_pages, length=3)
@@ -123,8 +121,7 @@ class Docs(commands.Cog):
         try:
             del self.docs_urls[ctx.guild.id]
         except KeyError:
-            await ctx.send('No documentation URL had been set')
-            return
+            raise commands.UserInputError('No documentation URL had been set')
 
         await self.bot.db.execute('''
             DELETE FROM docs

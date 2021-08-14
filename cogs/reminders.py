@@ -76,8 +76,7 @@ class Reminders(commands.Cog):
         or many more options. All times must be in UTC, and you can use the `time` command to see the current time in UTC.
         """
         if await self.count_authors_reminders(ctx) > 15:
-            await ctx.send('The current limit to how many reminders each person can have is 15. This will increase in the future.')
-            return
+            raise commands.UserInputError('The current limit to how many reminders each person can have is 15. This will increase in the future.')
 
         async with ctx.typing():
             start_time = datetime.now(timezone.utc)
@@ -116,8 +115,7 @@ class Reminders(commands.Cog):
             ''', ctx.author.id)
 
         if not len(records):
-            await ctx.send('You have no saved reminders.')
-            return
+            raise commands.UserInputError('You have no saved reminders.')
 
         r_list = []
         for r in records:

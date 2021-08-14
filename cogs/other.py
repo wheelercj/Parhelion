@@ -48,8 +48,7 @@ class Other(commands.Cog):
             language, expression = await unwrap_code_block(code_block)
             async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
                 if language not in tio.languages:
-                    await ctx.send(f'Invalid language: {language}')
-                    return
+                    raise commands.BadArgument(f'Invalid language: {language}')
 
                 result = await tio.execute(expression, language=language)
                 await ctx.send(f'`{language}` output:\n' + str(result))

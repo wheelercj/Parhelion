@@ -152,8 +152,7 @@ class Quotes(commands.Cog):
             return
 
         if records is None or not len(records):
-            await ctx.send('There are no daily quotes set up in this channel.')
-            return
+            raise commands.UserInputError('There are no daily quotes set up in this channel.')
 
         message = "Here's everyone that set up a daily quote in this channel:"
         for r in records:

@@ -204,8 +204,7 @@ class Settings(commands.Cog):
         try:
             settings = self.all_cmd_settings[command_name]
         except KeyError:
-            await ctx.send(f'No settings found for the `{command_name}` command.')
-            return
+            raise commands.BadArgument(f'No settings found for the `{command_name}` command.')
 
         embed = discord.Embed(title=f'`{command_name}` command settings')
 
