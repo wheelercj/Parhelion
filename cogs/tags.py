@@ -140,10 +140,10 @@ class Tags(commands.Cog):
         tag_name, content = await split_input(name_and_content)
         await self.validate_new_tag_info(tag_name, content)
 
-        record = await self.bot.db.fetchrow(''' 
+        record = await self.bot.db.fetchrow('''
             SELECT *
             FROM tags
-            WHERE name = $1,
+            WHERE name = $1
                 AND owner_id = $2
                 AND server_id = $3;
             ''', tag_name, ctx.author.id, ctx.guild.id)
