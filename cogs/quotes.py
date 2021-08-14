@@ -1,7 +1,7 @@
 # external imports
 import discord
 from discord.ext import commands
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import pytz
 import asyncpg
 from aiohttp.client_exceptions import ContentTypeError
@@ -16,8 +16,8 @@ from cogs.utils.time import parse_time_message, create_short_timestamp
 '''
     CREATE TABLE IF NOT EXISTS daily_quotes (
         author_id BIGINT PRIMARY KEY,
-        start_time TIMESTAMP NOT NULL,
-        target_time TIMESTAMP NOT NULL,
+        start_time TIMESTAMPTZ NOT NULL,
+        target_time TIMESTAMPTZ NOT NULL,
         is_dm BOOLEAN NOT NULL,
         server_id BIGINT,
         channel_id BIGINT
@@ -36,8 +36,6 @@ class Quotes(commands.Cog):
         self.bot = bot
         self._task = self.bot.loop.create_task(self.run_daily_quotes())
         self.running_quote_info: RunningQuoteInfo = None
-        self.previous_quote = 'In the darkest times, hope is something you give yourself. That is the meaning of inner strength.'
-        self.previous_author = 'Iroh'
 
 
     def cog_unload(self):
@@ -58,8 +56,11 @@ class Quotes(commands.Cog):
 
                 await discord.utils.sleep_until(target_time)
 
-                await self.send_quote(destination)
-                await self.update_quote_target_time(target_time, author_id)
+                try:
+                    await self.send_quote(destination)
+                    await self.update_quote_target_time(target_time, author_id)
+                except (ContentTypeError, json.decoder.JSONDecodeError) as error:
+                    print(f'{error = }')
         except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
             print(f'  run_daily_quotes {error = }')
             self._task.cancel()
@@ -67,7 +68,7 @@ class Quotes(commands.Cog):
 
 
     @commands.group(invoke_without_command=True)
-    async def quote(self, ctx, _time: str = None):
+    async def quote(self, ctx, *, _time: str = None):
         """Shows a random famous quote
         
         If a time is provided in HH:mm format, a quote will be sent each day at that time.
@@ -81,8 +82,8 @@ class Quotes(commands.Cog):
         if _time.count(':') != 1 or _time[-1] == ':':
             raise commands.BadArgument('Please enter a time in HH:mm format. You may use 24-hour time or either AM or PM.')
         dt, _ = await parse_time_message(ctx, _time)
-        now = ctx.message.created_at
-        target_time = datetime(now.year, now.month, now.day, int(dt.hour), int(dt.minute))
+        now = datetime.now(timezone.utc)
+        target_time = datetime(now.year, now.month, now.day, int(dt.hour), int(dt.minute), tzinfo=timezone.utc)
         if target_time < now:
             target_time += timedelta(days=1)
 
@@ -94,8 +95,6 @@ class Quotes(commands.Cog):
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.run_daily_quotes())
         
-        utc_tz = pytz.timezone('UTC')
-        target_time = utc_tz.localize(target_time)
         timestamp = await create_short_timestamp(target_time)
         await ctx.send(f'Time set! At {timestamp} each day, I will send you a random quote.')
 
@@ -228,29 +227,32 @@ class Quotes(commands.Cog):
 
 
     async def send_quote(self, destination: Union[discord.User, discord.TextChannel, commands.Context]) -> None:
-        """Immediately sends a random quote to destination"""
+        """Immediately sends a random quote to destination
+        
+        May raise ContentTypeError or json.decoder.JSONDecodeError.
+        """
         quote, author = await self.get_quote()
         embed = discord.Embed(description=f'"{quote}"\n — {author}')
         await destination.send(embed=embed)
 
 
     async def get_quote(self) -> Tuple[str, str]:
-        """Gets a quote and the quote's author from the forismatic API"""
+        """Gets a quote and the quote's author from the forismatic API
+        
+        May raise ContentTypeError or json.decoder.JSONDecodeError.
+        """
         params = {
             'lang': 'en',
             'method': 'getQuote',
             'format': 'json'
         }
-        try:
-            async with self.bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
-                json_text = await response.json()
-            quote, author = json_text['quoteText'], json_text['quoteAuthor']
-            self.previous_quote = quote
-            self.previous_author = author
-            return quote, author
-        except (ContentTypeError, json.decoder.JSONDecodeError) as error:
-            print(f'forismatic {error = }')
-            return self.previous_quote, self.previous_author
+        async with self.bot.session.get('http://api.forismatic.com/api/1.0/', params=params) as response:
+            json_text = await response.json()
+        quote, author = json_text['quoteText'], json_text['quoteAuthor']
+        self.previous_quote = quote
+        self.previous_author = author
+        
+        return quote, author
 
 
 def setup(bot):
