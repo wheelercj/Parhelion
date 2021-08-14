@@ -356,7 +356,7 @@ class Tags(commands.Cog):
         record = await self.bot.db.fetchrow('''
             SELECT *
             FROM tags
-            WHERE id = $1,
+            WHERE id = $1
                 AND owner_id = $2
                 AND server_id = $3;
             ''', tag_ID, ctx.author.id, ctx.guild.id)
