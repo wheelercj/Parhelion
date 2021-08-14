@@ -7,6 +7,7 @@ import platform
 from functools import lru_cache
 from textwrap import dedent
 from datetime import datetime
+from datetime import timezone as tz
 import pytz
 from typing import List
 
@@ -45,8 +46,8 @@ class Info(commands.Cog):
     @commands.command(name='time', aliases=['clock', 'UTC', 'utc'])
     async def _time(self, ctx):
         """Shows the current time in UTC"""
-        current_time = await format_datetime(ctx.message.created_at)
-        now_timestamp = await create_relative_timestamp(datetime.utcnow())
+        current_time = await format_datetime(datetime.now(tz.utc))
+        now_timestamp = await create_relative_timestamp(datetime.now(tz.utc))
         message = f'The current time in UTC is {current_time}\n' \
                 f'The current time in your device\'s timezone is {now_timestamp}'
         await ctx.send(message)
@@ -448,7 +449,7 @@ class Info(commands.Cog):
 
     async def get_uptime(self, ctx) -> str:
         """Returns the amount of time the bot has been running"""
-        _uptime = ctx.message.created_at - self.bot.launch_time
+        _uptime = datetime.now(tz.utc) - self.bot.launch_time
         time_message = await format_timedelta(_uptime)
         return time_message
 

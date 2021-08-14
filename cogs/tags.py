@@ -4,6 +4,7 @@ from discord.ext import commands
 import asyncpg
 import io
 from typing import Optional, List
+from datetime import datetime, timezone
 
 # internal imports
 from cogs.utils.io import split_input, get_attachment_url
@@ -19,7 +20,7 @@ from cogs.utils.common import plural
         parent_tag_id INT,
         content VARCHAR(1500),
         file_url TEXT,
-        created TIMESTAMP NOT NULL,
+        created TIMESTAMPTZ NOT NULL,
         owner_id BIGINT NOT NULL,
         server_id BIGINT NOT NULL,
         views INT DEFAULT 0,
@@ -76,7 +77,7 @@ class Tags(commands.Cog):
         await self.check_tag_ownership_permission(ctx, ctx.author)
         name, content = await split_input(name_and_content)
         await self.validate_new_tag_info(name, content)
-        now = ctx.message.created_at
+        now = datetime.now(timezone.utc)
         file_url = await get_attachment_url(ctx)
 
         try:
@@ -716,7 +717,7 @@ class Tags(commands.Cog):
         if record['parent_tag_id'] is not None:
             raise commands.BadArgument('You cannot create an alias for an alias.')
 
-        now = ctx.message.created_at
+        now = datetime.now(timezone.utc)
         try:
             await self.bot.db.execute('''
                 INSERT INTO tags

@@ -1,6 +1,6 @@
 # external imports
 from discord.ext import commands
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import dateparser
 from typing import Tuple, Optional
 import asyncpg
@@ -90,13 +90,13 @@ async def parse_time_message(ctx, user_input: str, to_timezone: str = 'UTC') -> 
     If the entire user_input is converted to a datetime, the second returned value will be an empty string.
     If a valid time description cannot be found, commands.BadArgument will be raised.
     """
-    timezone = await get_timezone(ctx.bot.db, ctx.author.id)
-    if timezone is None:
-        timezone = 'UTC'
+    tz = await get_timezone(ctx.bot.db, ctx.author.id)
+    if tz is None:
+        tz = 'UTC'
 
     # https://dateparser.readthedocs.io/en/latest/
     dateparser_settings = {
-        'TIMEZONE': str(timezone),
+        'TIMEZONE': str(tz),
         'TO_TIMEZONE': str(to_timezone),
         'RETURN_AS_TIMEZONE_AWARE': True,
         'PREFER_DATES_FROM': 'future'
