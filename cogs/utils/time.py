@@ -119,7 +119,7 @@ async def parse_time_message(ctx, user_input: str, to_timezone: str = 'UTC') -> 
 
 
 async def get_timezone(db: asyncpg.Pool, user_id: int) -> Optional[str]:
-    """Get's a user's chosen timezone from the database"""
+    """Gets a user's chosen timezone from the database"""
     return await db.fetchval('''
         SELECT timezone
         FROM timezones
