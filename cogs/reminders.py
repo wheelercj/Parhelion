@@ -73,7 +73,7 @@ class Reminders(commands.Cog):
         `remind friday at noon buy oranges`
         or
         `remind in 2 days 3 hours continue the project`
-        or many more options. All times must be in UTC, and you can use the `time` command to see the current time in UTC.
+        or many more options. If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
         """
         if await self.count_authors_reminders(ctx) > 15:
             raise commands.UserInputError('The current limit to how many reminders each person can have is 15. This will increase in the future.')
