@@ -1,6 +1,6 @@
 # external imports
 import asyncpg
-from datetime import datetime
+from datetime import datetime, timezone
 import discord
 from discord.ext import commands
 
@@ -15,8 +15,8 @@ from cogs.utils.common import plural
     CREATE TABLE IF NOT EXISTS reminders (
         id SERIAL PRIMARY KEY,
         author_id BIGINT NOT NULL,
-        start_time TIMESTAMP NOT NULL,
-        target_time TIMESTAMP NOT NULL,
+        start_time TIMESTAMPTZ NOT NULL,
+        target_time TIMESTAMPTZ NOT NULL,
         message VARCHAR(500) NOT NULL,
         is_dm BOOLEAN NOT NULL,
         server_id BIGINT,
@@ -80,8 +80,8 @@ class Reminders(commands.Cog):
             return
 
         async with ctx.typing():
-            start_time = ctx.message.created_at
-            target_time, message = await parse_time_message(ctx, time_and_message, 'UTC')
+            start_time = datetime.now(timezone.utc)
+            target_time, message = await parse_time_message(ctx, time_and_message)
             if target_time < start_time:
                 raise commands.BadArgument('Please choose a time in the future.')
 
