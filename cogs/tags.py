@@ -148,9 +148,9 @@ class Tags(commands.Cog):
                 AND server_id = $3;
             ''', tag_name, ctx.author.id, ctx.guild.id)
         if record is None:
-            await ctx.send('Tag not found.')
+            raise commands.BadArgument('Tag not found.')
         if record['parent_tag_id']:
-            await ctx.send('You cannot edit a tag alias.')
+            raise commands.BadArgument('You cannot edit a tag alias.')
 
         await self.handle_tag_edit(ctx, record, content)
 
@@ -239,9 +239,8 @@ class Tags(commands.Cog):
     async def tag_search(self, ctx, *, query: str):
         """Searches for a tag on this server by name"""
         if len(query) < 3:
-            await ctx.send('Please enter a query that is at least 3 characters long.')
+            raise commands.BadArgument('Please enter a query that is at least 3 characters long.')
             # Postgres searches simply do not work with fewer characters for some reason.
-            return
 
         records = await self.bot.db.fetch('''
             SELECT *
@@ -362,9 +361,9 @@ class Tags(commands.Cog):
                 AND server_id = $3;
             ''', tag_ID, ctx.author.id, ctx.guild.id)
         if record is None:
-            await ctx.send('Tag not found.')
+            raise commands.BadArgument('Tag not found.')
         if record['parent_tag_id']:
-            await ctx.send('You cannot edit a tag alias.')
+            raise commands.BadArgument('You cannot edit a tag alias.')
 
         await self.handle_tag_edit(ctx, record, new_content)
 
@@ -727,7 +726,7 @@ class Tags(commands.Cog):
             
             await ctx.send(f'Successfully created tag alias "{new_alias}"')
         except asyncpg.exceptions.UniqueViolationError:
-            await ctx.send(f'A tag named "{new_alias}" already exists.')
+            raise commands.BadArgument(f'A tag named "{new_alias}" already exists.')
 
 
 def setup(bot):
