@@ -120,7 +120,8 @@ class Mod(commands.Cog):
     async def delete_prefix(self, ctx, *, old_prefix: str):
         """Deletes one of the bot's command prefixes for this server
         
-        You cannot delete the bot mention prefix (`@Parhelion`). If the prefix contains any spaces, surround it with double quotes.
+        If the prefix contains any spaces, surround it with double quotes.
+        You cannot delete the bot mention prefix.
         """
         default_prefixes: List[str] = dev_settings.default_bot_prefixes
         try:
@@ -129,8 +130,6 @@ class Mod(commands.Cog):
                 custom_prefixes = []
         except KeyError:
             custom_prefixes = []
-
-        new_prefix = await self.strip_quotes(old_prefix)
 
         if old_prefix in custom_prefixes:
             custom_prefixes.remove(old_prefix)
@@ -168,6 +167,35 @@ class Mod(commands.Cog):
             return
 
         await ctx.send('Prefix not found.')
+
+
+    @prefix.command(name='delete-all', aliases=['del-all', 'delall', 'deleteall'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def delete_all_prefixes(self, ctx):
+        """Deletes all of the bot's command prefixes for this server except the mention prefix
+        
+        You cannot delete the bot mention prefix.
+        """
+        default_prefixes: List[str] = dev_settings.default_bot_prefixes
+        self.bot.removed_default_prefixes[ctx.guild.id] = default_prefixes
+
+        try:
+            del self.bot.custom_prefixes[ctx.guild.id]
+        except KeyError:
+            pass
+
+        await self.bot.db.execute('''
+            INSERT INTO prefixes
+            (server_id, custom_prefixes, removed_default_prefixes)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (server_id)
+            DO UPDATE
+            SET custom_prefixes = $2,
+                removed_default_prefixes = $3
+            WHERE prefixes.server_id = $1;
+            ''', ctx.guild.id, [], default_prefixes)
+
+        await ctx.send(f'Successfully deleted all command prefixes except `@{self.bot.user.display_name}`')
 
 
     @prefix.command(name='reset')
