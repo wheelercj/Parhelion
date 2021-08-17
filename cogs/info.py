@@ -12,7 +12,7 @@ import pytz
 from typing import List
 
 # internal imports
-from cogs.utils.time import parse_time_message, format_datetime, format_timedelta, create_relative_timestamp, create_long_datetime_stamp
+from cogs.utils.time import parse_time_message, format_datetime, format_timedelta, create_relative_timestamp
 from cogs.utils.common import get_prefixes_list, dev_settings, get_bot_invite_link
 from cogs.utils.paginator import paginate_search
 
@@ -324,7 +324,7 @@ class Info(commands.Cog):
                 + f'max video channel users: {server.max_video_channel_users}\n'
         )
 
-        features = await self.get_server_features(ctx, server)
+        features = await self.get_server_features(server)
         if len(features):
             embed.add_field(name='\u2800',
                 value='**features**\n' + features)
@@ -339,7 +339,7 @@ class Info(commands.Cog):
         return sum(m.bot for m in server.members)
 
 
-    async def get_server_features(self, ctx, server: discord.Guild) -> str:
+    async def get_server_features(self, server: discord.Guild) -> str:
         """Gets the server's features or returns any empty string if there are none"""
         features = ''
         for feature in sorted(server.features):
