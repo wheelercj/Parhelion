@@ -68,9 +68,9 @@ class Other(commands.Cog):
             await paginate_search(ctx, title, tio.languages, query)
 
 
-    @commands.command(aliases=['calc', 'solve', 'maths'])
+    @commands.command(name='calc', aliases=['calculate', 'solve', 'math', 'maths'])
     @commands.cooldown(25, 216, commands.BucketType.default)
-    async def math(self, ctx, *, expression: str):
+    async def calculate(self, ctx, *, expression: str):
         """Evaluates a math expression
         
         Evaluates multiple expressions if they're on separate lines, and
