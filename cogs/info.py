@@ -152,29 +152,12 @@ class Info(commands.Cog):
         await ctx.send('I am closed source.')
 
 
-############################
-# _timestamp command group #
-############################
-
-
-    @commands.group(name='timestamp', invoke_without_command=True)
+    @commands.command(name='timestamp')
     async def _timestamp(self, ctx, *, _time: str):
-        """Shows a timestamp that works with each device's timezone
-
-        You can enter the date/time/duration in natural language.
-        If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
-        """
-        dt, _ = await parse_time_message(ctx, _time)
-        timestamp = await create_long_datetime_stamp(dt)
-        await ctx.send(timestamp)
-
-
-    @_timestamp.command(name='raw')
-    async def show_raw_timestamp(self, ctx, *, _time: str):
         """Shows how you can create timestamps that work with each device's timezone
 
-        This is for coping and pasting a raw timestamp into your discord messages.
-        You can enter the date/time/duration in natural language.
+        You can enter the date/time/duration in natural language,
+        and you can copy and paste a raw timestamp into your discord messages.
         If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
         """
         dt, _ = await parse_time_message(ctx, _time)
