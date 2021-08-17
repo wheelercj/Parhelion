@@ -295,7 +295,7 @@ class Info(commands.Cog):
             raise commands.UserInputError("The server's data is unavailable.")
 
         server = self.bot.get_guild(ctx.guild.id)
-        bot_count = await self.get_bot_count(ctx, server)
+        bot_count = await self.get_bot_count(server)
         cat_count = len(server.categories)
         created = await create_relative_timestamp(server.created_at)
 
@@ -334,13 +334,9 @@ class Info(commands.Cog):
         await ctx.send(embed=embed)
     
 
-    async def get_bot_count(self, ctx, server: discord.Guild) -> int:
+    async def get_bot_count(self, server: discord.Guild) -> int:
         """Counts the bots in the server"""
-        count = 0
-        for member in server.members:
-            if member.bot:
-                count += 1
-        return count
+        return sum(m.bot for m in server.members)
 
 
     async def get_server_features(self, ctx, server: discord.Guild) -> str:
