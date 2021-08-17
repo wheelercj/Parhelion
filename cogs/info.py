@@ -104,19 +104,19 @@ class Info(commands.Cog):
     async def invite(self, ctx):
         """Shows the link to invite this bot to another server"""
         bot_invite_link = await get_bot_invite_link(self.bot)
-        await ctx.send(f'<{bot_invite_link}>')
+        await ctx.send(f"Here's the link to invite me to another server: <{bot_invite_link}>")
 
 
     @commands.command(aliases=['contact'], hidden=True)
     async def support(self, ctx):
         """Shows the link to this bot's support server"""
-        await ctx.send(f'<{dev_settings.support_server_link}>')
+        await ctx.send(f"Here's the link to my support server: <{dev_settings.support_server_link}>")
 
 
     @commands.command(aliases=['privacy-policy', 'privacypolicy'], hidden=True)
     async def privacy(self, ctx):
         """Shows the link to this bot's privacy policy"""
-        await ctx.send(f'<{dev_settings.privacy_policy_link}>')
+        await ctx.send(f"Here's my privacy policy: <{dev_settings.privacy_policy_link}>")
 
 
     @commands.command()
