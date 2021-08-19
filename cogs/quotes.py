@@ -61,7 +61,7 @@ class Quotes(commands.Cog):
                     await self.update_quote_target_time(target_time, author_id)
                 except (ContentTypeError, json.decoder.JSONDecodeError) as error:
                     print(f'{error = }')
-                    asyncio.sleep(30)
+                    await asyncio.sleep(30)
         except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
             print(f'  run_daily_quotes {error = }')
             self._task.cancel()
