@@ -840,7 +840,7 @@ class Settings(commands.Cog):
 
     @delete_setting.command(name='global-server', aliases=['gs', 'globalserver'])
     @commands.is_owner()
-    async def delete_global_server_cmd_setting(self, ctx, server: discord.Guild, command_name: CommandName = None):
+    async def delete_global_server_setting(self, ctx, server: discord.Guild, command_name: CommandName = None):
         """Deletes the global setting for a server's access to a command or to the bot"""
         if command_name:
             try:
@@ -869,7 +869,7 @@ class Settings(commands.Cog):
 
     @delete_setting.command(name='global-user', aliases=['gu', 'globaluser'])
     @commands.is_owner()
-    async def delete_global_user_cmd_setting(self, ctx, user: discord.User, command_name: CommandName = None):
+    async def delete_global_user_setting(self, ctx, user: discord.User, command_name: CommandName = None):
         """Deletes the global setting for a user's access to a command or to the bot"""
         if command_name:
             try:
@@ -898,7 +898,7 @@ class Settings(commands.Cog):
 
     @delete_setting.command(name='server', aliases=['s'])
     @commands.has_guild_permissions(manage_guild=True)
-    async def delete_server_cmd_setting(self, ctx, command_name: CommandName = None):
+    async def delete_server_setting(self, ctx, command_name: CommandName = None):
         """Deletes this server's overall setting for a command or to the bot"""
         if command_name:
             self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['server'] = None
@@ -919,38 +919,9 @@ class Settings(commands.Cog):
         await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
 
 
-    @delete_setting.command(name='role', aliases=['r'])
-    @commands.has_guild_permissions(manage_guild=True)
-    async def delete_role_cmd_setting(self, ctx, role: discord.Role, command_name: CommandName = None):
-        """Deletes the setting for a role's access to a command or to the bot"""
-        if command_name:
-            try:
-                del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['roles'][str(role.id)]
-                await self.bot.db.execute("""
-                    UPDATE command_access_settings
-                    SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
-                    WHERE cmd_name = $5;
-                    """, 'servers', str(ctx.guild.id), 'roles', str(role.id), command_name)
-                await ctx.send(f'Deleted setting for command `{command_name}` for role: {role.name}.')
-            except KeyError:
-                raise commands.BadArgument('No settings found.')
-        else:
-            try:
-                del self.all_bot_settings['servers'][str(ctx.guild.id)]['roles'][str(role.id)]
-                await self.bot.db.execute("""
-                    UPDATE bot_access_settings
-                    SET bot_settings = bot_settings #- ARRAY[$1, $2, $3, $4]::TEXT[];
-                    """, 'servers', str(ctx.guild.id), 'roles', str(role.id))
-                await ctx.send(f'Deleted setting for the bot for role: {role.name}.')
-            except KeyError:
-                raise commands.BadArgument('No settings found.')
-        
-        await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
-
-
     @delete_setting.command(name='channel', aliases=['c'])
     @commands.has_guild_permissions(manage_guild=True)
-    async def delete_channel_cmd_setting(self, ctx, channel: discord.TextChannel, command_name: CommandName = None):
+    async def delete_channel_setting(self, ctx, channel: discord.TextChannel, command_name: CommandName = None):
         """Deletes the setting for a channel's access to a command or to the bot"""
         if command_name:
             try:
@@ -977,9 +948,38 @@ class Settings(commands.Cog):
         await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
 
 
+    @delete_setting.command(name='role', aliases=['r'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def delete_role_setting(self, ctx, role: discord.Role, command_name: CommandName = None):
+        """Deletes the setting for a role's access to a command or to the bot"""
+        if command_name:
+            try:
+                del self.all_cmd_settings[command_name]['servers'][str(ctx.guild.id)]['roles'][str(role.id)]
+                await self.bot.db.execute("""
+                    UPDATE command_access_settings
+                    SET cmd_settings = cmd_settings #- ARRAY[$1, $2, $3, $4]::TEXT[]
+                    WHERE cmd_name = $5;
+                    """, 'servers', str(ctx.guild.id), 'roles', str(role.id), command_name)
+                await ctx.send(f'Deleted setting for command `{command_name}` for role: {role.name}.')
+            except KeyError:
+                raise commands.BadArgument('No settings found.')
+        else:
+            try:
+                del self.all_bot_settings['servers'][str(ctx.guild.id)]['roles'][str(role.id)]
+                await self.bot.db.execute("""
+                    UPDATE bot_access_settings
+                    SET bot_settings = bot_settings #- ARRAY[$1, $2, $3, $4]::TEXT[];
+                    """, 'servers', str(ctx.guild.id), 'roles', str(role.id))
+                await ctx.send(f'Deleted setting for the bot for role: {role.name}.')
+            except KeyError:
+                raise commands.BadArgument('No settings found.')
+        
+        await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
+
+
     @delete_setting.command(name='member', aliases=['m'])
     @commands.has_guild_permissions(manage_guild=True)
-    async def delete_member_cmd_setting(self, ctx, member: discord.Member, command_name: CommandName = None):
+    async def delete_member_setting(self, ctx, member: discord.Member, command_name: CommandName = None):
         """Deletes the setting for a member's access to a command or to the bot"""
         if command_name:
             try:
