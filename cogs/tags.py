@@ -57,7 +57,7 @@ class Tags(commands.Cog):
 
     @tag.command(name='view', aliases=['v'])
     async def view_tag(self, ctx, *, tag_name: str):
-        """An alias for `tag` in case a tag name conflicts with a subcommand"""
+        """An alias for `tag`; finds and shows a tag's contents"""
         record = await self.bot.db.fetchrow('''
             UPDATE tags
             SET views = views + 1
@@ -317,7 +317,7 @@ class Tags(commands.Cog):
 
     @tag_id.command(name='view', aliases=['v'])
     async def view_tag_by_id(self, ctx, tag_ID: int = None):
-        """An alias for `tag id` in case you're used to having a view subcommand"""
+        """An alias for `tag id`; finds and shows a tag's contents"""
         if tag_ID is None:
             await ctx.send_help('tag id')
             return
@@ -597,11 +597,19 @@ class Tags(commands.Cog):
 
 
     async def validate_new_tag_info(self, name: Optional[str], content: str = None) -> bool:
-        """Makes sure the name and/or content of a tag is not too long or too short
+        """Validates the name and content of a tag
 
-        Raises commands.BadArgument if either is too long or too short.
-        If either of the args is None, it will be ignored.
+        Raises commands.BadArgument if either is too long or too short, or if the name starts
+        with a tag subcommand. If either of the args is None, it will be ignored.
         """
+        tag_subcommands: List[str] = []
+        tag_command = self.bot.get_command('tag')
+        for c in tag_command.commands:
+            tag_subcommands.append(c.name)
+            tag_subcommands.extend(c.aliases)
+        if name.split()[0] in tag_subcommands:
+            raise commands.BadArgument(f'Tag names must not begin with a tag subcommand')
+
         if name is not None:
             if len(name) > self.tag_name_length_limit:
                 raise commands.BadArgument(f'Tag name length must be {self.tag_name_length_limit} characters or fewer.')
