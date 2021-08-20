@@ -332,7 +332,14 @@ class Info(commands.Cog):
         embed.set_thumbnail(url=server.icon_url)
 
         await ctx.send(embed=embed)
-    
+
+
+    @commands.command(name='server-info', aliases=['si', 'serverinfo'], hidden=True)
+    async def server_info_alias(self, ctx):
+        """An alias for `info server`; shows info about the current server"""
+        server_info_command = self.bot.get_command('info server')
+        await ctx.invoke(server_info_command)
+
 
     async def get_bot_count(self, server: discord.Guild) -> int:
         """Counts the bots in the server"""
@@ -371,6 +378,13 @@ class Info(commands.Cog):
         embed.set_thumbnail(url=member.avatar_url)
 
         await ctx.send(embed=embed)
+
+
+    @commands.command(name='member-info', aliases=['mi', 'whois', 'who-is', 'memberinfo', 'user-info', 'ui', 'userinfo'], hidden=True)
+    async def member_info_alias(self, ctx, member: discord.Member):
+        """An alias for `info member`; shows info about a member of the current server"""
+        member_info_command = self.bot.get_command('info member')
+        await ctx.invoke(member_info_command, member=member)
 
 
     async def get_whether_bot(self, member: discord.Member) -> str:
@@ -427,6 +441,13 @@ class Info(commands.Cog):
         await ctx.invoke(stats_command)
 
 
+    @commands.command(name='bot-info', aliases=['bi', 'botinfo'], hidden=True)
+    async def _bot_info_alias(self, ctx):
+        """An alias for `info bot`; shows info about this bot"""
+        bot_info_command = self.bot.get_command('info bot')
+        await ctx.invoke(bot_info_command)
+
+
     async def get_uptime(self, ctx) -> str:
         """Returns the amount of time the bot has been running"""
         _uptime = datetime.now(tz.utc) - self.bot.launch_time
@@ -473,6 +494,13 @@ class Info(commands.Cog):
         )
 
         await ctx.send(embed=embed)
+
+
+    @commands.command(name='role-info', aliases=['ri', 'roleinfo'], hidden=True)
+    async def role_info_alias(self, ctx, role: discord.Role):
+        """An alias for `info role`; shows info about a role on the current server"""
+        role_info_command = self.bot.get_command('info role')
+        await ctx.invoke(role_info_command, role=role)
 
 
     @info.command(name='perms', aliases=['permissions'])
