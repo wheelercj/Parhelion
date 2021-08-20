@@ -5,7 +5,8 @@ import asyncpg
 from typing import List
 
 # internal imports
-from cogs.utils.common import dev_settings, get_prefixes_message, get_prefixes_str
+from cogs.utils.common import get_prefixes_message, get_prefixes_str
+from cogs.settings import Dev_Settings
 
 
 '''
@@ -123,7 +124,7 @@ class Mod(commands.Cog):
         If the prefix contains any spaces, surround it with double quotes.
         You cannot delete the bot mention prefix.
         """
-        default_prefixes: List[str] = dev_settings.default_bot_prefixes
+        default_prefixes: List[str] = Dev_Settings.default_bot_prefixes
         try:
             custom_prefixes: List[str] = self.bot.custom_prefixes[ctx.guild.id]
             if custom_prefixes is None:
@@ -176,7 +177,7 @@ class Mod(commands.Cog):
         
         You cannot delete the bot mention prefix.
         """
-        default_prefixes: List[str] = dev_settings.default_bot_prefixes
+        default_prefixes: List[str] = Dev_Settings.default_bot_prefixes
         self.bot.removed_default_prefixes[ctx.guild.id] = default_prefixes
 
         try:

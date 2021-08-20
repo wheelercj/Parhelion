@@ -11,6 +11,12 @@ import json
 from cogs.utils.paginator import Paginator
 
 
+class Dev_Settings:
+    default_bot_prefixes = [';', 'par ', 'Par ']
+    support_server_link = 'https://discord.gg/mCqGhPJVcN'
+    privacy_policy_link = 'https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853'
+
+
 '''
     CREATE TABLE command_access_settings (
         id SERIAL PRIMARY KEY,

@@ -13,8 +13,9 @@ from typing import List
 
 # internal imports
 from cogs.utils.time import parse_time_message, format_datetime, format_timedelta, create_relative_timestamp
-from cogs.utils.common import get_prefixes_list, dev_settings, get_bot_invite_link
+from cogs.utils.common import get_prefixes_list, get_bot_invite_link
 from cogs.utils.paginator import paginate_search
+from cogs.settings import Dev_Settings
 
 
 '''
@@ -110,13 +111,13 @@ class Info(commands.Cog):
     @commands.command(aliases=['contact'], hidden=True)
     async def support(self, ctx):
         """Shows the link to this bot's support server"""
-        await ctx.send(f"Here's the link to my support server: <{dev_settings.support_server_link}>")
+        await ctx.send(f"Here's the link to my support server: <{Dev_Settings.support_server_link}>")
 
 
     @commands.command(aliases=['privacy-policy', 'privacypolicy'], hidden=True)
     async def privacy(self, ctx):
         """Shows the link to this bot's privacy policy"""
-        await ctx.send(f"Here's my privacy policy: <{dev_settings.privacy_policy_link}>")
+        await ctx.send(f"Here's my privacy policy: <{Dev_Settings.privacy_policy_link}>")
 
 
     @commands.command()
@@ -136,8 +137,8 @@ class Info(commands.Cog):
 
         embed.add_field(name='links\u2800',
             value=f'[bot invite]({bot_invite_link})\u2800\n' \
-                f'[support server]({dev_settings.support_server_link})\u2800\n' \
-                f'[privacy policy]({dev_settings.privacy_policy_link})\u2800\n')
+                f'[support server]({Dev_Settings.support_server_link})\u2800\n' \
+                f'[privacy policy]({Dev_Settings.privacy_policy_link})\u2800\n')
         embed.add_field(name='\u2800made with\u2800',
             value=f'\u2800Python v{platform.python_version()}\u2800\n' \
                 f'\u2800and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\u2800\n')

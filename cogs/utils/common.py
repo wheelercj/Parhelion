@@ -4,15 +4,6 @@ import discord
 from typing import List, Union
 
 
-class Dev_Settings:
-    def __init__(self):
-        self.default_bot_prefixes = [';', 'par ', 'Par ']
-        self.support_server_link = 'https://discord.gg/mCqGhPJVcN'
-        self.privacy_policy_link = 'https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853'
-
-dev_settings = Dev_Settings()
-
-
 async def get_bot_invite_link(bot) -> str:
     """Creates a link to invite a bot to a server
 

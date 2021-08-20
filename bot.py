@@ -15,7 +15,8 @@ from typing import List, Dict
 
 # internal imports
 from cogs.utils.io import dev_mail
-from cogs.utils.common import dev_settings, get_prefixes_message, get_prefixes_list
+from cogs.utils.common import get_prefixes_message, get_prefixes_list
+from cogs.settings import Dev_Settings
 
 
 class Bot(commands.Bot):
@@ -68,7 +69,7 @@ class Bot(commands.Bot):
         This function is called each time a command is invoked, so the prefixes can be customized based on where the message is from.
         This function is intended to only be used when initializing the bot; to get unrendered prefixes elsewhere, it may be safer to use `bot.command_prefix(bot, message)`.
         """
-        prefixes = copy(dev_settings.default_bot_prefixes)
+        prefixes = copy(Dev_Settings.default_bot_prefixes)
 
         if not message.guild:
             prefixes.append('')
