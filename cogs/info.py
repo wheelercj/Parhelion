@@ -16,14 +16,6 @@ from cogs.utils.common import get_prefixes_list, get_bot_invite_link
 from cogs.settings import Dev_Settings
 
 
-'''
-    CREATE TABLE timezones (
-        user_id BIGINT PRIMARY KEY NOT NULL,
-        timezone TEXT NOT NULL
-    );
-'''
-
-
 def yes_or_no(boolean: bool) -> str:
     """Returns either 'yes' or 'no'"""
     if boolean:

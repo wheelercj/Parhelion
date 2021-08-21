@@ -19,6 +19,11 @@ class Dev_Settings:
 
 
 '''
+    CREATE TABLE timezones (
+        user_id BIGINT PRIMARY KEY NOT NULL,
+        timezone TEXT NOT NULL
+    );
+
     CREATE TABLE prefixes (
         id SERIAL PRIMARY KEY,
         server_id BIGINT UNIQUE,
