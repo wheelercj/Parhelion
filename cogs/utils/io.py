@@ -88,7 +88,7 @@ async def is_supported_type(file_type: str) -> bool:
 
 
 class Channel(commands.Converter):
-    """Converter for all types of Discord channels
+    """Converter for most types of Discord channels
 
     Precedence:
         TextChannelConverter
@@ -96,6 +96,8 @@ class Channel(commands.Converter):
         StageChannelConverter
         StoreChannelConverter
         CategoryChannelConverter
+
+    DMChannel and GroupChannel do not have converters.
     """
     async def convert(self, ctx, argument):
         converters = [
