@@ -125,7 +125,7 @@ class Tags(commands.Cog):
         record = await self.bot.db.fetchrow('''
             SELECT *
             FROM tags
-            WHERE name = $1
+            WHERE LOWER(name) = LOWER($1)
                 AND server_id = $2;
             ''', tag_name, ctx.guild.id)
 
@@ -144,7 +144,7 @@ class Tags(commands.Cog):
         record = await self.bot.db.fetchrow('''
             SELECT *
             FROM tags
-            WHERE name = $1
+            WHERE LOWER(name) = LOWER($1)
                 AND owner_id = $2
                 AND server_id = $3;
             ''', tag_name, ctx.author.id, ctx.guild.id)
@@ -161,7 +161,7 @@ class Tags(commands.Cog):
         """Deletes one of your tags (or aliases) and all aliases it may have"""
         record = await self.bot.db.fetchrow('''
             DELETE FROM tags
-            WHERE name = $1
+            WHERE LOWER(name) = LOWER($1)
                 AND owner_id = $2
                 AND server_id = $3
             RETURNING *;
@@ -175,7 +175,7 @@ class Tags(commands.Cog):
         """Deletes one of anyone's tags (or aliases) and all aliases it may have"""
         record = await self.bot.db.fetchrow('''
             DELETE FROM tags
-            WHERE name = $1
+            WHERE LOWER(name) = LOWER($1)
                 AND server_id = $2
             RETURNING *;
             ''', tag_name, ctx.guild.id)
@@ -190,7 +190,7 @@ class Tags(commands.Cog):
         record = await self.bot.db.fetchrow('''
             SELECT *
             FROM tags
-            WHERE name = $1
+            WHERE LOWER(name) = LOWER($1)
                 AND server_id = $2;
             ''', tag_name, ctx.guild.id)
         if record is None:
@@ -212,7 +212,7 @@ class Tags(commands.Cog):
         record = await self.bot.db.fetchrow('''
             SELECT *
             FROM tags
-            WHERE tag_name = $1
+            WHERE LOWER(name) = LOWER($1)
                 AND server_id = $2;
             ''', tag_name, ctx.guild.id)
         if record is None:
@@ -229,7 +229,7 @@ class Tags(commands.Cog):
         record = await self.bot.db.fetchrow('''
             UPDATE tags
             SET views = views + 1
-            WHERE name = $1
+            WHERE LOWER(name) = LOWER($1)
                 AND server_id = $2
             RETURNING *;
             ''', tag_name, ctx.guild.id)
@@ -282,7 +282,7 @@ class Tags(commands.Cog):
         record = await self.bot.db.fetchrow('''
             SELECT *
             FROM tags
-            WHERE name = $1
+            WHERE LOWER(name) = LOWER($1)
                 AND server_id = $2;
             ''', existing_tag_name, ctx.guild.id)
 
