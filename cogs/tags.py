@@ -61,7 +61,7 @@ class Tags(commands.Cog):
         record = await self.bot.db.fetchrow('''
             UPDATE tags
             SET views = views + 1
-            WHERE name = $1
+            WHERE LOWER(name) = LOWER($1)
                 AND server_id = $2
             RETURNING *;
             ''', tag_name, ctx.guild.id)
@@ -76,7 +76,7 @@ class Tags(commands.Cog):
         """
         await self.check_tag_ownership_permission(ctx, ctx.author)
         name, content = await split_input(name_and_content)
-        await self.validate_new_tag_info(name, content)
+        await self.validate_new_tag_info(name, content, ctx.guild.id)
         now = datetime.now(timezone.utc)
         file_url = await get_attachment_url(ctx)
 
@@ -139,7 +139,7 @@ class Tags(commands.Cog):
         If the tag has an attachment, the message in which the tag was edited must not be deleted, or the attachment will be lost.
         """
         tag_name, content = await split_input(name_and_content)
-        await self.validate_new_tag_info(tag_name, content)
+        await self.validate_new_tag_info(tag_name, content, ctx.guild.id)
 
         record = await self.bot.db.fetchrow('''
             SELECT *
@@ -277,7 +277,7 @@ class Tags(commands.Cog):
     async def create_tag_alias(self, ctx, existing_tag_name: str, *, new_alias: str):
         """Creates another name for an existing tag"""
         await self.check_tag_ownership_permission(ctx, ctx.author)
-        await self.validate_new_tag_info(new_alias)
+        await self.validate_new_tag_info(new_alias, server_id=ctx.guild.id)
 
         record = await self.bot.db.fetchrow('''
             SELECT *
@@ -453,7 +453,7 @@ class Tags(commands.Cog):
     async def create_tag_alias_by_id(self, ctx, tag_ID: int, *, new_alias: str):
         """Creates another name for an existing tag"""
         await self.check_tag_ownership_permission(ctx, ctx.author)
-        await self.validate_new_tag_info(new_alias)
+        await self.validate_new_tag_info(new_alias, server_id=ctx.guild.id)
 
         record = await self.bot.db.fetchrow('''
             SELECT *
@@ -596,20 +596,37 @@ class Tags(commands.Cog):
         return 0
 
 
-    async def validate_new_tag_info(self, name: Optional[str], content: str = None) -> bool:
-        """Validates the name and content of a tag
+    async def validate_new_tag_info(self, name: str = None, content: str = None, server_id: int = None) -> bool:
+        """Validates the name and content of a new tag
 
-        Raises commands.BadArgument if either is too long or too short, or if the name starts
-        with a tag subcommand. If either of the args is None, it will be ignored.
+        Raises commands.BadArgument if
+        * the name or content are too long or too short,
+        * the name starts with a tag subcommand name,
+        * or the name is the same as an existing tag name (not case-sensitive).
+
+        If any of the args are None, not all of the new tag validation will be completed.
+        The server_id arg is needed to validate a new tag name.
         """
+        # Prevent new tag names from starting with tag subcommand names.
         tag_subcommands: List[str] = []
         tag_command = self.bot.get_command('tag')
         for c in tag_command.commands:
             tag_subcommands.append(c.name)
             tag_subcommands.extend(c.aliases)
         if name.split()[0] in tag_subcommands:
-            raise commands.BadArgument(f'Tag names must not begin with a tag subcommand')
+            raise commands.BadArgument(f'Tag names must not begin with a tag subcommand.')
 
+        # Prevent new tag names from being the same as existing tag names; not case-sensitive.
+        records = await self.bot.db.fetch('''
+            SELECT *
+            FROM tags
+            WHERE LOWER(name) = LOWER($1)
+                AND server_id = $2;
+            ''', name, server_id)
+        if records and len(records):
+            raise commands.BadArgument(f'A tag named "{name}" already exists.')
+
+        # Validate the name and content length.
         if name is not None:
             if len(name) > self.tag_name_length_limit:
                 raise commands.BadArgument(f'Tag name length must be {self.tag_name_length_limit} characters or fewer.')
