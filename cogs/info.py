@@ -8,13 +8,11 @@ from functools import lru_cache
 from textwrap import dedent
 from datetime import datetime
 from datetime import timezone as tz
-import pytz
 from typing import List
 
 # internal imports
 from cogs.utils.time import parse_time_message, format_datetime, format_timedelta, create_relative_timestamp
 from cogs.utils.common import get_prefixes_list, get_bot_invite_link
-from cogs.utils.paginator import paginate_search
 from cogs.settings import Dev_Settings
 
 
@@ -181,99 +179,6 @@ class Info(commands.Cog):
             ''')
 
         await ctx.send(output)
-
-
-###########################
-# _timezone command group #
-###########################
-    
-    
-    @commands.group(name='timezone', aliases=['tz'], invoke_without_command=True)
-    async def _timezone(self, ctx):
-        """Shows your current timezone setting if you have one
-        
-        Use the `timezone set` command to set a timezone for commands that need your time input. See the valid timezone options with the `timezone search` command, or by clicking here: <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>
-        """
-        # https://github.com/stub42/pytz/blob/master/src/README.rst
-        timezone = await self.bot.db.fetchval('''
-            SELECT timezone
-            FROM timezones
-            WHERE user_id = $1;
-            ''', ctx.author.id)
-        if timezone is not None:
-            await ctx.send(f'Your current timezone setting is `{timezone}`')
-        else:
-            await ctx.send_help('timezone')
-
-
-    @_timezone.command(name='search', aliases=['l', 'list'])
-    async def search_timezones(self, ctx, *, query: str = None):
-        """Shows all the valid timezone options that contain a search word
-        
-        You can also see the valid timezone options here: <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>.
-        If the valid timezones change, the update to the GitHub gist may be delayed unlike this search command.
-        """
-        if query is None:
-            title = 'timezones supported by the `timezone set` command'
-        else:
-            query = query.replace(' ', '_')
-            title = f'supported timezones that contain `{query}`'
-        await paginate_search(ctx, title, pytz.all_timezones, query)
-
-
-    @_timezone.command(name='set')
-    async def set_timezone(self, ctx, *, timezone: str):
-        """Sets your timezone for commands that need your time input
-        
-        If you don't set a timezone, those commands will assume you are using the UTC timezone.
-        See the valid timezone options with the `timezone search` command, or by clicking here: <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>
-        """
-        timezone = await self.parse_timezone(timezone)
-        await self.save_timezone(ctx, timezone)
-        await ctx.send(f'Your timezone has been set to `{timezone}`')
-
-
-    async def parse_timezone(self, timezone: str) -> str:
-        """Validates and formats a timezone input"""
-        try:
-            return pytz.timezone(timezone).zone
-        except (pytz.exceptions.InvalidTimeError, pytz.exceptions.UnknownTimeZoneError):
-            raise commands.BadArgument('Invalid timezone. See the valid timezone options with the `timezone search` command, or by clicking here: <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>')
-        except Exception as error:
-            raise commands.BadArgument(f'Unable to set timezone because of {error = }')
-
-
-    async def save_timezone(self, ctx, timezone: str) -> None:
-        """Saves a timezone string to the database
-        
-        Assumes the timezone is validated and formatted.
-        """
-        await self.bot.db.execute('''
-            INSERT INTO timezones
-            (user_id, timezone)
-            VALUES ($1, $2)
-            ON CONFLICT (user_id)
-            DO UPDATE
-            SET timezone = $2
-            WHERE timezones.user_id = $1;
-            ''', ctx.author.id, timezone)
-
-
-    @_timezone.command(name='delete', aliases=['del'])
-    async def delete_timezone(self, ctx):
-        """Deletes your timezone setting
-        
-        If you don't have a timezone setting, time-related commands will assume you are using the UTC timezone.
-        """
-        record = await self.bot.db.fetchrow('''
-            DELETE FROM timezones
-            WHERE user_id = $1
-            RETURNING *;
-            ''', ctx.author.id)
-        if record is not None:
-            await ctx.send('Your timezone setting has been deleted. Commands that need your input about time will expect you to use the UTC timezone now.')
-        else:
-            await ctx.send('You do not have a timezone setting.')
 
 
 ######################
