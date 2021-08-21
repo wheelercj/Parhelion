@@ -52,7 +52,6 @@ class Bot(commands.Bot):
             'cogs.music',
             'cogs.other',
             'cogs.owner',
-            'cogs.quotes',
             'cogs.reminders',
             'cogs.settings',
             'cogs.tags',
