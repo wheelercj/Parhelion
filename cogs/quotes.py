@@ -1,5 +1,6 @@
 # external imports
 import discord
+from discord.abc import Messageable
 from discord.ext import commands
 from datetime import datetime, timedelta, timezone
 import asyncio
@@ -42,7 +43,7 @@ class Quotes(commands.Cog):
         self._task.cancel()
 
 
-    async def run_daily_quotes(self):
+    async def run_daily_quotes(self) -> None:
         """A task that finds the next quote time, waits for that time, and sends"""
         await self.bot.wait_until_ready()
         try:
@@ -190,7 +191,7 @@ class Quotes(commands.Cog):
             ''', ctx.author.id, start_time, target_time, is_dm, server_id, channel_id)
 
 
-    async def get_next_quote_info(self) -> Tuple[datetime, int, Union[discord.User, discord.TextChannel, commands.Context]]:
+    async def get_next_quote_info(self) -> Tuple[datetime, int, Messageable]:
         """Gets from the database the info for the nearest (in time) daily quote task
 
         Returns (target_time, author_id, destination).
@@ -226,7 +227,7 @@ class Quotes(commands.Cog):
             ''', new_target_time, author_id)
 
 
-    async def send_quote(self, destination: Union[discord.User, discord.TextChannel, commands.Context]) -> None:
+    async def send_quote(self, destination: Messageable) -> None:
         """Immediately sends a random quote to destination
         
         May raise ContentTypeError or json.decoder.JSONDecodeError.

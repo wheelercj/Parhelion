@@ -2,7 +2,9 @@
 import asyncpg
 from datetime import datetime, timezone
 import discord
+from discord.abc import Messageable
 from discord.ext import commands
+from typing import Tuple
 
 # internal imports
 from cogs.utils.io import safe_send
@@ -43,7 +45,7 @@ class Reminders(commands.Cog):
         self._task.cancel()
 
 
-    async def run_reminders(self):
+    async def run_reminders(self) -> None:
         """A task that finds the next reminder time, waits for that time, and sends"""
         await self.bot.wait_until_ready()
         try:
@@ -216,7 +218,7 @@ class Reminders(commands.Cog):
         return len(records)
 
 
-    async def get_next_reminder_info(self):
+    async def get_next_reminder_info(self) -> Tuple[datetime, int, Messageable, int, str]:
         """Gets from the database the info for the nearest (in time) reminder task
 
         Returns (target_time, id, destination, author_id, message).
