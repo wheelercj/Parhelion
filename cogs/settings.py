@@ -1,5 +1,4 @@
 # external imports
-from os import name
 import discord
 from discord.ext import commands
 import asyncpg
@@ -9,6 +8,7 @@ import json
 import pytz
 
 # internal imports
+from cogs.utils.common import get_prefixes_message, get_prefixes_str
 from cogs.utils.paginator import Paginator, paginate_search
 
 
@@ -19,6 +19,13 @@ class Dev_Settings:
 
 
 '''
+    CREATE TABLE prefixes (
+        id SERIAL PRIMARY KEY,
+        server_id BIGINT UNIQUE,
+        custom_prefixes TEXT[],
+        removed_default_prefixes TEXT[]
+    );
+
     CREATE TABLE command_access_settings (
         id SERIAL PRIMARY KEY,
         cmd_name TEXT UNIQUE,
@@ -62,7 +69,8 @@ class CommandName(commands.Converter):
 class Settings(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self._task = bot.loop.create_task(self.load_settings())
+        self.settings_task = bot.loop.create_task(self.load_settings())
+        self.prefixes_task = bot.loop.create_task(self.load_custom_prefixes())
 
         self.all_cmd_settings: Dict[str, dict] = dict()
         """
@@ -153,6 +161,22 @@ class Settings(commands.Cog):
         self.default_server_bot_settings_json = json.dumps(self.default_server_bot_settings)
 
 
+    async def load_custom_prefixes(self):
+        await self.bot.wait_until_ready()
+        try:
+            records = await self.bot.db.fetch('''
+                SELECT *
+                FROM prefixes;
+                ''')
+            for r in records:
+                self.bot.custom_prefixes[r['server_id']] = r['custom_prefixes']
+                self.bot.removed_default_prefixes[r['server_id']] = r['removed_default_prefixes']
+        except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
+            print(f'{error = }')
+            self.prefixes_task.cancel()
+            self.prefixes_task = self.bot.loop.create_task(self.load_custom_prefixes())
+
+
     async def load_settings(self):
         await self.bot.wait_until_ready()
         try:
@@ -171,8 +195,8 @@ class Settings(commands.Cog):
             self.all_bot_settings = json.loads(record['bot_settings'])
         except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
             print(f'{error = }')
-            self._task.cancel()
-            self._task = self.bot.loop.create_task(self.load_settings())
+            self.settings_task.cancel()
+            self.settings_task = self.bot.loop.create_task(self.load_settings())
 
 
     async def bot_check(self, ctx):
@@ -362,6 +386,181 @@ class Settings(commands.Cog):
             await ctx.send('Your timezone setting has been deleted. Commands that need your input about time will expect you to use the UTC timezone now.')
         else:
             await ctx.send('You do not have a timezone setting.')
+
+
+########################
+# prefix command group #
+########################
+
+
+    @commands.group(invoke_without_command=True)
+    @commands.has_guild_permissions(manage_guild=True)
+    async def prefix(self, ctx):
+        """A group of commands for managing this bot's command prefixes for this server"""
+        prefixes = await get_prefixes_message(self.bot, ctx.message)
+        await ctx.send(f'My current {prefixes}. You can use the `prefix add` and `prefix delete` commands to manage my command prefixes for this server.')
+
+
+    @prefix.command(name='list', aliases=['l'])
+    async def list_prefixes(self, ctx):
+        """An alias for `prefix`; lists the current prefixes"""
+        prefixes = await get_prefixes_message(self.bot, ctx.message)
+        await ctx.send(f'My current {prefixes}. If you have the "manage server" permission, you can use the `prefix add` and `prefix delete` commands to manage my command prefixes for this server.')
+
+
+    @prefix.command(name='add', aliases=['a'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def add_prefix(self, ctx, *, new_prefix: str):
+        """Adds a command prefix to the bot for this server
+        
+        If the prefix contains any spaces, surround it with double quotes.
+        """
+        new_prefix = await self.strip_quotes(new_prefix)
+        if new_prefix.startswith(' '):
+            raise commands.BadArgument('Prefixes cannot begin with a space.')
+        if not new_prefix or new_prefix == '':
+            raise commands.BadArgument('Prefixless command invocation is not supported in servers.')
+        if len(new_prefix) > 15:
+            raise commands.BadArgument('The maximum length of each command prefix is 15 characters.')
+
+        # Remove the new prefix from the removed default prefixes, if it is there.
+        try:
+            self.bot.removed_default_prefixes[ctx.guild.id].remove(new_prefix)
+            await self.bot.db.execute('''
+                UPDATE prefixes
+                SET removed_default_prefixes = $1
+                WHERE server_id = $2;
+                ''', self.bot.removed_default_prefixes[ctx.guild.id], ctx.guild.id)
+            await ctx.send(f'Successfully added the command prefix `{new_prefix}`')
+            return
+        except (KeyError, ValueError, AttributeError):
+            pass
+
+        try:
+            custom_prefixes: List[str] = self.bot.custom_prefixes[ctx.guild.id]
+            if custom_prefixes is None:
+                custom_prefixes = []
+        except KeyError:
+            custom_prefixes = []
+        if new_prefix in custom_prefixes:
+            raise commands.BadArgument(f'The `{new_prefix}` command prefix already exists.')
+        if len(custom_prefixes) >= 10:
+            raise commands.UserInputError('The maximum number of custom command prefixes per server is 10.')
+
+        custom_prefixes.append(new_prefix)
+        self.bot.custom_prefixes[ctx.guild.id] = custom_prefixes
+        await self.bot.db.execute('''
+            INSERT INTO prefixes
+            (server_id, custom_prefixes)
+            VALUES ($1, $2)
+            ON CONFLICT (server_id)
+            DO UPDATE
+            SET custom_prefixes = $2
+            WHERE prefixes.server_id = $1;
+            ''', ctx.guild.id, custom_prefixes)
+
+        await ctx.send(f'Successfully added the command prefix `{new_prefix}`')
+
+
+    @prefix.command(name='delete', aliases=['del'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def delete_prefix(self, ctx, *, old_prefix: str):
+        """Deletes one of the bot's command prefixes for this server
+        
+        If the prefix contains any spaces, surround it with double quotes.
+        You cannot delete the bot mention prefix.
+        """
+        default_prefixes: List[str] = Dev_Settings.default_bot_prefixes
+        try:
+            custom_prefixes: List[str] = self.bot.custom_prefixes[ctx.guild.id]
+            if custom_prefixes is None:
+                custom_prefixes = []
+        except KeyError:
+            custom_prefixes = []
+
+        if old_prefix in custom_prefixes:
+            custom_prefixes.remove(old_prefix)
+            self.bot.custom_prefixes[ctx.guild.id] = custom_prefixes
+            await self.bot.db.execute('''
+                UPDATE prefixes
+                SET custom_prefixes = $1
+                WHERE server_id = $2;
+                ''', custom_prefixes, ctx.guild.id)
+            await ctx.send(f'Successfully deleted the command prefix `{old_prefix}`')
+            return
+
+        elif old_prefix in default_prefixes:
+            # Save the old prefix to the list of removed default prefixes.
+            try:
+                removed_default_prefixes = self.bot.removed_default_prefixes[ctx.guild.id]
+                if removed_default_prefixes is None:
+                    removed_default_prefixes = []
+            except KeyError:
+                removed_default_prefixes = []
+            if old_prefix in removed_default_prefixes:
+                raise commands.BadArgument(f'The `{old_prefix}` command prefix has already been deleted.')
+            removed_default_prefixes.append(old_prefix)
+            self.bot.removed_default_prefixes[ctx.guild.id] = removed_default_prefixes
+            await self.bot.db.execute('''
+                INSERT INTO prefixes
+                (server_id, removed_default_prefixes)
+                VALUES ($1, $2)
+                ON CONFLICT (server_id)
+                DO UPDATE
+                SET removed_default_prefixes = $2
+                WHERE prefixes.server_id = $1;
+                ''', ctx.guild.id, removed_default_prefixes)
+            await ctx.send(f'Successfully deleted the command prefix `{old_prefix}`')
+            return
+
+        await ctx.send('Prefix not found.')
+
+
+    @prefix.command(name='delete-all', aliases=['del-all', 'delall', 'deleteall'])
+    @commands.has_guild_permissions(manage_guild=True)
+    async def delete_all_prefixes(self, ctx):
+        """Deletes all of the bot's command prefixes for this server except the mention prefix
+        
+        You cannot delete the bot mention prefix.
+        """
+        default_prefixes: List[str] = Dev_Settings.default_bot_prefixes
+        self.bot.removed_default_prefixes[ctx.guild.id] = default_prefixes
+
+        try:
+            del self.bot.custom_prefixes[ctx.guild.id]
+        except KeyError:
+            pass
+
+        await self.bot.db.execute('''
+            INSERT INTO prefixes
+            (server_id, custom_prefixes, removed_default_prefixes)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (server_id)
+            DO UPDATE
+            SET custom_prefixes = $2,
+                removed_default_prefixes = $3
+            WHERE prefixes.server_id = $1;
+            ''', ctx.guild.id, [], default_prefixes)
+
+        await ctx.send(f'Successfully deleted all command prefixes except `@{self.bot.user.display_name}`')
+
+
+    @prefix.command(name='reset')
+    @commands.has_guild_permissions(manage_guild=True)
+    async def reset_prefixes(self, ctx):
+        """Resets the bot's command prefixes for this server to the defaults"""
+        try: del self.bot.custom_prefixes[ctx.guild.id]
+        except KeyError: pass
+        try: del self.bot.removed_default_prefixes[ctx.guild.id]
+        except KeyError: pass
+
+        await self.bot.db.execute('''
+            DELETE FROM prefixes
+            WHERE server_id = $1;
+            ''', ctx.guild.id)
+
+        default_prefixes = await get_prefixes_str(self.bot, ctx.message)
+        await ctx.send(f'Successfully reset the command prefixes to the defaults: {default_prefixes}')
 
 
 #########################
