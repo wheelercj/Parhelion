@@ -115,7 +115,7 @@ class Info(commands.Cog):
                 line_count += self.count_dir_loc(path)
             elif os.path.isfile(path):
                 if path.endswith('.py'):
-                    with open(path, 'r') as file:
+                    with open(path, 'r', encoding='utf8') as file:
                         line_count += len(file.readlines())
 
         return line_count
