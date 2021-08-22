@@ -234,7 +234,7 @@ class Other(commands.Cog):
 #################
 
 
-    @commands.command(aliases=['def'])
+    @commands.command(aliases=['def', 'definition', 'definitions'])
     async def define(self, ctx, word: str):
         """Lists definitions of a given word"""
         # https://github.com/johnbumgarner/wordhoard
@@ -244,8 +244,8 @@ class Other(commands.Cog):
         await self.send_word_results(ctx, results, title)
 
 
-    @commands.command(aliases=['syno'])
-    async def synonym(self, ctx, word: str):
+    @commands.command(aliases=['syno', 'synonym'])
+    async def synonyms(self, ctx, word: str):
         """Lists words with the same or similar meaning to a given word"""
         synonym = Synonyms(word)
         results = synonym.find_synonyms()
@@ -253,8 +253,8 @@ class Other(commands.Cog):
         await self.send_word_results(ctx, results, title)
 
 
-    @commands.command(aliases=['anto'])
-    async def antonym(self, ctx, word: str):
+    @commands.command(aliases=['anto', 'antonym'])
+    async def antonyms(self, ctx, word: str):
         """Lists words with the opposite meaning as a given word"""
         antonym = Antonyms(word)
         results = antonym.find_antonyms()
@@ -262,8 +262,8 @@ class Other(commands.Cog):
         await self.send_word_results(ctx, results, title)
 
 
-    @commands.command(aliases=['hyper'])
-    async def hypernym(self, ctx, word: str):
+    @commands.command(aliases=['hyper', 'hypernym'])
+    async def hypernyms(self, ctx, word: str):
         """Lists words of more general meaning than a given word"""
         hypernym = Hypernyms(word)
         results = hypernym.find_hypernyms()
@@ -271,8 +271,8 @@ class Other(commands.Cog):
         await self.send_word_results(ctx, results, title)
 
 
-    @commands.command(aliases=['hypo'])
-    async def hyponym(self, ctx, word: str):
+    @commands.command(aliases=['hypo', 'hyponym'])
+    async def hyponyms(self, ctx, word: str):
         """Lists words of more specific meaning than a given word"""
         hyponym = Hyponyms(word)
         results = hyponym.find_hyponyms()
@@ -280,8 +280,8 @@ class Other(commands.Cog):
         await self.send_word_results(ctx, results, title)
 
 
-    @commands.command(aliases=['homo'])
-    async def homophone(self, ctx, word: str):
+    @commands.command(aliases=['homo', 'homophone'])
+    async def homophones(self, ctx, word: str):
         """Lists words that sound the same as a given word"""
         homophone = Homophones(word)
         results = homophone.find_homophones()
