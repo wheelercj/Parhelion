@@ -12,6 +12,8 @@ import mystbin
 from textwrap import dedent
 import json
 import random
+from deep_translator import GoogleTranslator
+from deep_translator.google_trans import LanguageNotSupportedException, TranslationNotFound
 from wordhoard import Definitions, Synonyms, Antonyms, Hypernyms, Hyponyms, Homophones
 
 # internal imports
@@ -234,6 +236,61 @@ class Other(commands.Cog):
                 new_string += char
 
         await ctx.send(new_string)
+
+
+###########################
+# translate command group #
+###########################
+
+
+    @commands.group(aliases=['trans', 'translation'], invoke_without_command=True)
+    async def translate(self, ctx, *, words: str):
+        """Translates words from any language to English"""
+        translated = await self._translate('auto', 'en', words)
+        embed = discord.Embed(title=f'English translation', description=translated)
+        await ctx.send(embed=embed)
+
+
+    @translate.command(name='to')
+    async def translate_to(self, ctx, to_language: str, *, words: str):
+        """Translates words from any language to a chosen language"""
+        translated = await self._translate('auto', to_language, words)
+        embed = discord.Embed(title=f'{to_language} translation', description=translated)
+        await ctx.send(embed=embed)
+
+
+    @translate.command(name='from')
+    async def translate_from(self, ctx, from_language: str, to_language: str, *, words: str):
+        """Translates words from a chosen language to a chosen language"""
+        translated = await self._translate(from_language, to_language, words)
+        embed = discord.Embed(title=f'{to_language} translation', description=translated)
+        await ctx.send(embed=embed)
+        
+
+    async def _translate(self, from_language: str, to_language: str, words: str) -> str:
+        """Translates words from one language to another
+        
+        Raises commands.BadArgument if a language is not recognized or a translation is not found.
+        """
+        try:
+            translated = GoogleTranslator(source=from_language, target=to_language).translate(words)
+        except LanguageNotSupportedException:
+            raise commands.BadArgument('Language not found.')
+        except TranslationNotFound:
+            raise commands.BadArgument('Translation not found.')
+        
+        return translated
+
+
+    @translate.command(name='list', aliases=['l', 's', 'search'])
+    async def list_translation_languages(self, ctx, *, query: str = None):
+        """Lists the languages supported by the translate commands"""
+        languages = GoogleTranslator.get_supported_languages()
+        if query:
+            title = f'languages that contain `{query}`'
+        else:
+            title = f'languages supported by the translate commands'
+        await paginate_search(ctx, title, languages, query)
 
 
 #################
