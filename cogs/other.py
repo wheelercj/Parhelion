@@ -291,7 +291,7 @@ class Other(commands.Cog):
 
     async def send_word_results(self, ctx, results: List[str], title: str) -> None:
         """Bullet-points and paginates a list of strings in ctx"""
-        if not len(results) or results[0].startswith('no homophones for '):
+        if not results or isinstance(results, str):
             raise commands.BadArgument('No results found.')
         for i, result in enumerate(results):
             results[i] = '• ' + result
@@ -306,8 +306,7 @@ class Other(commands.Cog):
         for word in words.split():
             homophone = Homophones(word)
             result_sentences = homophone.find_homophones()
-            if result_sentences is None \
-                    or isinstance(result_sentences, str):
+            if not result_sentences or isinstance(result_sentences, str):
                 results.append(word)
                 continue
             results.append(result_sentences[0].split()[-1])
