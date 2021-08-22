@@ -288,7 +288,7 @@ class Other(commands.Cog):
         return translated
 
 
-    @translate.command(name='list', aliases=['l', 's', 'search'])
+    @translate.command(name='languages', aliases=['l', 's', 'langs', 'list', 'search'])
     async def list_translation_languages(self, ctx, *, query: str = None):
         """Lists the languages supported by the translate commands"""
         languages = GoogleTranslator.get_supported_languages()
