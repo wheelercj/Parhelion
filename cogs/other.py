@@ -278,6 +278,7 @@ class Other(commands.Cog):
         
         Raises commands.BadArgument if a language is not recognized or a translation is not found.
         """
+        # https://pypi.org/project/deep-translator/
         try:
             translated = GoogleTranslator(source=from_language, target=to_language).translate(words)
         except LanguageNotSupportedException:
