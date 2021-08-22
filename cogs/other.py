@@ -285,6 +285,9 @@ class Other(commands.Cog):
         """Lists words that sound the same as a given word"""
         homophone = Homophones(word)
         results = homophone.find_homophones()
+        if results and not isinstance(results, str):
+            for i, result in enumerate(results):
+                results[i] = result.split()[-1]
         title = f'homophones of `{word}`'
         await self.send_word_results(ctx, results, title)
 
