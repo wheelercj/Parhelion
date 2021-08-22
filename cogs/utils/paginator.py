@@ -87,6 +87,5 @@ async def paginate_search(ctx, embed_title: str, search_list: List[str], query: 
             search_list = [x for x in search_list if query.lower() in x.lower()]
         if not len(search_list):
             raise commands.BadArgument('No matches found.')
-        search_list = sorted(search_list, key=len)
         paginator = Paginator(title=embed_title, embed=True, timeout=90, use_defaults=True, entries=search_list, length=results_per_page)
     await paginator.start(ctx)

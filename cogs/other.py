@@ -132,6 +132,7 @@ class Other(commands.Cog):
         async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
             valid_languages = tio.languages
             valid_languages.extend(['py', 'python', 'cpp', 'c++'])
+            valid_languages = sorted(valid_languages, key=len)
             await paginate_search(ctx, title, valid_languages, query)
 
 
