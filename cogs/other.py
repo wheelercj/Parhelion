@@ -95,7 +95,7 @@ class Other(commands.Cog):
                 await ctx.reply(f'New Mystb.in paste created at <{paste.url}>')
 
 
-    @commands.group(name='exec', invoke_without_command=True)
+    @commands.group(name='exec', aliases=['execute', 'run'], invoke_without_command=True)
     async def _exec(self, ctx, *, code_block: str):
         """Executes code; use `exec list` to see supported languages
         
@@ -104,6 +104,11 @@ class Other(commands.Cog):
         # https://pypi.org/project/async-tio/
         async with ctx.typing():
             language, expression = await unwrap_code_block(code_block)
+            if language in ('txt', 'py', 'python'):
+                language = 'python3'
+            elif language in ('cpp', 'c++'):
+                language = 'cpp-clang'
+                
             async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
                 if language not in tio.languages:
                     raise commands.BadArgument(f'Invalid language: {language}')
@@ -112,7 +117,7 @@ class Other(commands.Cog):
                 await ctx.send(f'`{language}` output:\n' + str(result))
 
 
-    @_exec.command(name='languages', aliases=['l', 'langs', 'list', 'search'])
+    @_exec.command(name='languages', aliases=['l', 's', 'langs', 'list', 'search'])
     async def list_languages(self, ctx, *, query: str = None):
         """Lists the languages supported by the `exec` command that contain a search word
         
@@ -123,7 +128,9 @@ class Other(commands.Cog):
         else:
             title = f'supported languages that contain `{query}`'
         async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
-            await paginate_search(ctx, title, tio.languages, query)
+            valid_languages = tio.languages
+            valid_languages.extend(['py', 'python', 'cpp', 'c++'])
+            await paginate_search(ctx, title, valid_languages, query)
 
 
     @commands.command(name='calc', aliases=['calculate', 'solve', 'math', 'maths'])
