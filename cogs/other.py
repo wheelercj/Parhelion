@@ -97,45 +97,6 @@ class Other(commands.Cog):
                 await ctx.reply(f'New Mystb.in paste created at <{paste.url}>')
 
 
-    @commands.group(name='exec', aliases=['execute', 'run'], invoke_without_command=True)
-    async def _exec(self, ctx, *, code_block: str):
-        """Executes code; use `exec list` to see supported languages
-        
-        When using the `exec languages` command, you can optionally choose a search word, e.g. `exec languages py` will only show languages that contain `py`.
-        """
-        # https://pypi.org/project/async-tio/
-        async with ctx.typing():
-            language, expression = await unwrap_code_block(code_block)
-            if language in ('txt', 'py', 'python'):
-                language = 'python3'
-            elif language in ('cpp', 'c++'):
-                language = 'cpp-clang'
-                
-            async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
-                if language not in tio.languages:
-                    raise commands.BadArgument(f'Invalid language: {language}')
-
-                result = await tio.execute(expression, language=language)
-                await ctx.send(f'`{language}` output:\n' + str(result))
-
-
-    @_exec.command(name='languages', aliases=['l', 's', 'langs', 'list', 'search'])
-    async def list_languages(self, ctx, *, query: str = None):
-        """Lists the languages supported by the `exec` command that contain a search word
-        
-        You can also see a full list of supported languages here: https://tio.run/#
-        """
-        if query is None:
-            title = 'languages supported by the `exec` command'
-        else:
-            title = f'supported languages that contain `{query}`'
-        async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
-            valid_languages = tio.languages
-            valid_languages.extend(['py', 'python', 'cpp', 'c++'])
-            valid_languages = sorted(valid_languages, key=len)
-            await paginate_search(ctx, title, valid_languages, query)
-
-
     @commands.command(name='calc', aliases=['calculate', 'solve', 'math', 'maths'])
     @commands.cooldown(25, 216, commands.BucketType.default)
     async def calculate(self, ctx, *, expression: str):
@@ -237,6 +198,50 @@ class Other(commands.Cog):
                 new_string += char
 
         await ctx.send(new_string)
+
+
+#######################
+# _exec command group #
+#######################
+
+
+    @commands.group(name='exec', aliases=['execute', 'run'], invoke_without_command=True)
+    async def _exec(self, ctx, *, code_block: str):
+        """Executes code; use `exec list` to see supported languages
+        
+        When using the `exec languages` command, you can optionally choose a search word, e.g. `exec languages py` will only show languages that contain `py`.
+        """
+        # https://pypi.org/project/async-tio/
+        async with ctx.typing():
+            language, expression = await unwrap_code_block(code_block)
+            if language in ('txt', 'py', 'python'):
+                language = 'python3'
+            elif language in ('cpp', 'c++'):
+                language = 'cpp-clang'
+                
+            async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
+                if language not in tio.languages:
+                    raise commands.BadArgument(f'Invalid language: {language}')
+
+                result = await tio.execute(expression, language=language)
+                await ctx.send(f'`{language}` output:\n' + str(result))
+
+
+    @_exec.command(name='languages', aliases=['l', 's', 'langs', 'list', 'search'])
+    async def list_programming_languages(self, ctx, *, query: str = None):
+        """Lists the languages supported by the `exec` command that contain a search word
+        
+        You can also see a full list of supported languages here: https://tio.run/#
+        """
+        if query is None:
+            title = 'languages supported by the `exec` command'
+        else:
+            title = f'supported languages that contain `{query}`'
+        async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
+            valid_languages = tio.languages
+            valid_languages.extend(['py', 'python', 'cpp', 'c++'])
+            valid_languages = sorted(valid_languages, key=len)
+            await paginate_search(ctx, title, valid_languages, query)
 
 
 ###########################
