@@ -59,7 +59,7 @@ class Paginator(buttons.Paginator):
                 self._pages.append(self.joiner.join(chunk))
             else:
                 embed = discord.Embed(title=self.title, description=self.joiner.join(chunk), colour=self.colour)
-                embed.set_footer(text=f'page {i+1}/{len(entries)}')
+                embed.set_footer(text=f'\u200b\npage {i+1}/{len(entries)}')
 
                 if self.thumbnail:
                     embed.set_thumbnail(url=self.thumbnail)
