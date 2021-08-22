@@ -3,7 +3,7 @@ import discord
 from discord.abc import Messageable
 from discord.ext import commands
 from datetime import datetime, timedelta, timezone
-from typing import Tuple
+from typing import List, Tuple
 import asyncio
 import asyncpg
 from aiohttp.client_exceptions import ContentTypeError
@@ -12,11 +12,12 @@ import mystbin
 from textwrap import dedent
 import json
 import random
+from wordhoard import Definitions, Synonyms, Antonyms, Hypernyms, Hyponyms, Homophones
 
 # internal imports
 from cogs.utils.io import unwrap_code_block, send_traceback, get_attachment_url, safe_send
 from cogs.utils.time import parse_time_message, create_short_timestamp
-from cogs.utils.paginator import paginate_search
+from cogs.utils.paginator import paginate_search, Paginator
 
 
 '''
@@ -226,6 +227,91 @@ class Other(commands.Cog):
                 new_string += char
 
         await ctx.send(new_string)
+
+
+#################
+# word commands #
+#################
+
+
+    @commands.command(aliases=['def'])
+    async def define(self, ctx, word: str):
+        """Lists definitions of a given word"""
+        # https://github.com/johnbumgarner/wordhoard
+        definition = Definitions(word)
+        results = definition.find_definitions()
+        title = f'definition of `{word}`'
+        await self.send_word_results(ctx, results, title)
+
+
+    @commands.command(aliases=['syno'])
+    async def synonym(self, ctx, word: str):
+        """Lists words with the same or similar meaning to a given word"""
+        synonym = Synonyms(word)
+        results = synonym.find_synonyms()
+        title = f'synonyms of `{word}`'
+        await self.send_word_results(ctx, results, title)
+
+
+    @commands.command(aliases=['anto'])
+    async def antonym(self, ctx, word: str):
+        """Lists words with the opposite meaning as a given word"""
+        antonym = Antonyms(word)
+        results = antonym.find_antonyms()
+        title = f'antonyms of `{word}`'
+        await self.send_word_results(ctx, results, title)
+
+
+    @commands.command(aliases=['hyper'])
+    async def hypernym(self, ctx, word: str):
+        """Lists words of more general meaning than a given word"""
+        hypernym = Hypernyms(word)
+        results = hypernym.find_hypernyms()
+        title = f'hypernyms of `{word}`'
+        await self.send_word_results(ctx, results, title)
+
+
+    @commands.command(aliases=['hypo'])
+    async def hyponym(self, ctx, word: str):
+        """Lists words of more specific meaning than a given word"""
+        hyponym = Hyponyms(word)
+        results = hyponym.find_hyponyms()
+        title = f'hyponyms of `{word}`'
+        await self.send_word_results(ctx, results, title)
+
+
+    @commands.command(aliases=['homo'])
+    async def homophone(self, ctx, word: str):
+        """Lists words that sound the same as a given word"""
+        homophone = Homophones(word)
+        results = homophone.find_homophones()
+        title = f'homophones of `{word}`'
+        await self.send_word_results(ctx, results, title)
+
+
+    async def send_word_results(self, ctx, results: List[str], title: str) -> None:
+        """Bullet-points and paginates a list of strings in ctx"""
+        if not len(results) or results[0].startswith('no homophones for '):
+            raise commands.BadArgument('No results found.')
+        for i, result in enumerate(results):
+            results[i] = '• ' + result
+        paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=results, length=15)
+        await paginator.start(ctx)
+
+
+    @commands.command(name='auto-incorrect', aliases=['ai', 'autoincorrect'])
+    async def auto_incorrect(self, ctx, *, words: str):
+        """Replaces as many words as possible with different words that sound the same"""
+        results = []
+        for word in words.split():
+            homophone = Homophones(word)
+            result_sentences = homophone.find_homophones()
+            if result_sentences is None \
+                    or isinstance(result_sentences, str):
+                results.append(word)
+                continue
+            results.append(result_sentences[0].split()[-1])
+        await ctx.send(' '.join(results))
 
 
 #######################
