@@ -308,8 +308,9 @@ class Other(commands.Cog):
             result_sentences = homophone.find_homophones()
             if not result_sentences or isinstance(result_sentences, str):
                 results.append(word)
-                continue
-            results.append(result_sentences[0].split()[-1])
+            else:
+                results.append(result_sentences[0].split()[-1])
+        
         await ctx.send(' '.join(results))
 
 
