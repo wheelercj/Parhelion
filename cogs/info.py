@@ -156,7 +156,7 @@ class Info(commands.Cog):
             value='\u200b\n\u200b')
 
         embed.add_field(name='links\u2800',
-            value=f'[bot invite]({bot_invite_link})\u2800\n' \
+            value=f'[invite]({bot_invite_link})\u2800\n' \
                 f'[support server]({Dev_Settings.support_server_link})\u2800\n' \
                 f'[privacy policy]({Dev_Settings.privacy_policy_link})\u2800\n')
         embed.add_field(name='\u2800made with\u2800',
