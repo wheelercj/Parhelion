@@ -13,6 +13,7 @@ from typing import List
 # internal imports
 from cogs.utils.time import parse_time_message, format_datetime, format_timedelta, create_relative_timestamp
 from cogs.utils.common import get_prefixes_message, get_prefixes_list, get_bot_invite_link
+from cogs.utils.paginator import Paginator
 from cogs.settings import Dev_Settings
 
 
@@ -23,20 +24,92 @@ def yes_or_no(boolean: bool) -> str:
     return 'no'
 
 
-# Guide on subclassing HelpCommand: https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96
-class Embedded_Minimal_Help_Command(commands.MinimalHelpCommand):
+class MyHelp(commands.HelpCommand):
+    # Guide on subclassing HelpCommand: https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96
     def __init__(self):
         super().__init__()
         self.command_attrs = {
             'name': 'help',
-            'aliases': ['h', 'helps', 'command', 'commands']
-        }
+            'aliases': ['h', 'helps', 'command', 'commands']}
 
-    async def send_pages(self):
+
+    def get_command_signature(self, command):
+        return f'{self.context.prefix}{command.qualified_name} {command.signature}'
+
+
+    async def send_bot_help(self, mapping):
+        """Gets called with `<prefix>help`"""
+        prefix: str = self.context.prefix
+        help_cmd_name: str = self.context.invoked_with
+        embed = discord.Embed(
+            title='help',
+            description=f'Use `{prefix}{help_cmd_name} [category]` for more info on a category.\n\u200b')
+
+        for cog, commands in mapping.items():
+            filtered = await self.filter_commands(commands, sort=True)
+            if filtered:
+                cog_name = getattr(cog, 'qualified_name', 'No Category')
+                if not cog.description:
+                    raise ValueError('Each cog must have a description.')
+                embed.add_field(name=f'__{cog_name}__', value=cog.description, inline=False)
+
+        support_link = Dev_Settings.support_server_link
+        invite_link = await get_bot_invite_link(self.context.bot)
+        embed.add_field(
+            name='\u200b',
+            value=f'[support server]({support_link}) \u2800❂\u2800 [invite]({invite_link})')
         destination = self.get_destination()
-        for page in self.paginator.pages:
-            embed = discord.Embed(description=page)
-            await destination.send(embed=embed)
+        await destination.send(embed=embed)
+
+
+    async def send_cog_help(self, cog):
+        """Gets called with `<prefix>help <cog>`"""
+        commands = cog.get_commands()
+        filtered = await self.filter_commands(commands, sort=True)
+        cmd_signatures = [self.get_command_signature(c) for c in filtered]
+        if not cmd_signatures:
+            raise commands.BadArgument('You do not have access to this category.')
+        
+        cog_name = getattr(cog, 'qualified_name', 'No Category')
+        title = f'{cog_name}'
+        prefix: str = self.context.prefix
+        help_cmd_name: str = self.context.invoked_with
+        entries = [f'Use `{prefix}{help_cmd_name} [command]` for more info on a command.', ''] + cmd_signatures
+        paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=entries, length=20)
+        await paginator.start(self.context)
+
+
+    async def send_group_help(self, group):
+        """Gets called with `<prefix>help <group>`"""
+        message = self.get_command_signature(group)
+        if group.aliases:
+            aliases = '**Aliases:** ' + ', '.join(group.aliases)
+            message += '\n' + aliases
+        prefix: str = self.context.prefix
+        help_cmd_name: str = self.context.invoked_with
+        message += '\n\n' + group.help \
+            + f'\n\nUse `{prefix}{help_cmd_name} [command]` for more info on a command.' \
+            + '\n\n**Commands**'
+        filtered = await self.filter_commands(group.commands, sort=True)
+        for c in filtered:
+            message += f'\n{prefix}{c.qualified_name} – {c.short_doc}'
+
+        embed = discord.Embed(description=message)
+        destination = self.get_destination()
+        await destination.send(embed=embed)
+        
+
+    async def send_command_help(self, command):
+        """Gets called with `<prefix>help <command>`"""
+        message = self.get_command_signature(command)
+        if command.aliases:
+            aliases = '**Aliases:** ' + ', '.join(command.aliases)
+            message += '\n' + aliases
+        message += '\n\n' + command.help
+
+        embed = discord.Embed(description=message)
+        destination = self.get_destination()
+        await destination.send(embed=embed)
 
 
 class Info(commands.Cog):
@@ -44,7 +117,7 @@ class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.old_help_command = bot.help_command
-        bot.help_command = Embedded_Minimal_Help_Command()
+        bot.help_command = MyHelp()
         bot.help_command.cog = self
 
 
