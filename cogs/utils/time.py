@@ -1,6 +1,6 @@
 # external imports
 from discord.ext import commands
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 import dateparser
 from typing import Tuple, Optional
 import asyncpg
