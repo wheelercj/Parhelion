@@ -4,6 +4,7 @@ from discord.ext import commands
 
 
 class Mod(commands.Cog):
+    """Moderate the server."""
     def __init__(self, bot):
         self.bot = bot
 

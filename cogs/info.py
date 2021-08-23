@@ -40,6 +40,7 @@ class Embedded_Minimal_Help_Command(commands.MinimalHelpCommand):
 
 
 class Info(commands.Cog):
+    """See info about this bot or the server."""
     def __init__(self, bot):
         self.bot = bot
         self.old_help_command = bot.help_command

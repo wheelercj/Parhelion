@@ -80,6 +80,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
 
 class Music(commands.Cog):
+    """Play music in Discord."""
     def __init__(self, bot):
         self.bot = bot
 

@@ -12,7 +12,7 @@ from cogs.utils.common import escape_json
 
 
 class Owner(commands.Cog):
-    """Commands that can only be used by the bot owner"""
+    """Commands that can only be used by the bot owner."""
     def __init__(self, bot):
         self.bot = bot
 

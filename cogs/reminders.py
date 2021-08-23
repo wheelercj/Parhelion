@@ -35,6 +35,7 @@ class RunningReminderInfo():
 
 
 class Reminders(commands.Cog):
+    """Send yourself messages at specific times."""
     def __init__(self, bot):
         self.bot = bot
         self._task = self.bot.loop.create_task(self.run_reminders())

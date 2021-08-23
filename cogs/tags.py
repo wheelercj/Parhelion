@@ -32,6 +32,7 @@ from cogs.utils.common import plural
 
 
 class Tags(commands.Cog):
+    """Save and share messages such as FAQs."""
     def __init__(self, bot):
         self.bot = bot
         self.tag_count_limit = 10

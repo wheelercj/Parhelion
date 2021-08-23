@@ -19,6 +19,7 @@ CREATE TABLE docs (
 
 
 class Docs(commands.Cog):
+    """Browse documentation."""
     def __init__(self, bot):
         self.bot = bot
         self._task = bot.loop.create_task(self.load_docs_urls())

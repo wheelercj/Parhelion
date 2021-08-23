@@ -72,6 +72,7 @@ class CommandName(commands.Converter):
 
 
 class Settings(commands.Cog):
+    """Customize how this bot works."""
     def __init__(self, bot):
         self.bot = bot
         self.settings_task = bot.loop.create_task(self.load_settings())

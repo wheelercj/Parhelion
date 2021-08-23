@@ -41,6 +41,7 @@ class RunningQuoteInfo:
 
 
 class Other(commands.Cog):
+    """A variety of commands that don't fit in the other categories."""
     def __init__(self, bot):
         self.bot = bot
         self.quotes_task = self.bot.loop.create_task(self.run_daily_quotes())
