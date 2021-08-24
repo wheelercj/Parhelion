@@ -139,15 +139,15 @@ class Info(commands.Cog):
         await ctx.send(message)
 
 
-    @commands.command(name='timestamp')
-    async def _timestamp(self, ctx, *, _time: str):
+    @commands.command(name='timestamp', aliases=['ts'])
+    async def _timestamp(self, ctx, *, time: str):
         """Shows how you can create timestamps that work with each device's timezone
 
         You can enter the date/time/duration in natural language,
         and you can copy and paste a raw timestamp into your discord messages.
         If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
         """
-        dt, _ = await parse_time_message(ctx, _time)
+        dt, _ = await parse_time_message(ctx, time)
         unix_time = int(dt.timestamp())
         output = dedent(f'''
             short time:
