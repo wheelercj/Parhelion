@@ -85,7 +85,8 @@ class MyHelp(commands.HelpCommand):
         message = cog.description \
             + f'\n\nUse `{prefix}{help_cmd_name} [command]` for more info on a command.' \
             + ' Some command arguments are <required> and others are [optional].' \
-            + '\n\n' + '\n'.join(cmd_signatures)
+            + '\n\n**Commands**' \
+            + '\n' + '\n'.join(cmd_signatures)
 
         cog_name = getattr(cog, 'qualified_name', 'No Category')
         title = f'{cog_name}'
