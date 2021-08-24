@@ -395,20 +395,20 @@ class Other(commands.Cog):
 
 
     @commands.group(invoke_without_command=True)
-    async def quote(self, ctx, *, _time: str = None):
+    async def quote(self, ctx, *, time: str = None):
         """Shows a random famous quote
         
         If a time is provided in HH:mm format, a quote will be sent each day at that time.
         You can cancel daily quotes with `quote stop`.
         If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
         """
-        if _time is None:
+        if time is None:
             await self.send_quote(ctx)
             return
 
-        if _time.count(':') != 1 or _time[-1] == ':':
+        if time.count(':') != 1 or time[-1] == ':':
             raise commands.BadArgument('Please enter a time in HH:mm format. You may use 24-hour time or either AM or PM.')
-        dt, _ = await parse_time_message(ctx, _time)
+        dt, _ = await parse_time_message(ctx, time)
         now = datetime.now(timezone.utc)
         target_time = datetime(now.year, now.month, now.day, int(dt.hour), int(dt.minute), tzinfo=timezone.utc)
         if target_time < now:
