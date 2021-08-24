@@ -277,7 +277,7 @@ class Info(commands.Cog):
         await ctx.send(f"Here's the link to invite me to another server: <{bot_invite_link}>")
 
 
-    @commands.command(aliases=['contact'], hidden=True)
+    @commands.command(aliases=['contact', 'server'], hidden=True)
     async def support(self, ctx):
         """Shows the link to this bot's support server"""
         await ctx.send(f"Here's the link to my support server: <{Dev_Settings.support_server_link}>")
