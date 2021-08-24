@@ -41,9 +41,8 @@ class MyHelp(commands.HelpCommand):
         """Gets called with `<prefix>help`"""
         prefix: str = self.context.prefix
         help_cmd_name: str = self.context.invoked_with
-        embed = discord.Embed(
-            title='help',
-            description=f'Use `{prefix}{help_cmd_name} [category]` for more info on a category.\n\u200b')
+        message = f'Use `{prefix}{help_cmd_name} [category]` for more info on a category.\n\u200b'
+        
 
         for cog, commands in mapping.items():
             filtered = await self.filter_commands(commands, sort=True)
@@ -51,13 +50,13 @@ class MyHelp(commands.HelpCommand):
                 cog_name = getattr(cog, 'qualified_name', 'No Category')
                 if not cog.description:
                     raise ValueError('Each cog must have a description.')
-                embed.add_field(name=f'__{cog_name}__', value=cog.description, inline=False)
+                message += f'\n**__{cog_name}__**: {cog.description}'
 
-        support_link = Dev_Settings.support_server_link
-        invite_link = await get_bot_invite_link(self.context.bot)
-        embed.add_field(
-            name='\u200b',
-            value=f'[support server]({support_link}) \u2800❂\u2800 [invite]({invite_link})')
+        message += f'\u200b\n\n[support server]({Dev_Settings.support_server_link}) \u2800❂\u2800 ' \
+            f'[invite]({await get_bot_invite_link(self.context.bot)}) \u2800❂\u2800 ' \
+            f'[privacy policy]({Dev_Settings.privacy_policy_link})'
+
+        embed = discord.Embed(description=message)
         destination = self.get_destination()
         await destination.send(embed=embed)
 
