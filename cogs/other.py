@@ -80,7 +80,7 @@ class Other(commands.Cog):
 
     @commands.command(aliases=['link', 'url', 'publish', 'post', 'paste', 'mystbin'])
     async def share(self, ctx, *, text: str = None):
-        """Gives you a URL to your text or attachment
+        """Gives you a shareable URL to your text or attachment
 
         Text is posted publicly on Mystb.in and cannot be edited or deleted once posted. Attachments stay on Discord's servers until deleted. For text, you can use a code block. Not all file types work for attachments.
         """
@@ -208,7 +208,7 @@ class Other(commands.Cog):
 
     @commands.group(name='exec', aliases=['execute', 'run'], invoke_without_command=True)
     async def _exec(self, ctx, *, code_block: str):
-        """Executes code; use `exec list` to see supported languages
+        """Executes code; use `exec languages` to see supported languages
         
         When using the `exec languages` command, you can optionally choose a search word, e.g. `exec languages py` will only show languages that contain `py`.
         """
@@ -235,6 +235,8 @@ class Other(commands.Cog):
         You can also see a full list of supported languages here: https://tio.run/#
         """
         if query is None:
+            await ctx.send('You can optionally choose a search term, e.g. ' \
+                '`exec languages py` will only show languages that contain "py"')
             title = 'languages supported by the `exec` command'
         else:
             title = f'supported languages that contain `{query}`'
@@ -252,7 +254,10 @@ class Other(commands.Cog):
 
     @commands.group(aliases=['trans', 'translation'], invoke_without_command=True)
     async def translate(self, ctx, *, words: str):
-        """Translates words from any language to English"""
+        """A group of commands for translating between languages
+        
+        Without a subcommand, this command translates words from any language (auto-detected) to English.
+        """
         translated = await self._translate('auto', 'en', words)
         embed = discord.Embed(title=f'English translation', description=translated)
         await ctx.send(embed=embed)
@@ -260,7 +265,7 @@ class Other(commands.Cog):
 
     @translate.command(name='to')
     async def translate_to(self, ctx, to_language: str, *, words: str):
-        """Translates words from any language to a chosen language"""
+        """Translates words from any language (auto-detected) to a chosen language"""
         translated = await self._translate('auto', to_language, words)
         embed = discord.Embed(title=f'{to_language} translation', description=translated)
         await ctx.send(embed=embed)
