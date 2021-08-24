@@ -73,6 +73,7 @@ class MyHelp(commands.HelpCommand):
         help_cmd_name: str = self.context.invoked_with
         message = cog.description \
             + f'\n\nUse `{prefix}{help_cmd_name} [command]` for more info on a command.' \
+            + ' Some command arguments are <required> and others are [optional].' \
             + '\n\n' + '\n'.join(cmd_signatures)
 
         cog_name = getattr(cog, 'qualified_name', 'No Category')
@@ -92,6 +93,7 @@ class MyHelp(commands.HelpCommand):
         help_cmd_name: str = self.context.invoked_with
         message += '\n\n' + group.help \
             + f'\n\nUse `{prefix}{help_cmd_name} [command]` for more info on a command.' \
+            + ' Some command arguments are <required> and others are [optional].' \
             + '\n\n**Commands**'
         filtered = await self.filter_commands(group.commands, sort=True)
         for c in filtered:
