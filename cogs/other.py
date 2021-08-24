@@ -334,7 +334,7 @@ class Other(commands.Cog):
         await self.send_word_results(ctx, results, title)
 
 
-    @commands.command(aliases=['hyper', 'hypernym'])
+    @commands.command(aliases=['hyper', 'hypernym'], hidden=True)
     async def hypernyms(self, ctx, word: str):
         """Lists words of more general meaning than a given word"""
         hypernym = Hypernyms(word)
@@ -343,7 +343,7 @@ class Other(commands.Cog):
         await self.send_word_results(ctx, results, title)
 
 
-    @commands.command(aliases=['hypo', 'hyponym'])
+    @commands.command(aliases=['hypo', 'hyponym'], hidden=True)
     async def hyponyms(self, ctx, word: str):
         """Lists words of more specific meaning than a given word"""
         hyponym = Hyponyms(word)
@@ -352,7 +352,7 @@ class Other(commands.Cog):
         await self.send_word_results(ctx, results, title)
 
 
-    @commands.command(aliases=['homo', 'homophone'])
+    @commands.command(aliases=['homo', 'homophone'], hidden=True)
     async def homophones(self, ctx, word: str):
         """Lists words that sound the same as a given word"""
         homophone = Homophones(word)
