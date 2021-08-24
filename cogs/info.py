@@ -13,6 +13,7 @@ from typing import List
 # internal imports
 from cogs.utils.time import parse_time_message, format_datetime, format_timedelta, create_relative_timestamp
 from cogs.utils.common import get_prefixes_message, get_prefixes_list, get_bot_invite_link
+from cogs.utils.paginator import Paginator
 from cogs.settings import Dev_Settings
 
 
@@ -303,6 +304,18 @@ class Info(commands.Cog):
     @commands.command(hidden=True)
     async def source(self, ctx):
         await ctx.send('I am closed source.')
+
+
+    @commands.command()
+    async def tips(self, ctx):
+        """Shows tips on how to use this bot"""
+        _tips = [
+            'For each command with a hyphen in its name, typing the hyphen is optional.',
+            f'Most commands have aliases that are easier to type; see a command\'s aliases with `{ctx.prefix}help [command]`.',
+        ]
+        
+        paginator = Paginator(title='tips', prefix='•', embed=True, timeout=90, use_defaults=True, entries=_tips, length=15)
+        await paginator.start(ctx)
 
 
 #########################
