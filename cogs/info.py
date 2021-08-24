@@ -13,7 +13,6 @@ from typing import List
 # internal imports
 from cogs.utils.time import parse_time_message, format_datetime, format_timedelta, create_relative_timestamp
 from cogs.utils.common import get_prefixes_message, get_prefixes_list, get_bot_invite_link
-from cogs.utils.paginator import Paginator
 from cogs.settings import Dev_Settings
 
 
