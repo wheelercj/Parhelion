@@ -577,8 +577,9 @@ class Settings(commands.Cog):
     @commands.group(name='set', aliases=['setting'], invoke_without_command=True)
     @commands.has_guild_permissions(manage_guild=True)
     async def setting(self, ctx, command_name: CommandName = None):
-        """Shows all the settings for a command and/or the entire bot
-
+        """A group of commands for managing the bot's settings for this server
+        
+        Without a subcommand, this command shows all the settings for a command and/or the entire bot.
         Only settings that are relevant to this server are shown.
         Use the `set guide` command for more help with settings.
         """

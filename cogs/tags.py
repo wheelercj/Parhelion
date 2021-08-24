@@ -48,9 +48,11 @@ class Tags(commands.Cog):
 
     @commands.group(invoke_without_command=True)
     async def tag(self, ctx, *, tag_name: str):
-        """Finds and shows a tag's contents
+        """A group of commands for creating and viewing tags
         
-        You can use tags to quickly save and share messages, such as for FAQs. Tags can be viewed by anyone on the server, but not other servers.
+        Without a subcommand, this command finds and shows a tag's contents.
+        You can use tags to quickly save and share messages, such as for FAQs.
+        Tags can be viewed by anyone on this server, but not other servers.
         """
         view_tag_command = self.bot.get_command('tag view')
         await ctx.invoke(view_tag_command, tag_name=tag_name)
@@ -311,7 +313,10 @@ class Tags(commands.Cog):
 
     @tag.group(name='id')
     async def tag_id(self, ctx, tag_ID: int = None):
-        """A group of commands using tag IDs instead of tag names"""
+        """A group of commands using tag IDs instead of tag names
+        
+        Without a subcommand, this command finds and shows a tag's contents.
+        """
         view_tag_by_id_command = self.bot.get_command('tag id view')
         await ctx.invoke(view_tag_by_id_command, tag_ID=tag_ID)
 

@@ -43,14 +43,17 @@ class Docs(commands.Cog):
 
     @commands.group(invoke_without_command=True)
     async def doc(self, ctx, *, query: str = None):
-        """Searches this server's chosen documentation source"""
+        """A group of commands for searching documentation
+        
+        Without a subcommand, this command searches this server's chosen documentation.
+        """
         doc_search_command = self.bot.get_command('doc search')
         await ctx.invoke(doc_search_command, query=query)
 
 
     @doc.command(name='search')
     async def search_doc(self, ctx, *, query: str = None):
-        """An alias for `doc` in case a subcommand name conflicts with a search query"""
+        """An alias for `doc`; searches this server's chosen documentation"""
         try:
             url = self.docs_urls[ctx.guild.id]
         except KeyError:
