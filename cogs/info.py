@@ -77,23 +77,26 @@ class MyHelp(commands.HelpCommand):
         """Gets called with `<prefix>help <cog>`"""
         commands = cog.get_commands()
         filtered = await self.filter_commands(commands, sort=True)
-        cmd_signatures = [await self.get_command_signature(c) for c in filtered]
-        if not cmd_signatures:
+        if not filtered:
             raise commands.BadArgument('You do not have access to this category.')
+
+        cmd_signatures = []
+        for c in filtered:
+            signature = await self.get_command_signature(c)
+            cmd_signatures.append(f'`{signature}`\n{c.short_doc}')
         
         prefix: str = await self.get_clean_prefix()
         help_cmd_name: str = self.context.invoked_with
-        message = cog.description \
-            + f'\n\nUse `{prefix}{help_cmd_name} [command]` for more info on a command.' \
-            + ' Some command arguments are <required> and others are [optional].' \
-            + '\n\n**Commands**' \
-            + '\n' + '\n'.join(cmd_signatures)
+        entries = [cog.description]
+        entries.append(f'\nUse `{prefix}{help_cmd_name} [command]` for more info on a command.' \
+            + ' Some command arguments are <required> and others are [optional].')
+        entries.append('\n**Commands**')
+        entries.extend(cmd_signatures)
 
         cog_name = getattr(cog, 'qualified_name', 'No Category')
         title = f'{cog_name}'
-        embed = discord.Embed(title=title, description=message)
-        destination = self.get_destination()
-        await destination.send(embed=embed)
+        paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=entries, length=10)
+        await paginator.start(self.context)
 
 
     async def send_group_help(self, group: commands.Group) -> None:
