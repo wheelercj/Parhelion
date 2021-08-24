@@ -69,13 +69,17 @@ class MyHelp(commands.HelpCommand):
         if not cmd_signatures:
             raise commands.BadArgument('You do not have access to this category.')
         
-        cog_name = getattr(cog, 'qualified_name', 'No Category')
-        title = f'{cog_name}'
         prefix: str = self.context.prefix
         help_cmd_name: str = self.context.invoked_with
-        entries = [f'Use `{prefix}{help_cmd_name} [command]` for more info on a command.', ''] + cmd_signatures
-        paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=entries, length=20)
-        await paginator.start(self.context)
+        message = cog.description \
+            + f'\n\nUse `{prefix}{help_cmd_name} [command]` for more info on a command.' \
+            + '\n\n' + '\n'.join(cmd_signatures)
+
+        cog_name = getattr(cog, 'qualified_name', 'No Category')
+        title = f'{cog_name}'
+        embed = discord.Embed(title=title, description=message)
+        destination = self.get_destination()
+        await destination.send(embed=embed)
 
 
     async def send_group_help(self, group):
