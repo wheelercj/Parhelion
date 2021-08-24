@@ -130,7 +130,52 @@ class Info(commands.Cog):
         self.bot.help_command = self.old_help_command
 
 
-    @commands.command(hidden=True)
+    @commands.command(name='time', aliases=['clock', 'UTC', 'utc'])
+    async def _time(self, ctx):
+        """Shows the current time in UTC"""
+        current_time = await format_datetime(datetime.now(tz.utc))
+        now_timestamp = await create_relative_timestamp(datetime.now(tz.utc))
+        message = f'The current time in UTC is {current_time}\n' \
+                f'The current time in your device\'s timezone is {now_timestamp}'
+        await ctx.send(message)
+
+
+    @commands.command(name='timestamp')
+    async def _timestamp(self, ctx, *, _time: str):
+        """Shows how you can create timestamps that work with each device's timezone
+
+        You can enter the date/time/duration in natural language,
+        and you can copy and paste a raw timestamp into your discord messages.
+        If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
+        """
+        dt, _ = await parse_time_message(ctx, _time)
+        unix_time = int(dt.timestamp())
+        output = dedent(f'''
+            short time:
+                `<t:{unix_time}:t>` → <t:{unix_time}:t>
+            long time:
+                `<t:{unix_time}:T>` → <t:{unix_time}:T>
+            short date:
+                `<t:{unix_time}:d>` → <t:{unix_time}:d>
+            long date:
+                `<t:{unix_time}:D>` → <t:{unix_time}:D>
+            short date/time:
+                `<t:{unix_time}:f>` → <t:{unix_time}:f>
+            long date/time:
+                `<t:{unix_time}:F>` → <t:{unix_time}:F>
+            relative time:
+                `<t:{unix_time}:R>` → <t:{unix_time}:R>
+            ''')
+
+        await ctx.send(output)
+
+
+#####################
+# bot info commands #
+#####################
+
+
+    @commands.command()
     async def prefixes(self, ctx):
         """Lists the bot's current prefixes for this server"""
         prefixes = await get_prefixes_message(self.bot, ctx.message)
@@ -143,24 +188,21 @@ class Info(commands.Cog):
         await ctx.send(f'Pong! Websocket latency: {self.bot.latency * 1000:.2f} ms')
 
 
-    @commands.command(name='time', aliases=['clock', 'UTC', 'utc'])
-    async def _time(self, ctx):
-        """Shows the current time in UTC"""
-        current_time = await format_datetime(datetime.now(tz.utc))
-        now_timestamp = await create_relative_timestamp(datetime.now(tz.utc))
-        message = f'The current time in UTC is {current_time}\n' \
-                f'The current time in your device\'s timezone is {now_timestamp}'
-        await ctx.send(message)
-
-
     @commands.command(hidden=True)
     async def uptime(self, ctx):
         """Shows the time since the bot last restarted"""
         _uptime = await self.get_uptime(ctx)
         await ctx.send(f'Uptime: {_uptime}')
 
-    
-    @commands.command(hidden=True)
+
+    async def get_uptime(self) -> str:
+        """Returns the amount of time the bot has been running"""
+        _uptime = datetime.now(tz.utc) - self.bot.launch_time
+        time_message = await format_timedelta(_uptime)
+        return time_message
+
+
+    @commands.command()
     async def stats(self, ctx):
         """Shows statistics about this bot"""
         embed = discord.Embed()
@@ -174,6 +216,18 @@ class Info(commands.Cog):
                 f'commands {ctx.author} can use here: {await self.count_available_cmds(ctx)}\n' \
                 f'lines of code: {self.count_bot_loc()}')
         await ctx.send(embed=embed)
+
+
+    async def count_available_cmds(self, ctx) -> int:
+        """Counts the commands that ctx.author can use"""
+        count = 0
+        for cmd in self.bot.commands:
+            try:
+                if await cmd.can_run(ctx):
+                    count += 1
+            except commands.CommandError:
+                pass
+        return count
 
 
     @lru_cache
@@ -219,7 +273,7 @@ class Info(commands.Cog):
         await ctx.send(f"Here's my privacy policy: <{Dev_Settings.privacy_policy_link}>")
 
 
-    @commands.command()
+    @commands.command(aliases=['i', 'info'])
     async def about(self, ctx):
         """Shows general info about this bot"""
         embed = discord.Embed(title=f'{self.bot.user.name}#{self.bot.user.discriminator}')
@@ -252,49 +306,12 @@ class Info(commands.Cog):
         await ctx.send('I am closed source.')
 
 
-    @commands.command(name='timestamp')
-    async def _timestamp(self, ctx, *, _time: str):
-        """Shows how you can create timestamps that work with each device's timezone
-
-        You can enter the date/time/duration in natural language,
-        and you can copy and paste a raw timestamp into your discord messages.
-        If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
-        """
-        dt, _ = await parse_time_message(ctx, _time)
-        unix_time = int(dt.timestamp())
-        output = dedent(f'''
-            short time:
-                `<t:{unix_time}:t>` → <t:{unix_time}:t>
-            long time:
-                `<t:{unix_time}:T>` → <t:{unix_time}:T>
-            short date:
-                `<t:{unix_time}:d>` → <t:{unix_time}:d>
-            long date:
-                `<t:{unix_time}:D>` → <t:{unix_time}:D>
-            short date/time:
-                `<t:{unix_time}:f>` → <t:{unix_time}:f>
-            long date/time:
-                `<t:{unix_time}:F>` → <t:{unix_time}:F>
-            relative time:
-                `<t:{unix_time}:R>` → <t:{unix_time}:R>
-            ''')
-
-        await ctx.send(output)
+#########################
+# Discord info commands #
+#########################
 
 
-######################
-# info command group #
-######################
-
-
-    @commands.group(aliases=['i'], invoke_without_command=True)
-    @commands.guild_only()
-    async def info(self, ctx):
-        """Shows info about various topics. Use one of the subcommands listed below."""
-        await ctx.send_help('info')
-
-
-    @info.command(name='server', aliases=['s', 'g', 'guild'])
+    @commands.command(name='server-info', aliases=['si', 'gi', 'serverinfo', 'guild-info', 'guildinfo'])
     @commands.guild_only()
     async def server_info(self, ctx):
         """Shows info about the current server"""
@@ -341,13 +358,6 @@ class Info(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.command(name='server-info', aliases=['si', 'serverinfo'], hidden=True)
-    async def server_info_alias(self, ctx):
-        """An alias for `info server`; shows info about the current server"""
-        server_info_command = self.bot.get_command('info server')
-        await ctx.invoke(server_info_command)
-
-
     async def get_bot_count(self, server: discord.Guild) -> int:
         """Counts the bots in the server"""
         return sum(m.bot for m in server.members)
@@ -361,9 +371,9 @@ class Info(commands.Cog):
         return features
 
 
-    @info.command(name='member', aliases=['m', 'u', 'user'])
+    @commands.command(name='member-info', aliases=['mi', 'ui', 'whois', 'who-is', 'memberinfo', 'user-info', 'userinfo'])
     @commands.guild_only()
-    async def member_info(self, ctx, member: discord.Member):
+    async def member_info(self, ctx, *, member: discord.Member):
         """Shows info about a member of the current server
         
         To see member permissions, use the `info perms` command.
@@ -385,13 +395,6 @@ class Info(commands.Cog):
         embed.set_thumbnail(url=member.avatar_url)
 
         await ctx.send(embed=embed)
-
-
-    @commands.command(name='member-info', aliases=['mi', 'whois', 'who-is', 'memberinfo', 'user-info', 'ui', 'userinfo'], hidden=True)
-    async def member_info_alias(self, ctx, member: discord.Member):
-        """An alias for `info member`; shows info about a member of the current server"""
-        member_info_command = self.bot.get_command('info member')
-        await ctx.invoke(member_info_command, member=member)
 
 
     async def get_whether_bot(self, member: discord.Member) -> str:
@@ -439,44 +442,9 @@ class Info(commands.Cog):
             return ''
 
 
-    @info.command(name='bot', aliases=['b'])
-    async def _bot_info(self, ctx):
-        """Shows info about this bot"""
-        about_command = self.bot.get_command('about')
-        await ctx.invoke(about_command)
-        stats_command = self.bot.get_command('stats')
-        await ctx.invoke(stats_command)
-
-
-    @commands.command(name='bot-info', aliases=['bi', 'botinfo'], hidden=True)
-    async def _bot_info_alias(self, ctx):
-        """An alias for `info bot`; shows info about this bot"""
-        bot_info_command = self.bot.get_command('info bot')
-        await ctx.invoke(bot_info_command)
-
-
-    async def get_uptime(self, ctx) -> str:
-        """Returns the amount of time the bot has been running"""
-        _uptime = datetime.now(tz.utc) - self.bot.launch_time
-        time_message = await format_timedelta(_uptime)
-        return time_message
-
-
-    async def count_available_cmds(self, ctx) -> int:
-        """Counts the commands that ctx.author can use"""
-        count = 0
-        for cmd in self.bot.commands:
-            try:
-                if await cmd.can_run(ctx):
-                    count += 1
-            except commands.CommandError:
-                pass
-        return count
-
-
-    @info.command(name='role', aliases=['r'])
+    @commands.command(name='role-info', aliases=['ri', 'roleinfo'])
     @commands.guild_only()
-    async def role_info(self, ctx, role: discord.Role):
+    async def role_info(self, ctx, *, role: discord.Role):
         """Shows info about a role on the current server
         
         To see role permissions, use the `info perms` command.
@@ -503,16 +471,9 @@ class Info(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.command(name='role-info', aliases=['ri', 'roleinfo'], hidden=True)
-    async def role_info_alias(self, ctx, role: discord.Role):
-        """An alias for `info role`; shows info about a role on the current server"""
-        role_info_command = self.bot.get_command('info role')
-        await ctx.invoke(role_info_command, role=role)
-
-
-    @info.command(name='perms', aliases=['permissions'])
+    @commands.command(name='permissions', aliases=['perms'])
     @commands.guild_only()
-    async def server_permissions(self, ctx, member_or_role: Union[discord.Member, discord.Role] = None):
+    async def server_permissions(self, ctx, *, member_or_role: Union[discord.Member, discord.Role] = None):
         """Shows the server and channel permissions of a member or role
 
         If a user and role have the same ID and/or name, the permissions
