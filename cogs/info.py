@@ -8,7 +8,8 @@ from functools import lru_cache
 from textwrap import dedent
 from datetime import datetime
 from datetime import timezone as tz
-from typing import List
+from typing import List, Optional
+from collections.abc import Mapping
 
 # internal imports
 from cogs.utils.time import parse_time_message, format_datetime, format_timedelta, create_relative_timestamp
@@ -43,13 +44,13 @@ class MyHelp(commands.HelpCommand):
         return self.context.prefix
 
 
-    async def get_command_signature(self, command):
+    async def get_command_signature(self, command: commands.Command) -> str:
         """Returns a prefix, the command name, and the command argument(s)"""
         prefix = await self.get_clean_prefix()
         return f'{prefix}{command.qualified_name} {command.signature}'
 
 
-    async def send_bot_help(self, mapping):
+    async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]) -> None:
         """Gets called with `<prefix>help`"""
         prefix: str = await self.get_clean_prefix()
         help_cmd_name: str = self.context.invoked_with
@@ -72,7 +73,7 @@ class MyHelp(commands.HelpCommand):
         await destination.send(embed=embed)
 
 
-    async def send_cog_help(self, cog):
+    async def send_cog_help(self, cog: commands.Cog) -> None:
         """Gets called with `<prefix>help <cog>`"""
         commands = cog.get_commands()
         filtered = await self.filter_commands(commands, sort=True)
@@ -95,7 +96,7 @@ class MyHelp(commands.HelpCommand):
         await destination.send(embed=embed)
 
 
-    async def send_group_help(self, group):
+    async def send_group_help(self, group: commands.Group) -> None:
         """Gets called with `<prefix>help <group>`"""
         message = await self.get_command_signature(group)
         if group.aliases:
@@ -116,7 +117,7 @@ class MyHelp(commands.HelpCommand):
         await destination.send(embed=embed)
         
 
-    async def send_command_help(self, command):
+    async def send_command_help(self, command: commands.Command) -> None:
         """Gets called with `<prefix>help <command>`"""
         message = await self.get_command_signature(command)
         if command.aliases:
@@ -518,7 +519,8 @@ class Info(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    async def embed_overwrites(self, embed, server_perms, overwrites):
+    async def embed_overwrites(self, embed: discord.Embed, server_perms: str, overwrites: str) -> discord.Embed:
+        """Adds embed fields that list channel permission overwrites of server permissions"""
         server_n = server_perms.count('\n')
         channel_n = overwrites.count('\n')
         if server_n > channel_n:
@@ -537,8 +539,7 @@ class Info(commands.Cog):
     async def format_perms(self, permissions: discord.Permissions) -> Union[str, bool]:
         """Converts a permissions object to a printable string
         
-        Returns False if the permissions are for a hidden text
-        channel.
+        Returns False if the permissions are for a hidden text channel.
         """
         if not permissions.read_messages \
                 and permissions.read_messages is not None:
