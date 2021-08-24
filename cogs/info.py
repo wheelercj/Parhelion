@@ -33,17 +33,28 @@ class MyHelp(commands.HelpCommand):
             'aliases': ['h', 'helps', 'command', 'commands']}
 
 
-    def get_command_signature(self, command):
-        return f'{self.context.prefix}{command.qualified_name} {command.signature}'
+    async def get_clean_prefix(self) -> str:
+        """Returns the rendered mention command prefix if self.context.prefix is the unrendered one
+        
+        Otherwise, returns self.context.prefix unchanged.
+        """
+        if self.context.bot.user.mention + ' ' == self.context.prefix.replace('!', '', 1):
+            return f'@{self.context.bot.user.display_name} '
+        return self.context.prefix
+
+
+    async def get_command_signature(self, command):
+        """Returns a prefix, the command name, and the command argument(s)"""
+        prefix = await self.get_clean_prefix()
+        return f'{prefix}{command.qualified_name} {command.signature}'
 
 
     async def send_bot_help(self, mapping):
         """Gets called with `<prefix>help`"""
-        prefix: str = self.context.prefix
+        prefix: str = await self.get_clean_prefix()
         help_cmd_name: str = self.context.invoked_with
         message = f'Use `{prefix}{help_cmd_name} [category]` for more info on a category.\n\u200b'
         
-
         for cog, commands in mapping.items():
             filtered = await self.filter_commands(commands, sort=True)
             if filtered:
@@ -65,11 +76,11 @@ class MyHelp(commands.HelpCommand):
         """Gets called with `<prefix>help <cog>`"""
         commands = cog.get_commands()
         filtered = await self.filter_commands(commands, sort=True)
-        cmd_signatures = [self.get_command_signature(c) for c in filtered]
+        cmd_signatures = [await self.get_command_signature(c) for c in filtered]
         if not cmd_signatures:
             raise commands.BadArgument('You do not have access to this category.')
         
-        prefix: str = self.context.prefix
+        prefix: str = await self.get_clean_prefix()
         help_cmd_name: str = self.context.invoked_with
         message = cog.description \
             + f'\n\nUse `{prefix}{help_cmd_name} [command]` for more info on a command.' \
@@ -85,11 +96,11 @@ class MyHelp(commands.HelpCommand):
 
     async def send_group_help(self, group):
         """Gets called with `<prefix>help <group>`"""
-        message = self.get_command_signature(group)
+        message = await self.get_command_signature(group)
         if group.aliases:
             aliases = '**Aliases:** ' + ', '.join(group.aliases)
             message += '\n' + aliases
-        prefix: str = self.context.prefix
+        prefix: str = await self.get_clean_prefix()
         help_cmd_name: str = self.context.invoked_with
         message += '\n\n' + group.help \
             + f'\n\nUse `{prefix}{help_cmd_name} [command]` for more info on a command.' \
@@ -106,7 +117,7 @@ class MyHelp(commands.HelpCommand):
 
     async def send_command_help(self, command):
         """Gets called with `<prefix>help <command>`"""
-        message = self.get_command_signature(command)
+        message = await self.get_command_signature(command)
         if command.aliases:
             aliases = '**Aliases:** ' + ', '.join(command.aliases)
             message += '\n' + aliases
