@@ -35,7 +35,7 @@ class Tags(commands.Cog):
     """Save and share messages such as FAQs."""
     def __init__(self, bot):
         self.bot = bot
-        self.tag_count_limit = 10
+        self.tag_count_limit = 20
         self.tag_name_length_limit = 50
         self.tag_content_length_limit = 1500
 
