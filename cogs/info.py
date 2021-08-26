@@ -339,6 +339,13 @@ class Info(commands.Cog):
 #########################
 
 
+    @commands.command()
+    @commands.guild_only()
+    async def avatar(self, ctx, *, member: discord.Member):
+        """Shows a member's avatar"""
+        await ctx.send(member.avatar_url)
+
+
     @commands.command(name='server-info', aliases=['si', 'gi', 'serverinfo', 'guild-info', 'guildinfo'])
     @commands.guild_only()
     async def server_info(self, ctx):
