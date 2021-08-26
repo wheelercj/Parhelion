@@ -57,12 +57,13 @@ class MyHelp(commands.HelpCommand):
         message = f'Use `{prefix}{help_cmd_name} [category]` for more info on a category.\n\u200b'
         
         for cog, commands in mapping.items():
-            filtered = await self.filter_commands(commands, sort=True)
-            if filtered:
+            filtered_commands = await self.filter_commands(commands, sort=True)
+            if filtered_commands:
                 cog_name = getattr(cog, 'qualified_name', 'No Category')
                 if not cog.description:
                     raise ValueError('Each cog must have a description.')
-                message += f'\n**__{cog_name}__**: {cog.description}'
+                cog_short_doc = cog.description.split('\n')[0]
+                message += f'\n**__{cog_name}__**: {cog_short_doc}'
 
         message += f'\u200b\n\n[support server]({Dev_Settings.support_server_link}) \u2800❂\u2800 ' \
             f'[invite]({await get_bot_invite_link(self.context.bot)}) \u2800❂\u2800 ' \
@@ -76,12 +77,12 @@ class MyHelp(commands.HelpCommand):
     async def send_cog_help(self, cog: commands.Cog) -> None:
         """Gets called with `<prefix>help <cog>`"""
         commands = cog.get_commands()
-        filtered = await self.filter_commands(commands, sort=True)
-        if not filtered:
+        filtered_commands = await self.filter_commands(commands, sort=True)
+        if not filtered_commands:
             raise commands.BadArgument('You do not have access to this category.')
 
         cmd_signatures = []
-        for c in filtered:
+        for c in filtered_commands:
             signature = await self.get_command_signature(c)
             cmd_signatures.append(f'`{signature}`\n{c.short_doc}')
         
@@ -111,8 +112,8 @@ class MyHelp(commands.HelpCommand):
             + f'\n\nUse `{prefix}{help_cmd_name} [command]` for more info on a command.' \
             + ' Some command arguments are <required> and others are [optional].' \
             + '\n\n**Commands**'
-        filtered = await self.filter_commands(group.commands, sort=True)
-        for c in filtered:
+        filtered_commands = await self.filter_commands(group.commands, sort=True)
+        for c in filtered_commands:
             message += f'\n{prefix}{c.qualified_name} – {c.short_doc}'
 
         embed = discord.Embed(description=message)
