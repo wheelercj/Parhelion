@@ -48,7 +48,6 @@ class Bot(commands.Bot):
             'cogs.docs',
             'cogs.info',
             'cogs.mod',
-            'cogs.music',
             'cogs.notes',
             'cogs.other',
             'cogs.owner',
