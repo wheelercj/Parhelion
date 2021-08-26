@@ -221,6 +221,12 @@ class Bot(commands.Bot):
         elif isinstance(error, commands.BadUnionArgument):
             await ctx.send('Error: one or more inputs could not be understood.')
         else:
+            log_message = f'[command {ctx.message.content}][type(error) {type(error)}][error {error}]'
+            self.logger.error(log_message)
+            await ctx.send('I encountered and logged an error. If you would like, you can join' \
+                ' the support server to provide more details on what caused the error to' \
+                ' increase the chances it will be fixed sooner. Here\'s the link for the' \
+                f' support server: {Dev_Settings.support_server_link}')
             print(f'Ignoring exception in command {ctx.command}:', file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
