@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from typing import Tuple, List, Dict
 
 # internal imports
-from cogs.utils.paginator import Paginator
+from cogs.utils.paginator import MyPaginator
 
 
 '''
@@ -82,7 +82,7 @@ class Docs(commands.Cog):
                 raise commands.BadArgument('No matches found')
 
         title = f'search results for `{query}`'
-        paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=result_pages, length=3)
+        paginator = MyPaginator(title=title, embed=True, timeout=90, use_defaults=True, entries=result_pages, length=3)
         await paginator.start(ctx)
 
 

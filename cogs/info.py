@@ -14,7 +14,7 @@ from collections.abc import Mapping
 # internal imports
 from cogs.utils.time import parse_time_message, format_datetime, format_timedelta, create_relative_timestamp
 from cogs.utils.common import get_prefixes_message, get_prefixes_list, get_bot_invite_link
-from cogs.utils.paginator import Paginator
+from cogs.utils.paginator import MyPaginator
 from cogs.settings import Dev_Settings
 
 
@@ -95,7 +95,7 @@ class MyHelp(commands.HelpCommand):
 
         cog_name = getattr(cog, 'qualified_name', 'No Category')
         title = f'{cog_name}'
-        paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=entries, length=10)
+        paginator = MyPaginator(title=title, embed=True, timeout=90, use_defaults=True, entries=entries, length=10)
         await paginator.start(self.context)
 
 
@@ -330,7 +330,7 @@ class Info(commands.Cog):
             f'Most commands have aliases that are easier to type; see a command\'s aliases with `{ctx.prefix}help [command]`.',
         ]
         
-        paginator = Paginator(title='tips', prefix='•', embed=True, timeout=90, use_defaults=True, entries=_tips, length=15)
+        paginator = MyPaginator(title='tips', prefix='•', embed=True, timeout=90, use_defaults=True, entries=_tips, length=15)
         await paginator.start(ctx)
 
 

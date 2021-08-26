@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 # internal imports
 from cogs.utils.io import split_input, get_attachment_url
 from cogs.utils.time import create_relative_timestamp
-from cogs.utils.paginator import Paginator
+from cogs.utils.paginator import MyPaginator
 from cogs.utils.common import plural
 
 
@@ -570,7 +570,7 @@ class Tags(commands.Cog):
             tag_name = r['name'].replace('`', '\`')
             entries.append(f'{i+1}. `{tag_name}` (ID: {r["id"]})')
 
-        paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=entries, length=15)
+        paginator = MyPaginator(title=title, embed=True, timeout=90, use_defaults=True, entries=entries, length=15)
 
         await paginator.start(ctx)
 

@@ -4,7 +4,7 @@ from typing import List, Optional
 from datetime import datetime, timezone
 
 # internal imports
-from cogs.utils.paginator import Paginator
+from cogs.utils.paginator import MyPaginator
 
 
 '''
@@ -36,7 +36,7 @@ class Notes(commands.Cog):
         for i, n in enumerate(_notes):
             _notes[i] = f'[**{i+1}**.](https://en.wikipedia.org/wiki/Array_data_structure) {n}'
         title = 'notes'
-        paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=_notes, length=7)
+        paginator = MyPaginator(title=title, embed=True, timeout=90, use_defaults=True, entries=_notes, length=7)
         await paginator.start(ctx)
 
 

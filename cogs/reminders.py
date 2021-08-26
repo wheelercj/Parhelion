@@ -9,7 +9,7 @@ from typing import Tuple
 # internal imports
 from cogs.utils.io import safe_send
 from cogs.utils.time import create_long_datetime_stamp, create_relative_timestamp, parse_time_message
-from cogs.utils.paginator import Paginator
+from cogs.utils.paginator import MyPaginator
 from cogs.utils.common import plural
 
 
@@ -128,7 +128,7 @@ class Reminders(commands.Cog):
             r_list.append(f'{r["id"]}.) **{relative_timestamp}** ({long_datetime_stamp})\n{message}')
 
         title = f'You currently have {plural(len(records), "reminder||s")}:'
-        paginator = Paginator(title=title, embed=True, timeout=90, entries=r_list, length=10)
+        paginator = MyPaginator(title=title, embed=True, timeout=90, entries=r_list, length=10)
         await paginator.start(ctx)
 
 

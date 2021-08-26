@@ -19,7 +19,7 @@ from wordhoard import Definitions, Synonyms, Antonyms, Hypernyms, Hyponyms, Homo
 # internal imports
 from cogs.utils.io import unwrap_code_block, send_traceback, get_attachment_url, safe_send
 from cogs.utils.time import parse_time_message, create_short_timestamp
-from cogs.utils.paginator import paginate_search, Paginator
+from cogs.utils.paginator import paginate_search, MyPaginator
 
 
 '''
@@ -375,7 +375,7 @@ class Other(commands.Cog):
             raise commands.BadArgument('No results found.')
         for i, result in enumerate(results):
             results[i] = '• ' + result
-        paginator = Paginator(title=title, embed=True, timeout=90, use_defaults=True, entries=results, length=15)
+        paginator = MyPaginator(title=title, embed=True, timeout=90, use_defaults=True, entries=results, length=15)
         await paginator.start(ctx)
 
 
