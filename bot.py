@@ -39,6 +39,7 @@ class Bot(commands.Bot):
         self.logger: logging.Logger = None
         self.previous_command_ctxs: List[commands.Context] = []
         self.command_use_count = 0
+        self.error_is_reported = False
 
         self.load_default_extensions()
 
@@ -220,12 +221,13 @@ class Bot(commands.Bot):
         elif isinstance(error, commands.BadUnionArgument):
             await ctx.send('Error: one or more inputs could not be understood.')
         else:
-            log_message = f'[command {ctx.message.content}][type(error) {type(error)}][error {error}]'
+            log_message = f'[command {ctx.message.content}][type(error) {type(error)}][error {error}][traceback {error.__traceback__}]'
             self.logger.error(log_message)
-            await ctx.send('I encountered and logged an error. If you would like, you can join' \
-                ' the support server to provide more details on what caused the error to' \
-                ' increase the chances it will be fixed sooner. Here\'s the link for the' \
-                f' support server: {Dev_Settings.support_server_link}')
+            if not self.error_is_reported:
+                await dev_mail(self, 'I encountered and logged an error')
+                self.error_is_reported = True
+            await ctx.send('I encountered an error and notified my developer. If you would like to' \
+                f' join the support server, here\'s the link: {Dev_Settings.support_server_link}')
             print(f'Ignoring exception in command {ctx.command}:', file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 

@@ -51,6 +51,13 @@ class Owner(commands.Cog):
             await ctx.send('Server not found.')
 
 
+    @commands.command(name='reset-error-reporting', aliases=['rer'])
+    async def reset_error_reporting(self, ctx):
+        """Allows dev mail about the next unexpected error"""
+        self.bot.error_is_reported = False
+        await ctx.send('`self.bot.error_is_reported` has been reset')
+
+
     @commands.command(name='server-id', aliases=['sid', 'serverid'])
     async def get_server_id(self, ctx, *, server_name: str):
         """Gets the ID of a server by its name, if the bot can see the server
