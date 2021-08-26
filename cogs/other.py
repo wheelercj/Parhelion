@@ -219,6 +219,8 @@ class Other(commands.Cog):
                 language = 'python3'
             elif language in ('cpp', 'c++'):
                 language = 'cpp-clang'
+                if 'int main(' not in expression:
+                    expression = await self.wrap_with_cpp_jargon(expression)
                 
             async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
                 if language not in tio.languages:
@@ -245,6 +247,27 @@ class Other(commands.Cog):
             valid_languages.extend(['py', 'python', 'cpp', 'c++'])
             valid_languages = sorted(valid_languages, key=len)
             await paginate_search(ctx, title, valid_languages, query)
+
+
+    async def wrap_with_cpp_jargon(self, expression: str) -> str:
+        """Wraps C++ code with common includes, namespaces, and the `int main` function"""
+        jargon = '''
+            #include <iostream>
+            #include <iomanip>
+            #include <fstream>
+            #include <cstdio>
+            #include <string>
+            #include <cstring>
+            #include <ctime>
+            #include <cmath>
+            using namespace std;
+
+            int main()
+            {
+            '''
+        
+        expression = jargon + expression + '}'
+        return expression
 
 
 ###########################
