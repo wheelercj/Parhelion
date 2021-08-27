@@ -1,6 +1,6 @@
 # external imports
 from discord.ext import commands
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from datetime import datetime, timezone
 
 # internal imports
@@ -10,12 +10,13 @@ from cogs.utils.paginator import MyPaginator
 '''
     CREATE TABLE notes (
         author_id BIGINT PRIMARY KEY,
-        content VARCHAR(500)[],
+        contents VARCHAR(500)[],
+        jump_urls TEXT[],  -- The URLs to the messages in which the notes were created. This array is parallel to the contents array.
         last_viewed_at TIMESTAMPTZ NOT NULL
     );
 '''
 # Discord embed descriptions have a character limit of 4096 characters.
-# Each note has an 500 character limit.
+# Each note has a 500 character limit.
 # The paginator in the notes command allows 7 notes in each embed.
 # 7 * 500 = 3500, so there's some extra space for indexes, URLs, etc.
 
@@ -32,9 +33,9 @@ class Notes(commands.Cog):
     @commands.command(aliases=['ns', 'ln', 'nl', 'list-notes', 'note-list', 'notes-list', 'listnotes', 'notelist', 'noteslist'])
     async def notes(self, ctx):
         """Shows your current notes"""
-        _notes = await self.fetch_notes(ctx)
+        _notes, jump_urls = await self.fetch_notes(ctx)
         for i, n in enumerate(_notes):
-            _notes[i] = f'[**{i+1}**.](https://en.wikipedia.org/wiki/Array_data_structure) {n}'
+            _notes[i] = f'[**{i+1}**.]({jump_urls[i]}) {n}'
         title = 'notes'
         paginator = MyPaginator(title=title, embed=True, timeout=90, use_defaults=True, entries=_notes, length=7)
         await paginator.start(ctx)
@@ -48,22 +49,14 @@ class Notes(commands.Cog):
                 f' This note is {len(text)-500} characters over the limit.')
 
         try:
-            _notes = await self.fetch_notes(ctx)
+            _notes, jump_urls = await self.fetch_notes(ctx)
         except commands.BadArgument:
             _notes = []
+            jump_urls = []
 
         _notes.append(text)
-        await self.save_notes(ctx, _notes)
-        # await self.bot.db.execute('''
-        #     INSERT INTO notes
-        #     (author_id, content, last_viewed_at)
-        #     VALUES ($1, $2, $3)
-        #     ON CONFLICT (author_id)
-        #     DO UPDATE
-        #     SET content = array_append(content, $4)
-        #     WHERE notes.author_id = $1;
-        #     ''', ctx.author.id, [text], datetime.now(timezone.utc), text)
-
+        jump_urls.append(ctx.message.jump_url)
+        await self.save_notes(ctx, _notes, jump_urls)
         await ctx.send('New note saved')
 
 
@@ -71,20 +64,23 @@ class Notes(commands.Cog):
     async def delete_note(self, ctx, index: int):
         """Deletes one of your notes"""
         i = index - 1
-        _notes = await self.fetch_notes(ctx)
+        _notes, jump_urls = await self.fetch_notes(ctx)
         await self.validate_note_indexes(_notes, i)
         
         try:
             _notes = _notes[:i] + _notes[i+1:]
+            jump_urls = jump_urls[:i] + jump_urls[i+1:]
         except IndexError:
             _notes = _notes[:i]
+            jump_urls = jump_urls[:i]
 
         if _notes:
             await self.bot.db.execute('''
                 UPDATE notes
-                SET content = $1
-                WHERE author_id = $2;
-                ''', _notes, ctx.author.id)
+                SET contents = $1,
+                    jump_urls = $2
+                WHERE author_id = $3;
+                ''', _notes, jump_urls, ctx.author.id)
         else:
             await self.bot.db.execute('''
                 DELETE FROM notes
@@ -99,10 +95,10 @@ class Notes(commands.Cog):
         """Swaps the order of two of your notes"""
         i = index_1 - 1
         j = index_2 - 1
-        n = await self.fetch_notes(ctx)
+        n, urls = await self.fetch_notes(ctx)
         await self.validate_note_indexes(n, i, j)
-        await self._swap_notes(n, i, j)
-        await self.save_notes(ctx, n)
+        await self._swap_notes(n, urls, i, j)
+        await self.save_notes(ctx, n, urls)
         await ctx.send(f'Notes {i+1} and {j+1} swapped')
 
 
@@ -130,39 +126,40 @@ class Notes(commands.Cog):
     @commands.command(name='bottom-note', aliases=['bn', 'nb', 'bottomnote', 'note-bottom', 'notebottom'])
     async def move_note_to_bottom(self, ctx, index: int):
         """Moves one of your notes to the bottom"""
-        n = await self.fetch_notes(ctx)
+        n, _ = await self.fetch_notes(ctx)
         swap_command = self.bot.get_command('swap-notes')
         await ctx.invoke(swap_command, index_1=index, index_2=len(n))
 
 
-    async def fetch_notes(self, ctx) -> Optional[List[str]]:
-        """Gets ctx.author's notes from the database and updates last_viewed_at
+    async def fetch_notes(self, ctx) -> Optional[Tuple[List[str], List[str]]]:
+        """Gets ctx.author's notes and their jump URLs from the database, and updates last_viewed_at
         
         Raises commands.BadArgument if ctx.author has no notes.
         """
-        _notes: List[str] = await self.bot.db.fetchval('''
+        record = await self.bot.db.fetchrow('''
             UPDATE notes
             SET last_viewed_at = $1
             WHERE author_id = $2
-            RETURNING content;
+            RETURNING *;
             ''', datetime.now(timezone.utc), ctx.author.id)
-        if _notes is None or not len(_notes):
+        if record is None:
             raise commands.BadArgument('You have no notes')
 
-        return _notes
+        return record['contents'], record['jump_urls']
 
 
-    async def save_notes(self, ctx, _notes) -> None:
+    async def save_notes(self, ctx, _notes, jump_urls) -> None:
         """Saves ctx.author's notes to the database, overwriting any notes they already have saved there"""
         await self.bot.db.execute('''
             INSERT INTO notes
-            (author_id, content, last_viewed_at)
-            VALUES ($1, $2, $3)
+            (author_id, contents, jump_urls, last_viewed_at)
+            VALUES ($1, $2, $3, $4)
             ON CONFLICT (author_id)
             DO UPDATE
-            SET content = $2
+            SET contents = $2,
+                jump_urls = $3
             WHERE notes.author_id = $1;
-            ''', ctx.author.id, _notes, datetime.now(timezone.utc))
+            ''', ctx.author.id, _notes, jump_urls, datetime.now(timezone.utc))
 
 
     async def validate_note_indexes(self, _notes: List[str], *indexes: List[int]) -> None:
@@ -177,9 +174,10 @@ class Notes(commands.Cog):
                 raise commands.BadArgument('Please use two different indexes')
 
 
-    async def _swap_notes(self, _notes: List[str], index_1: int, index_2: int) -> None:
-        """Swaps two notes; does not validate indexes"""
+    async def _swap_notes(self, _notes: List[str], jump_urls: List[str], index_1: int, index_2: int) -> None:
+        """Swaps two notes; assumes the indexes are valid"""
         _notes[index_2], _notes[index_1] = _notes[index_1], _notes[index_2]
+        jump_urls[index_2], jump_urls[index_1] = jump_urls[index_1], jump_urls[index_2]
 
 
 def setup(bot):
