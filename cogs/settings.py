@@ -16,6 +16,7 @@ class Dev_Settings:
     default_bot_prefixes = [';', 'par ', 'Par ']
     support_server_link = 'https://discord.gg/mCqGhPJVcN'
     privacy_policy_link = 'https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853'
+    donations_link = 'https://buymeacoffee.com/Parhelion'
 
 
 '''

@@ -67,7 +67,8 @@ class MyHelp(commands.HelpCommand):
 
         message += f'\u200b\n\n[support server]({Dev_Settings.support_server_link}) \u2800❂\u2800 ' \
             f'[invite]({await get_bot_invite_link(self.context.bot)}) \u2800❂\u2800 ' \
-            f'[privacy policy]({Dev_Settings.privacy_policy_link})'
+            f'[privacy policy]({Dev_Settings.privacy_policy_link}) \u2800❂\u2800 ' \
+            f'[donate]({Dev_Settings.donations_link})'
 
         embed = discord.Embed(description=message)
         destination = self.get_destination()
@@ -290,6 +291,12 @@ class Info(commands.Cog):
         await ctx.send(f"Here's my privacy policy: <{Dev_Settings.privacy_policy_link}>")
 
 
+    @commands.command()
+    async def donate(self, ctx):
+        """Buy me a coffee"""
+        await ctx.send(f'Thanks for your interest! You can support this project here: <{Dev_Settings.donations_link}>')
+
+
     @commands.command(aliases=['i', 'info'])
     async def about(self, ctx):
         """Shows general info about this bot"""
@@ -308,7 +315,8 @@ class Info(commands.Cog):
         embed.add_field(name='links\u2800',
             value=f'[invite]({bot_invite_link})\u2800\n' \
                 f'[support server]({Dev_Settings.support_server_link})\u2800\n' \
-                f'[privacy policy]({Dev_Settings.privacy_policy_link})\u2800\n')
+                f'[privacy policy]({Dev_Settings.privacy_policy_link})\u2800\n' \
+                f'[donate]({Dev_Settings.donations_link})\u2800\n')
         embed.add_field(name='\u2800made with\u2800',
             value=f'\u2800Python v{platform.python_version()}\u2800\n' \
                 f'\u2800and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\u2800\n')
