@@ -53,11 +53,26 @@ class Notes(commands.Cog):
         except commands.BadArgument:
             _notes = []
             jump_urls = []
-
         _notes.append(text)
         jump_urls.append(ctx.message.jump_url)
         await self.save_notes(ctx, _notes, jump_urls)
         await ctx.send('New note saved')
+
+
+    @commands.command(name='edit-note', aliases=['en', 'editnote'])
+    async def edit_note(self, ctx, index: int, *, text: str):
+        """Overwrites one of your existing notes"""
+        i = index - 1
+        if len(text) > 500:
+            raise commands.BadArgument('Each note has a 500 character limit.' \
+                f' This note is {len(text)-500} characters over the limit.')
+
+        _notes, jump_urls = await self.fetch_notes(ctx)
+        await self.validate_note_indexes(_notes, i)
+        _notes[i] = text
+        jump_urls[i] = ctx.message.jump_url
+        await self.save_notes(ctx, _notes, jump_urls)
+        await ctx.send(f'Note {index} edited')
 
 
     @commands.command(name='delete-note', aliases=['del-n', 'deln', 'del-note', 'delnote', 'deletenote'])
@@ -163,13 +178,13 @@ class Notes(commands.Cog):
 
 
     async def validate_note_indexes(self, _notes: List[str], *indexes: List[int]) -> None:
-        """Raises commands.BadArgument if any index is to low or to high, or if there's a duplicate index"""
+        """Raises commands.BadArgument if any index is to low or to high, or if this receives any duplicate indexes"""
         for i in indexes:
             if i < 0:
                 raise commands.BadArgument('Please use a positive number')
             elif i >= len(_notes):
                 raise commands.BadArgument('You do not have that many notes')
-        if len(indexes) == 2:
+        if len(indexes) > 1:
             if indexes[0] == indexes[1]:
                 raise commands.BadArgument('Please use two different indexes')
 
