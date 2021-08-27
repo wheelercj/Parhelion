@@ -221,13 +221,18 @@ class Bot(commands.Bot):
         elif isinstance(error, commands.BadUnionArgument):
             await ctx.send('Error: one or more inputs could not be understood.')
         else:
-            log_message = f'[command {ctx.message.content}][type(error) {type(error)}][error {error}][traceback {error.__traceback__}]'
+            log_message = f'[command {ctx.message.content}][type(error) {type(error)}][error {error}]'
             self.logger.error(log_message)
+            with open('bot.log', 'a') as log_file:
+                traceback.print_exception(type(error), error, error.__traceback__, file=log_file)
+
             if not self.error_is_reported:
                 await dev_mail(self, 'I encountered and logged an error')
                 self.error_is_reported = True
+
             await ctx.send('I encountered an error and notified my developer. If you would like to' \
                 f' join the support server, here\'s the link: {Dev_Settings.support_server_link}')
+
             print(f'Ignoring exception in command {ctx.command}:', file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
