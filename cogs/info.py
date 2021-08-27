@@ -31,7 +31,8 @@ class MyHelp(commands.HelpCommand):
         super().__init__()
         self.command_attrs = {
             'name': 'help',
-            'aliases': ['h', 'helps', 'command', 'commands']}
+            'aliases': ['h', 'helps', 'command', 'commands'],
+            'help': 'Shows help for a command, category, or the entire bot'}
 
 
     async def get_clean_prefix(self) -> str:
