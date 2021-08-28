@@ -7,11 +7,9 @@ import asyncpg
 
 # internal imports
 from bot import Bot
-from keep_alive import keep_alive
 
 
 def main():
-    keep_alive()
     loop = asyncio.get_event_loop()
     try:
         db: asyncpg.Pool = loop.run_until_complete(get_db_connection())
