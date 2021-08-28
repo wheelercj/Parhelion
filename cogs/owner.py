@@ -1,5 +1,7 @@
 # external imports
 import os
+import io
+import discord
 from discord.ext import commands
 import asyncio
 import aiohttp
@@ -15,6 +17,7 @@ class Owner(commands.Cog):
     """Commands that can only be used by the bot owner."""
     def __init__(self, bot):
         self.bot = bot
+        self.log_file_path = 'bot.log'
 
 
     async def cog_check(self, ctx):
@@ -139,6 +142,60 @@ class Owner(commands.Cog):
         except Exception as e:
             await ctx.message.add_reaction('❗')
             await ctx.reply(f'PostgreSQL error: {e}')
+
+
+#####################
+# log command group #
+#####################
+
+
+    @commands.group(invoke_without_command=True)
+    async def log(self, ctx, log_level: int, *, message: str):
+        """A group of commands for viewing and modifying the bot's logs
+        
+        Without a subcommand, this command writes a message into the log file
+        if the logger is set to log_level or lower. Built-in definitions for
+        what log_level can be:
+            50 (CRITICAL)
+            40 (ERROR)
+            30 (WARNING)
+            20 (INFO)
+            10 (DEBUG)
+            0 (NONSET)
+        """
+        if log_level >= self.bot.logger.level:
+            self.bot.logger.log(log_level, f'(`log` command)[{message}]')
+            await ctx.message.add_reaction('✅')
+        else:
+            await ctx.reply(f'❌ The bot\'s current log level is {self.bot.logger.level}')
+
+    
+    @log.command()
+    async def level(self, ctx):
+        """Shows the logger's current log level"""
+        await ctx.reply(self.bot.logger.level)
+
+
+    @log.command()
+    async def send(self, ctx):
+        """Sends a copy of the log file to Discord"""
+        with open(self.log_file_path, 'rb') as file:
+            file_bytes = file.read()
+            with io.BytesIO(file_bytes) as binary_stream:
+                discord_file = discord.File(binary_stream, 'log')
+                await ctx.send(file=discord_file)
+
+
+    @log.command()
+    async def clear(self, ctx):
+        """Deletes all the current contents of the log file
+        
+        If command logging is enabled, this command's use will be logged after
+        the log is cleared.
+        """
+        with open(self.log_file_path, 'w') as _:
+            pass
+        await ctx.message.add_reaction('✅')
 
 
 def setup(bot):
