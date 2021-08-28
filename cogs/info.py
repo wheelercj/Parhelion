@@ -8,8 +8,7 @@ from functools import lru_cache
 from textwrap import dedent
 from datetime import datetime
 from datetime import timezone as tz
-from typing import List, Optional
-from collections.abc import Mapping
+from typing import List, Optional, Mapping
 
 # internal imports
 from cogs.utils.time import parse_time_message, format_datetime, format_timedelta, create_relative_timestamp
@@ -631,4 +630,4 @@ class Info(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Info(bot))
-        
+
