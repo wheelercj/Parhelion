@@ -209,7 +209,7 @@ class Info(commands.Cog):
     @commands.command(hidden=True)
     async def uptime(self, ctx):
         """Shows the time since the bot last restarted"""
-        _uptime = await self.get_uptime(ctx)
+        _uptime = await self.get_uptime()
         await ctx.send(f'Uptime: {_uptime}')
 
 
@@ -226,7 +226,7 @@ class Info(commands.Cog):
         embed = discord.Embed()
         embed.add_field(name='stats',
             value=f'websocket latency: {self.bot.latency * 1000:.2f} ms\n' \
-                f'uptime: {await self.get_uptime(ctx)}\n' \
+                f'uptime: {await self.get_uptime()}\n' \
                 f'servers: {len(self.bot.guilds)}\n' \
                 f'users: {len(self.bot.users)}\n' \
                 f'commands: {len(self.bot.commands)}\n' \
