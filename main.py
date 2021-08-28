@@ -20,7 +20,10 @@ def main():
     bot = Bot()
     bot.db = db
     token = os.environ['DISCORD_BOT_SECRET_TOKEN']
-    bot.run(token, bot=True, reconnect=True)
+    try:
+        bot.run(token, bot=True, reconnect=True)
+    except RuntimeError as error:
+        print(f'{error = }')
 
 
 async def get_db_connection() -> asyncpg.Pool:
