@@ -97,7 +97,7 @@ class Reminders(commands.Cog):
             relative_timestamp = await create_relative_timestamp(target_time)
             long_datetime_stamp = await create_long_datetime_stamp(target_time)
             await ctx.send(f'Reminder set! {relative_timestamp} ({long_datetime_stamp})' \
-                ' I will remind you: {message}')
+                f' I will remind you: {message}')
 
 
     @remind.command(name='create', aliases=['c'])
