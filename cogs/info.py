@@ -77,10 +77,10 @@ class MyHelp(commands.HelpCommand):
 
     async def send_cog_help(self, cog: commands.Cog) -> None:
         """Gets called with `<prefix>help <cog>`"""
-        commands = cog.get_commands()
-        filtered_commands = await self.filter_commands(commands, sort=True)
+        cmds = cog.get_commands()
+        filtered_commands = await self.filter_commands(cmds, sort=True)
         if not filtered_commands:
-            raise commands.BadArgument('You do not have access to this category.')
+            raise commands.BadArgument('You do not have access to this category here.')
 
         cmd_signatures = []
         for c in filtered_commands:
