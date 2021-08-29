@@ -94,6 +94,7 @@ class Bot(commands.Bot):
 
     async def close(self):
         await self.db.close()
+        await self.session.close()
         await super().close()
 
 

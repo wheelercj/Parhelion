@@ -20,11 +20,7 @@ def main():
     bot = Bot()
     bot.db = db
     token = os.environ['DISCORD_BOT_SECRET_TOKEN']
-    try:
-        bot.run(token, bot=True, reconnect=True)
-    except RuntimeError as error:
-        print(f'{error = }')
-
+    bot.run(token, bot=True, reconnect=True)
 
 async def get_db_connection() -> asyncpg.Pool:
     """Connects to the PostgreSQL database"""
