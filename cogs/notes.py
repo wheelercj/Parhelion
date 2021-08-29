@@ -41,9 +41,12 @@ class Notes(commands.Cog):
         await paginator.start(ctx)
 
 
-    @commands.command(aliases=['n'])
+    @commands.command(aliases=['n', 'todo'])
     async def note(self, ctx, *, text: str):
-        """Creates a new note"""
+        """Creates a new note
+        
+        Use `help Notes` to learn more about the Notes commands.
+        """
         if len(text) > 500:
             raise commands.BadArgument('Each note has a 500 character limit.' \
                 f' This note is {len(text)-500} characters over the limit.')
