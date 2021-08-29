@@ -223,9 +223,8 @@ class Bot(commands.Bot):
             await ctx.send('Error: one or more inputs could not be understood.')
         else:
             log_message = f'[command {ctx.message.content}][type(error) {type(error)}][error {error}]'
-            self.logger.error(log_message)
-            with open('bot.log', 'a') as log_file:
-                traceback.print_exception(type(error), error, error.__traceback__, file=log_file)
+            channel = self.get_channel(Dev_Settings.error_log_channel_id)
+            await channel.send(log_message)
 
             if not self.error_is_reported:
                 await dev_mail(self, 'I encountered and logged an error')
