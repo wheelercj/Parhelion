@@ -1,5 +1,6 @@
 # external imports
 import os
+import sys
 import io
 import discord
 from discord.ext import commands
@@ -52,6 +53,17 @@ class Owner(commands.Cog):
                     return
 
             await ctx.send('Server not found.')
+
+
+    @commands.command()
+    async def restart(self, ctx):
+        """Restarts the bot
+        
+        If the bot is running in an IDE, this may only shut the bot down instead.
+        """
+        await ctx.send('Restarting')
+        python = sys.executable
+        os.execl(python, python, *sys.argv)
 
 
     @commands.command(name='reset-error-reporting', aliases=['rer'])
