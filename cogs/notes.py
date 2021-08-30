@@ -29,6 +29,7 @@ class Notes(commands.Cog):
     """
     def __init__(self, bot):
         self.bot = bot
+        self.note_ownership_limit = 20
 
 
     @commands.command(aliases=['ns', 'ln', 'nl', 'list-notes', 'note-list', 'notes-list', 'listnotes', 'notelist', 'noteslist'])
@@ -37,8 +38,9 @@ class Notes(commands.Cog):
         _notes, jump_urls = await self.fetch_notes(ctx)
         for i, n in enumerate(_notes):
             _notes[i] = f'[**{i+1}**.]({jump_urls[i]}) {n}'
-        title = 'notes'
-        paginator = MyPaginator(title=title, embed=True, timeout=90, use_defaults=True, entries=_notes, length=7)
+
+        embed_title = f'{ctx.author.display_name}\'s notes'
+        paginator = MyPaginator(title=embed_title, embed=True, timeout=90, use_defaults=True, entries=_notes, length=7)
         await paginator.start(ctx)
 
 
@@ -49,6 +51,7 @@ class Notes(commands.Cog):
         Use `help Notes` to learn more about the Notes commands.
         """
         await block_nsfw_channels(ctx.channel)
+        await self.check_note_ownership_permission(ctx.author.id)
         if len(text) > 500:
             raise commands.BadArgument('Each note has a 500 character limit.' \
                 f' This note is {len(text)-500} characters over the limit.')
@@ -199,6 +202,26 @@ class Notes(commands.Cog):
         """Swaps two notes; assumes the indexes are valid"""
         _notes[index_2], _notes[index_1] = _notes[index_1], _notes[index_2]
         jump_urls[index_2], jump_urls[index_1] = jump_urls[index_1], jump_urls[index_2]
+
+
+    async def check_note_ownership_permission(self, author_id: int) -> None:
+        """Raises commands.UserInputError if the author has the maximum number of notes allowed"""
+        members_note_count = await self.count_users_notes(author_id)
+        if members_note_count >= self.note_ownership_limit \
+                and self.bot.owner_id != author_id:
+            raise commands.UserInputError(f'The current limit to how many notes each person can have is {self.note_ownership_limit}.')
+
+
+    async def count_users_notes(self, author_id: int) -> int:
+        """Counts a user's current notes in the database"""
+        records = await self.bot.db.fetch('''
+            SELECT *
+            FROM notes
+            WHERE author_id = $1;
+            ''', author_id)
+        if records:
+            return len(records)
+        return 0
 
 
 def setup(bot):
