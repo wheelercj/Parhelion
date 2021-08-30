@@ -232,7 +232,8 @@ class Info(commands.Cog):
                 f'commands: {len(self.bot.commands)}\n' \
                 f'commands used since last restart: {self.bot.command_use_count}\n' \
                 f'commands {ctx.author} can use here: {await self.count_available_cmds(ctx)}\n' \
-                f'lines of code: {self.count_bot_loc()}')
+                f'lines of code: {self.count_bot_loc()}\n' \
+                f'Python files: {self.count_bot_files()}')
         await ctx.send(embed=embed)
 
 
@@ -246,6 +247,28 @@ class Info(commands.Cog):
             except commands.CommandError:
                 pass
         return count
+
+
+    @lru_cache
+    def count_bot_files(self) -> int:
+        """Counts the Python files in the entire bot"""
+        return self.count_dir_files('.')
+
+
+    def count_dir_files(self, dir_path: str) -> int:
+        """Counts the Python files in a directory and its subdirectories"""
+        file_count = 0
+        for name in os.listdir(dir_path):
+            if name in ('.git', '__pycache__'):
+                continue
+            path = os.path.join(dir_path, name)
+            if os.path.isdir(path):
+                file_count += self.count_dir_files(path)
+            elif os.path.isfile(path):
+                if path.endswith('.py'):
+                    file_count += 1
+
+        return file_count
 
 
     @lru_cache
