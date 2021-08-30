@@ -32,6 +32,7 @@ class RunningReminderInfo():
     def __init__(self, target_time: datetime, id: int):
         self.target_time = target_time
         self.id = id
+        self.reminder_ownership_limit = 20
 
 
 class Reminders(commands.Cog):
@@ -79,8 +80,8 @@ class Reminders(commands.Cog):
         or many more options. If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
         """
         await block_nsfw_channels(ctx.channel)
-        if await self.count_authors_reminders(ctx) > 15:
-            raise commands.UserInputError('The current limit to how many reminders each person can have is 15. This will increase in the future.')
+        if await self.count_authors_reminders(ctx) > self.reminder_ownership_limit:
+            raise commands.UserInputError(f'The current limit to how many reminders each person can have is {self.reminder_ownership_limit}.')
 
         async with ctx.typing():
             start_time = datetime.now(timezone.utc)
