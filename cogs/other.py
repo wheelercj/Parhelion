@@ -67,7 +67,7 @@ class Other(commands.Cog):
                 await discord.utils.sleep_until(target_time)
 
                 try:
-                    await self.send_quote(destination)
+                    await self.send_quote(destination, author_id)
                     await self.update_quote_target_time(target_time, author_id)
                 except (ContentTypeError, json.decoder.JSONDecodeError) as error:
                     print(f'{error = }')
@@ -431,7 +431,7 @@ class Other(commands.Cog):
         If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
         """
         if time is None:
-            await self.send_quote(ctx)
+            await self.send_quote(ctx, ctx.author.id)
             return
 
         if time.count(':') != 1 or time[-1] == ':':
@@ -580,13 +580,19 @@ class Other(commands.Cog):
             ''', new_target_time, author_id)
 
 
-    async def send_quote(self, destination: Messageable) -> None:
+    async def send_quote(self, destination: Messageable, requester_id: int) -> None:
         """Immediately sends a random quote to destination
         
         May raise ContentTypeError or json.decoder.JSONDecodeError.
         """
         quote, author = await self.get_quote()
+        requester = self.bot.get_user(requester_id)
+        if requester:
+            requester_name = requester.name + '#' + requester.discriminator
+        else:
+            requester_name = requester_id
         embed = discord.Embed(description=f'"{quote}"\n — {author}')
+        embed.set_footer(text=f'Requested by {requester_name}')
         await destination.send(embed=embed)
 
 
