@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple
 from datetime import datetime, timezone
 
 # internal imports
+from cogs.utils.common import block_nsfw_channels
 from cogs.utils.paginator import MyPaginator
 
 
@@ -47,6 +48,7 @@ class Notes(commands.Cog):
         
         Use `help Notes` to learn more about the Notes commands.
         """
+        await block_nsfw_channels(ctx.channel)
         if len(text) > 500:
             raise commands.BadArgument('Each note has a 500 character limit.' \
                 f' This note is {len(text)-500} characters over the limit.')
@@ -65,6 +67,7 @@ class Notes(commands.Cog):
     @commands.command(name='edit-note', aliases=['en', 'editnote'])
     async def edit_note(self, ctx, index: int, *, text: str):
         """Overwrites one of your existing notes"""
+        await block_nsfw_channels(ctx.channel)
         i = index - 1
         if len(text) > 500:
             raise commands.BadArgument('Each note has a 500 character limit.' \

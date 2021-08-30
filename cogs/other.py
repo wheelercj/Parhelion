@@ -20,6 +20,7 @@ from wordhoard import Definitions, Synonyms, Antonyms, Hypernyms, Hyponyms, Homo
 from cogs.utils.io import unwrap_code_block, send_traceback, get_attachment_url, safe_send
 from cogs.utils.time import parse_time_message, create_short_timestamp
 from cogs.utils.paginator import paginate_search, MyPaginator
+from cogs.utils.common import block_nsfw_channels
 
 
 '''
@@ -84,6 +85,7 @@ class Other(commands.Cog):
 
         Text is posted publicly on Mystb.in and cannot be edited or deleted once posted. Attachments stay on Discord's servers until deleted. For text, you can use a code block. Not all file types work for attachments.
         """
+        await block_nsfw_channels(ctx.channel)
         async with ctx.typing():
             file_url = await get_attachment_url(ctx)
             if file_url:

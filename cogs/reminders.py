@@ -10,7 +10,7 @@ from typing import Tuple
 from cogs.utils.io import safe_send
 from cogs.utils.time import create_long_datetime_stamp, create_relative_timestamp, parse_time_message
 from cogs.utils.paginator import MyPaginator
-from cogs.utils.common import plural
+from cogs.utils.common import plural, block_nsfw_channels
 
 
 '''
@@ -78,6 +78,7 @@ class Reminders(commands.Cog):
         `remind in 2 days 3 hours continue the project`
         or many more options. If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
         """
+        await block_nsfw_channels(ctx.channel)
         if await self.count_authors_reminders(ctx) > 15:
             raise commands.UserInputError('The current limit to how many reminders each person can have is 15. This will increase in the future.')
 

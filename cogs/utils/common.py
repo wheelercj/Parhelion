@@ -1,6 +1,8 @@
 # external imports
 import re
 import discord
+from discord.abc import Messageable
+from discord.ext import commands
 from typing import List, Union
 
 
@@ -60,6 +62,17 @@ async def escape_json(text: str) -> str:
     """Escapes slashes, backslashes, double quotes, and all JSON escape sequences"""
     text = text.replace('\\', '\\\\').replace('"', r'\"').replace('\n', r'\n').replace('\t', r'\t').replace('\r', r'\r').replace('\b', r'\b').replace('\f', r'\f').replace(r'\u', r'\\u').replace('/', '\/')
     return text
+
+
+async def block_nsfw_channels(channel: Messageable) -> None:
+    """Raises commands.UserInputError if channel is a nsfw channel"""
+    if channel.is_nsfw():
+        raise commands.UserInputError('This command cannot be used in NSFW channels')
+
+
+#####################
+# prefixes commands #
+#####################
 
 
 async def get_prefixes_list(bot, message: discord.Message) -> List[str]:
