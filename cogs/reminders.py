@@ -80,8 +80,7 @@ class Reminders(commands.Cog):
         or many more options. If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
         """
         await block_nsfw_channels(ctx.channel)
-        if await self.count_authors_reminders(ctx) > self.reminder_ownership_limit:
-            raise commands.UserInputError(f'The current limit to how many reminders each person can have is {self.reminder_ownership_limit}.')
+        await self.check_reminder_ownership_permission(ctx.author.id)
 
         async with ctx.typing():
             start_time = datetime.now(timezone.utc)
@@ -210,13 +209,21 @@ class Reminders(commands.Cog):
             await ctx.send(f'Successfully deleted the reminder {message} that was created by {author}')
 
 
-    async def count_authors_reminders(self, ctx) -> int:
-        """Counts ctx.author's total reminders"""
+    async def check_reminder_ownership_permission(self, author_id: int) -> None:
+        """Raises commands.UserInputError if the author has >= the maximum number of reminders allowed"""
+        members_reminder_count = await self.count_authors_reminders(author_id)
+        if members_reminder_count >= self.reminder_ownership_limit \
+                and self.bot.owner_id != author_id:
+            raise commands.UserInputError(f'The current limit to how many reminders each person can have is {self.reminder_ownership_limit}.')
+
+
+    async def count_authors_reminders(self, author_id: int) -> int:
+        """Counts the author's total reminders"""
         records = await self.bot.db.fetch('''
             SELECT *
             FROM reminders
             WHERE author_id = $1
-            ''', ctx.author.id)
+            ''', author_id)
 
         return len(records)
 
