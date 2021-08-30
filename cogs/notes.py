@@ -205,7 +205,7 @@ class Notes(commands.Cog):
 
 
     async def check_note_ownership_permission(self, author_id: int) -> None:
-        """Raises commands.UserInputError if the author has the maximum number of notes allowed"""
+        """Raises commands.UserInputError if the author has >= the maximum number of notes allowed"""
         members_note_count = await self.count_users_notes(author_id)
         if members_note_count >= self.note_ownership_limit \
                 and self.bot.owner_id != author_id:

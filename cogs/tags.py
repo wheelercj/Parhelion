@@ -576,9 +576,9 @@ class Tags(commands.Cog):
 
 
     async def check_tag_ownership_permission(self, ctx, member: discord.Member) -> bool:
-        """Checks whether member has permission to create or receive a tag
-
-        Raises commands.UserInputError if they don't. Does NOT check whether they own the tag.
+        """Raises commands.UserInputError if the author has >= the maximum number of tags allowed
+        
+        Does NOT check whether they own the tag.
         """
         if member.bot:
             raise commands.UserInputError('Bots cannot own tags.')
