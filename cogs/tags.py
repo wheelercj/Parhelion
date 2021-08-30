@@ -35,7 +35,7 @@ class Tags(commands.Cog):
     """Save and share messages such as FAQs."""
     def __init__(self, bot):
         self.bot = bot
-        self.tag_count_limit = 20
+        self.tag_ownership_limit = 20
         self.tag_name_length_limit = 50
         self.tag_content_length_limit = 1500
 
@@ -583,9 +583,9 @@ class Tags(commands.Cog):
         if member.bot:
             raise commands.UserInputError('Bots cannot own tags.')
         members_tag_count = await self.count_members_tags(ctx.author)
-        if members_tag_count >= self.tag_count_limit \
+        if members_tag_count >= self.tag_ownership_limit \
                 and self.bot.owner_id != ctx.author.id:
-            raise commands.UserInputError(f'The current limit to how many tags each person can have is {self.tag_count_limit}.')
+            raise commands.UserInputError(f'The current limit to how many tags each person can have is {self.tag_ownership_limit}.')
 
         return True
 
