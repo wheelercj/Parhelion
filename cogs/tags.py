@@ -582,7 +582,7 @@ class Tags(commands.Cog):
         """
         if member.bot:
             raise commands.UserInputError('Bots cannot own tags.')
-        members_tag_count = await self.count_members_tags(ctx.author)
+        members_tag_count = await self.count_members_tags(ctx.author.id)
         if members_tag_count >= self.tag_ownership_limit \
                 and self.bot.owner_id != ctx.author.id:
             raise commands.UserInputError(f'The current limit to how many tags each person can have is {self.tag_ownership_limit}.')
@@ -590,13 +590,13 @@ class Tags(commands.Cog):
         return True
 
 
-    async def count_members_tags(self, member: discord.Member) -> int:
+    async def count_members_tags(self, member_id: int) -> int:
         """Counts how many tags a member has globally"""
         records = await self.bot.db.fetch('''
             SELECT *
             FROM tags
             WHERE owner_id = $1;
-            ''', member.id)
+            ''', member_id)
         if records:
             return len(records)
         return 0
