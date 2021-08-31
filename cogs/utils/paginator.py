@@ -68,12 +68,18 @@ class MyPaginator(buttons.Paginator):
 
         self._pages = self._pages + self.extra_pages
 
-        if isinstance(self._pages[0], discord.Embed):
-            self.page = await ctx.send(embed=self._pages[0])
+        if ctx.guild:
+            if isinstance(self._pages[0], discord.Embed):
+                self.page = await ctx.send(embed=self._pages[0])
+            else:
+                self.page = await ctx.send(self._pages[0])
+            self._session_task = ctx.bot.loop.create_task(self._session(ctx))
         else:
-            self.page = await ctx.send(self._pages[0])
-
-        self._session_task = ctx.bot.loop.create_task(self._session(ctx))
+            for page in self._pages:
+                if isinstance(self._pages[0], discord.Embed):
+                    await ctx.send(embed=page)
+                else:
+                    await ctx.send(page)
 
 
 async def paginate_search(ctx, embed_title: str, search_list: List[str], query: str = None, results_per_page: int = 20):
