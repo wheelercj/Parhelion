@@ -66,6 +66,8 @@ async def escape_json(text: str) -> str:
 
 async def block_nsfw_channels(channel: Messageable) -> None:
     """Raises commands.UserInputError if channel is a nsfw channel"""
+    if isinstance(channel, discord.DMChannel):
+        return  # DMChannels don't have an is_nsfw attribute.
     if channel.is_nsfw():
         raise commands.UserInputError('This command cannot be used in NSFW channels')
 
