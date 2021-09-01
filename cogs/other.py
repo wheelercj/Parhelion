@@ -240,6 +240,10 @@ class Other(commands.Cog):
             language = 'java-openjdk'
             if 'public static void main(String[] args)' not in expression:
                 expression = await self.wrap_with_java_jargon(expression)
+        elif language == 'cs':
+            language = 'cs-csc'
+            if 'static void Main(string[] args)' not in expression:
+                expression = await self.wrap_with_cs_jargon(expression)
 
         return language, expression
 
@@ -248,17 +252,18 @@ class Other(commands.Cog):
     async def exec_guide(self, ctx):
         """Explains some of the nuances of the exec command"""
         await ctx.send(' '.join(dedent('''
-            With the `exec` command, if you choose c++, cpp, or java as the
+            With the `exec` command, if you choose c++, cpp, java, or cs as the
             language and you only need the main function, you may not need to
-            type the function header, common includes, etc. You can use `exec
-            jargon c++` or `exec jargon java` to see what code will be
+            type the function header and common code above main. You can use
+            the `exec jargon <language>` command to see what code may be
             automatically added in front of your input if you omit the function
             header.
 
-            If you choose c++ or cpp as the language, it will be changed to
-            cpp-clang. If you choose java as the language, it will be changed
-            to java-openjdk. If you choose py or python as the language or did
-            not specify a language, it will be changed to python3.
+            Some language names will be changed before the code is executed:
+            c++ or cpp -> cpp-clang
+            java -> java-openjdk
+            py or python -> python3
+            cs -> cs-csc
 
             After this processing, the `exec` command sends your code to
             https://tio.run and receives any outputs specified in your code
@@ -281,20 +286,25 @@ class Other(commands.Cog):
             title = f'supported languages that contain `{query}`'
         async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
             valid_languages = tio.languages
-            valid_languages.extend(['py', 'python', 'cpp', 'c++', 'java'])
+            valid_languages.extend(['py', 'python', 'cpp', 'c++', 'java', 'cs'])
             valid_languages = sorted(valid_languages, key=len)
             await paginate_search(ctx, title, valid_languages, query)
 
 
     @_exec.command(name='jargon', aliases=['j'])
     async def send_jargon(self, ctx, language: str):
-        """Shows the jargon the `exec` command uses for a language (currently only c++, cpp, or java)"""
+        """Shows the jargon the `exec` command uses for a language (currently only c++, cpp, java, or cs)"""
         if language in ('c++', 'cpp'):
             jargon = await self.get_cpp_jargon_header()
             await ctx.send(jargon)
         elif language == 'java':
             jargon = await self.get_java_jargon_header()
             await ctx.send(jargon)
+        elif language == 'cs':
+            jargon = await self.get_cs_jargon_header()
+            await ctx.send(jargon)
+        else:
+            commands.BadArgument(f'No jargon wrapping has been set for the {language} language')
 
 
     async def get_cpp_jargon_header(self) -> str:
@@ -323,17 +333,35 @@ class Other(commands.Cog):
             ''')
 
 
+    async def get_cs_jargon_header(self) -> str:
+        """Returns the starting jargon for C# (not including closing brackets)"""
+        return dedent('''
+            namespace MyNamespace
+            {
+                class MyClass {         
+                    static void Main(string[] args)
+                    {
+            ''')
+
+
     async def wrap_with_cpp_jargon(self, expression: str) -> str:
-        """Wraps C++ code with common includes, namespaces, and the `int main` function"""
+        """Wraps C++ code with common includes, namespaces, and the main function header"""
         jargon = await self.get_cpp_jargon_header()
         expression = jargon + expression + '}'
         return expression
 
 
     async def wrap_with_java_jargon(self, expression: str) -> str:
-        """Wraps Java code with common includes, namespaces, and the `int main` function"""
+        """Wraps Java code with the main function header and a class"""
         jargon = await self.get_java_jargon_header()
         expression = jargon + expression + '}}'
+        return expression
+
+
+    async def wrap_with_cs_jargon(self, expression: str) -> str:
+        """Wraps C# code with the main function header, a class, and a namespace"""
+        jargon = await self.get_cs_jargon_header()
+        expression = jargon + expression + '}}}'
         return expression
 
 
