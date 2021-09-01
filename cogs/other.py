@@ -92,7 +92,7 @@ class Other(commands.Cog):
                 await ctx.send(f"Here's a link to the attachment: <{file_url}>")
 
             if text:
-                syntax, text = await unwrap_code_block(text)
+                syntax, text, _ = await unwrap_code_block(text)
                 text = dedent(text)
                 mystbin_client = mystbin.Client(session=self.bot.session)
                 paste = await mystbin_client.post(text, syntax=syntax)
@@ -113,7 +113,7 @@ class Other(commands.Cog):
         # allows a maximum of 10,000 requests per day (or 25 requests per 216
         # seconds).
         try:
-            _, expression = await unwrap_code_block(expression)
+            _, expression, _ = await unwrap_code_block(expression)
             if '**' in expression:
                 raise ValueError('This command uses ^ rather than ** for exponents.')
             raw_expressions = expression.split('\n')
@@ -217,7 +217,7 @@ class Other(commands.Cog):
         """
         # https://pypi.org/project/async-tio/
         async with ctx.typing():
-            language, expression = await unwrap_code_block(code_block)
+            language, expression, inputs = await unwrap_code_block(code_block)
             language, expression = await self.parse_exec_language(language, expression)
                 
             async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:

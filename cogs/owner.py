@@ -101,7 +101,7 @@ class Owner(commands.Cog):
         # This command currently creates the gists with my own GitHub
         # account, so it should not be made available to others.
         async with ctx.typing():
-            syntax, content = await unwrap_code_block(content)
+            syntax, content, _ = await unwrap_code_block(content)
             content = await escape_json(dedent(content))
             file_name = await get_14_digit_datetime()
             url = 'https://api.github.com/gists'
@@ -142,7 +142,7 @@ class Owner(commands.Cog):
     @commands.command(aliases=['SQL'])
     async def sql(self, ctx, *, statement: str):
         """Execute a PostgreSQL statement"""
-        _, statement = await unwrap_code_block(statement)
+        _, statement, _ = await unwrap_code_block(statement)
         try:
             if statement.upper().startswith('SELECT'):
                 ret = await self.bot.db.fetch(statement)

@@ -11,34 +11,41 @@ import traceback
 #########
 
 
-async def unwrap_code_block(statement: str) -> Tuple[str, str]:
+async def unwrap_code_block(statement: str) -> Tuple[str, str, str]:
     """Removes triple backticks and a syntax name around a code block
     
-    Returns any syntax name found and the unwrapped code. Any syntax name must be on the same line as the leading triple backticks, and code must be on the next line(s). If there are not triple backticks, the returns are 'txt' and the unchanged input. If there are triple backticks and no syntax is specified, the returns will be 'txt' and the unwrapped code block. The result is not dedented. Closing triple backticks are optional.
+    Returns any syntax name found, the unwrapped code, and anything after
+    closing triple backticks. Any syntax name must be on the same line as the
+    leading triple backticks, and code must be on the next line(s). If there
+    are not triple backticks, the returns are 'txt' and the unchanged input. If
+    there are triple backticks and no syntax is specified, the returns will be
+    'txt' and the unwrapped code block. If there is nothing after the closing
+    triple backticks, the third returned value will be an empty string. The
+    result is not dedented. Closing triple backticks are optional.
     """
+    syntax = 'txt'
+
     if not statement.startswith('```'):
-        return 'txt', statement
+        return syntax, statement
 
     statement = statement[3:]
 
     # Find the syntax name if one is given.
-    syntax = 'txt'
     i = statement.find('\n')
     if i != -1:
         first_line = statement[:i].strip()
         if len(first_line):
             syntax = first_line
             statement = statement[i:]
-
     if statement.startswith('\n'):
         statement = statement[1:]
 
-    if statement.endswith('\n```'):
-        statement = statement[:-4]
+    if '```' in statement:
+        statement, suffix = statement.split('```', 1)
     if statement.endswith('\n'):
         statement = statement[:-1]
 
-    return syntax, statement
+    return syntax, statement, suffix
 
 
 async def split_input(message: str) -> Tuple[str,str]:
