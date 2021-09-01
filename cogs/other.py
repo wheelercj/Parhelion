@@ -320,27 +320,27 @@ class Other(commands.Cog):
             #include <cmath>
             using namespace std;
 
-            int main()
-            {
+            int main() {
             ''')
 
 
     async def get_java_jargon_header(self) -> str:
         """Returns the starting jargon for Java (not including closing brackets)"""
         return dedent('''
+            import java.util.*;
+
             class MyClass {
                 public static void main(String[] args) {
+                    Scanner  = new Scanner(System.in);
             ''')
 
 
     async def get_cs_jargon_header(self) -> str:
         """Returns the starting jargon for C# (not including closing brackets)"""
         return dedent('''
-            namespace MyNamespace
-            {
+            namespace MyNamespace {
                 class MyClass {         
-                    static void Main(string[] args)
-                    {
+                    static void Main(string[] args) {
             ''')
 
 
