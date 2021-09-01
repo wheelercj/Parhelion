@@ -224,7 +224,7 @@ class Other(commands.Cog):
                 if language not in tio.languages:
                     raise commands.BadArgument(f'Invalid language: {language}')
 
-                result = await tio.execute(expression, language=language)
+                result = await tio.execute(expression, language=language, inputs=inputs)
             await ctx.send(f'`{language}` output:\n' + str(result))
 
 
@@ -252,9 +252,13 @@ class Other(commands.Cog):
     async def exec_guide(self, ctx):
         """Explains some of the nuances of the exec command"""
         await ctx.send(' '.join(dedent('''
-            With the `exec` command, if you choose c++, cpp, java, or cs as the
-            language and you only need the main function, you may not need to
-            type the function header and common code above main. You can use
+            With the `exec` command, you can use a triple-backtick code block
+            and specify a language on its first line. Any input after the
+            closing triple backticks will be used as inputs for the program
+            (you can hold shift while pressing enter to go to the next line if
+            necessary). If you choose c++, cpp, java, or cs as the language and
+            you only need the main function, you may not need to type the
+            function header and commonly needed code above main. You can use
             the `exec jargon <language>` command to see what code may be
             automatically added in front of your input if you omit the function
             header.
