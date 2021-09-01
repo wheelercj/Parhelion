@@ -304,7 +304,7 @@ class Other(commands.Cog):
             jargon = await self.get_cs_jargon_header()
             await ctx.send(jargon)
         else:
-            commands.BadArgument(f'No jargon wrapping has been set for the {language} language')
+            raise commands.BadArgument(f'No jargon wrapping has been set for the {language} language')
 
 
     async def get_cpp_jargon_header(self) -> str:
@@ -345,21 +345,21 @@ class Other(commands.Cog):
 
 
     async def wrap_with_cpp_jargon(self, expression: str) -> str:
-        """Wraps C++ code with common includes, namespaces, and the main function header"""
+        """Wraps C++ code with common C++ jargon"""
         jargon = await self.get_cpp_jargon_header()
         expression = jargon + expression + '}'
         return expression
 
 
     async def wrap_with_java_jargon(self, expression: str) -> str:
-        """Wraps Java code with the main function header and a class"""
+        """Wraps Java code with common Java jargon"""
         jargon = await self.get_java_jargon_header()
         expression = jargon + expression + '}}'
         return expression
 
 
     async def wrap_with_cs_jargon(self, expression: str) -> str:
-        """Wraps C# code with the main function header, a class, and a namespace"""
+        """Wraps C# code with common C# jargon"""
         jargon = await self.get_cs_jargon_header()
         expression = jargon + expression + '}}}'
         return expression
