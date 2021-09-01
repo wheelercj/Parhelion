@@ -335,7 +335,7 @@ class Other(commands.Cog):
 
             class MyClass {
                 public static void main(String[] args) {
-                    Scanner  = new Scanner(System.in);
+                    Scanner scanner = new Scanner(System.in);
             ''')
 
 
