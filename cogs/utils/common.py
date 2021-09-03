@@ -7,7 +7,7 @@ from typing import List, Union
 
 
 async def get_bot_invite_link(bot) -> str:
-    """Creates a link to invite a bot to a server
+    """Creates a link for inviting this bot to a server
 
     The link will request some basic permissions.
     """
@@ -24,11 +24,6 @@ async def get_bot_invite_link(bot) -> str:
     perms.manage_messages = True
     perms.read_message_history = True
 
-    # Voice channel permissions.
-    perms.view_channel = True
-    perms.connect = True
-    perms.speak = True
-    
     bot_invite_link = discord.utils.oauth_url(bot.user.id, perms)
     return bot_invite_link
 
