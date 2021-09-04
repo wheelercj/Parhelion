@@ -204,12 +204,12 @@ class Other(commands.Cog):
 
 
 #######################
-# _exec command group #
+# _run command group #
 #######################
 
 
-    @commands.group(name='exec', aliases=['execute', 'run'], invoke_without_command=True)
-    async def _exec(self, ctx, *, code_block: str):
+    @commands.group(name='run', aliases=['exec', 'execute'], invoke_without_command=True)
+    async def _run(self, ctx, *, code_block: str):
         """A group of commands for executing code in any language
         
         Without a subcommand, this command executes code in any language.
@@ -248,7 +248,7 @@ class Other(commands.Cog):
         return language, expression
 
 
-    @_exec.command(name='guide', aliases=['g', 'i', 'h', 'info', 'help'])
+    @_run.command(name='guide', aliases=['g', 'i', 'h', 'info', 'help'])
     async def exec_guide(self, ctx):
         """Explains some of the nuances of the exec command"""
         await ctx.send(' '.join(dedent('''
@@ -275,7 +275,7 @@ class Other(commands.Cog):
             ''').split('\n')))
 
 
-    @_exec.command(name='languages', aliases=['l', 's', 'langs', 'list', 'search'])
+    @_run.command(name='languages', aliases=['l', 's', 'langs', 'list', 'search'])
     async def list_programming_languages(self, ctx, *, query: str = None):
         """Lists the languages supported by the `exec` command that contain an optional search word
         
@@ -295,7 +295,7 @@ class Other(commands.Cog):
             await paginate_search(ctx, title, valid_languages, query)
 
 
-    @_exec.command(name='jargon', aliases=['j'])
+    @_run.command(name='jargon', aliases=['j'])
     async def send_jargon(self, ctx, language: str):
         """Shows the jargon the `exec` command uses for a language (currently only c++, cpp, java, or cs)"""
         if language in ('c++', 'cpp'):
