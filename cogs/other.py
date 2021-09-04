@@ -240,7 +240,7 @@ class Other(commands.Cog):
             language = 'java-openjdk'
             if 'public static void main(String[] args)' not in expression:
                 expression = await self.wrap_with_java_jargon(expression)
-        elif language == 'cs':
+        elif language in ('cs', 'c#'):
             language = 'cs-csc'
             if 'static void Main(string[] args)' not in expression:
                 expression = await self.wrap_with_cs_jargon(expression)
@@ -256,8 +256,8 @@ class Other(commands.Cog):
             and specify a language on its first line. Any input after the
             closing triple backticks will be used as inputs for the program
             (you can hold shift while pressing enter to go to the next line if
-            necessary). If you choose c++, cpp, java, or cs as the language and
-            you only need the main function, you may not need to type the
+            necessary). If you choose c++, cpp, java, c#, or cs as the language
+            and you only need the main function, you may not need to type the
             function header and commonly needed code above main. You can use
             the `run jargon <language>` command to see what code may be
             automatically added in front of your input if you omit the function
@@ -265,9 +265,9 @@ class Other(commands.Cog):
 
             Some language names will be changed before the code is executed:
             c++ or cpp -> cpp-clang
+            c# or cs -> cs-csc
             java -> java-openjdk
             py or python -> python3
-            cs -> cs-csc
 
             After this processing, the `run` command sends your code to
             https://tio.run and receives any outputs specified in your code
@@ -290,21 +290,21 @@ class Other(commands.Cog):
             title = f'supported languages that contain `{query}`'
         async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
             valid_languages = tio.languages
-            valid_languages.extend(['py', 'python', 'cpp', 'c++', 'java', 'cs'])
+            valid_languages.extend(['py', 'python', 'cpp', 'c++', 'java', 'cs', 'c#'])
             valid_languages = sorted(valid_languages, key=len)
             await paginate_search(ctx, title, valid_languages, query)
 
 
     @_run.command(name='jargon', aliases=['j'])
     async def send_jargon(self, ctx, language: str):
-        """Shows the jargon the `run` command uses for a language (currently only c++, cpp, java, or cs)"""
+        """Shows the jargon the `run` command uses for a language (currently only c++, cpp, java, c#, or cs)"""
         if language in ('c++', 'cpp'):
             jargon = await self.get_cpp_jargon_header()
             await ctx.send(jargon)
         elif language == 'java':
             jargon = await self.get_java_jargon_header()
             await ctx.send(jargon)
-        elif language == 'cs':
+        elif language in ('c#', 'cs'):
             jargon = await self.get_cs_jargon_header()
             await ctx.send(jargon)
         else:
