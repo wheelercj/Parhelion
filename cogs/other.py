@@ -438,7 +438,10 @@ class Other(commands.Cog):
         """Lists definitions of a given word"""
         # https://github.com/johnbumgarner/wordhoard
         definition = Definitions(word)
-        results = definition.find_definitions()
+        try:
+            results = definition.find_definitions()
+        except SystemExit:
+            raise RuntimeError('wordhoard could not connect to its sources')
         title = f'definition of `{word}`'
         await self.send_word_results(ctx, results, title)
 
@@ -447,7 +450,10 @@ class Other(commands.Cog):
     async def synonyms(self, ctx, word: str):
         """Lists words with the same or similar meaning to a given word"""
         synonym = Synonyms(word)
-        results = synonym.find_synonyms()
+        try:
+            results = synonym.find_synonyms()
+        except SystemExit:
+            raise RuntimeError('wordhoard could not connect to its sources')
         title = f'synonyms of `{word}`'
         await self.send_word_results(ctx, results, title)
 
@@ -456,7 +462,10 @@ class Other(commands.Cog):
     async def antonyms(self, ctx, word: str):
         """Lists words with the opposite meaning as a given word"""
         antonym = Antonyms(word)
-        results = antonym.find_antonyms()
+        try:
+            results = antonym.find_antonyms()
+        except SystemExit:
+            raise RuntimeError('wordhoard could not connect to its sources')
         title = f'antonyms of `{word}`'
         await self.send_word_results(ctx, results, title)
 
@@ -465,7 +474,10 @@ class Other(commands.Cog):
     async def hypernyms(self, ctx, word: str):
         """Lists words of more general meaning than a given word"""
         hypernym = Hypernyms(word)
-        results = hypernym.find_hypernyms()
+        try:
+            results = hypernym.find_hypernyms()
+        except SystemExit:
+            raise RuntimeError('wordhoard could not connect to its sources')
         title = f'hypernyms of `{word}`'
         await self.send_word_results(ctx, results, title)
 
@@ -474,7 +486,10 @@ class Other(commands.Cog):
     async def hyponyms(self, ctx, word: str):
         """Lists words of more specific meaning than a given word"""
         hyponym = Hyponyms(word)
-        results = hyponym.find_hyponyms()
+        try:
+            results = hyponym.find_hyponyms()
+        except SystemExit:
+            raise RuntimeError('wordhoard could not connect to its sources')
         title = f'hyponyms of `{word}`'
         await self.send_word_results(ctx, results, title)
 
@@ -483,7 +498,10 @@ class Other(commands.Cog):
     async def homophones(self, ctx, word: str):
         """Lists words that sound the same as a given word"""
         homophone = Homophones(word)
-        results = homophone.find_homophones()
+        try:
+            results = homophone.find_homophones()
+        except SystemExit:
+            raise RuntimeError('wordhoard could not connect to its sources')
         if results and not isinstance(results, str):
             for i, result in enumerate(results):
                 results[i] = result.split()[-1]
@@ -507,7 +525,10 @@ class Other(commands.Cog):
         results = []
         for word in words.split():
             homophone = Homophones(word)
-            result_sentences = homophone.find_homophones()
+            try:
+                result_sentences = homophone.find_homophones()
+            except SystemExit:
+                raise RuntimeError('wordhoard could not connect to its sources')
             if not result_sentences or isinstance(result_sentences, str):
                 results.append(word)
             else:
