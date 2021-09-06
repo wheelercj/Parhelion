@@ -12,7 +12,7 @@ from cogs.utils.common import get_prefixes_message, get_prefixes_str
 from cogs.utils.paginator import MyPaginator, paginate_search
 
 
-class Dev_Settings:
+class DevSettings:
     default_bot_prefixes = [';', 'par ', 'Par ']
     support_server_link = 'https://discord.gg/mCqGhPJVcN'
     privacy_policy_link = 'https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853'
@@ -478,7 +478,7 @@ class Settings(commands.Cog):
         If the prefix contains any spaces, surround it with double quotes.
         You cannot delete the bot mention prefix.
         """
-        default_prefixes: List[str] = Dev_Settings.default_bot_prefixes
+        default_prefixes: List[str] = DevSettings.default_bot_prefixes
         try:
             custom_prefixes: List[str] = self.bot.custom_prefixes[ctx.guild.id]
             if custom_prefixes is None:
@@ -531,7 +531,7 @@ class Settings(commands.Cog):
         
         You cannot delete the bot mention prefix.
         """
-        default_prefixes: List[str] = Dev_Settings.default_bot_prefixes
+        default_prefixes: List[str] = DevSettings.default_bot_prefixes
         self.bot.removed_default_prefixes[ctx.guild.id] = default_prefixes
 
         try:

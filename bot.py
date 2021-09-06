@@ -16,7 +16,7 @@ from typing import List, Dict
 # internal imports
 from cogs.utils.io import dev_mail
 from cogs.utils.common import get_prefixes_message, get_prefixes_list
-from cogs.settings import Dev_Settings
+from cogs.settings import DevSettings
 
 
 class Bot(commands.Bot):
@@ -68,7 +68,7 @@ class Bot(commands.Bot):
         This function is called each time a command is invoked, so the prefixes can be customized based on where the message is from.
         This function is intended to only be used when initializing the bot; to get unrendered prefixes elsewhere, it may be safer to use `bot.command_prefix(bot, message)`.
         """
-        prefixes = copy(Dev_Settings.default_bot_prefixes)
+        prefixes = copy(DevSettings.default_bot_prefixes)
 
         if not message.guild:
             prefixes.append('')
@@ -224,7 +224,7 @@ class Bot(commands.Bot):
         else:
             tb = traceback.format_exception(type(error), error, error.__traceback__)
             log_message = f'[command {ctx.message.content}][type(error) {type(error)}][error {error}]\n{"".join(tb)}'
-            channel = self.get_channel(Dev_Settings.error_log_channel_id)
+            channel = self.get_channel(DevSettings.error_log_channel_id)
             await channel.send(log_message)
 
             if not self.error_is_reported:
@@ -232,7 +232,7 @@ class Bot(commands.Bot):
                 self.error_is_reported = True
 
             await ctx.send('I encountered an error and notified my developer. If you would like to' \
-                f' join the support server, here\'s the link: {Dev_Settings.support_server_link}')
+                f' join the support server, here\'s the link: {DevSettings.support_server_link}')
 
             print(f'Ignoring exception in command {ctx.command}:', file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
