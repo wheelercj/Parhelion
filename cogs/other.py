@@ -210,9 +210,9 @@ class Other(commands.Cog):
 
     @commands.group(name='run', aliases=['exec', 'execute'], invoke_without_command=True)
     async def _run(self, ctx, *, code_block: str):
-        """A group of commands for executing code in any language
+        """A group of commands for executing code in almost any language
         
-        Without a subcommand, this command executes code in any language.
+        Without a subcommand, this command executes code in almost any language.
         You can use a markdown-style code block and specify a language.
         """
         # https://pypi.org/project/async-tio/
