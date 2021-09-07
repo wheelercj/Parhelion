@@ -320,6 +320,7 @@ class Other(commands.Cog):
             #include <cstdio>
             #include <string>
             #include <cstring>
+            #include <cctype>
             #include <ctime>
             #include <cmath>
             using namespace std;
