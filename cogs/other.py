@@ -619,7 +619,7 @@ class Other(commands.Cog):
         """Lists everyone that set up daily quotes in this channel"""
         try:
             records = await self.bot.db.fetch('''
-                SELECT author_id
+                SELECT *
                 FROM daily_quotes
                 WHERE server_id = $1
                     AND channel_id = $2;
@@ -627,7 +627,6 @@ class Other(commands.Cog):
         except Exception as e:
             await safe_send(ctx, f'Error: {e}', protect_postgres_host=True)
             return
-
         if records is None or not len(records):
             raise commands.UserInputError('There are no daily quotes set up in this channel.')
 
