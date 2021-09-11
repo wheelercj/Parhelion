@@ -659,7 +659,10 @@ class Other(commands.Cog):
             VALUES ($1, $2, $3, $4, $5, $6)
             ON CONFLICT (author_id)
             DO UPDATE
-            SET target_time = $3
+            SET target_time = $3,
+                is_dm = $4,
+                server_id = $5,
+                channel_id = $6
             WHERE daily_quotes.author_id = $1;
             ''', ctx.author.id, start_time, target_time, is_dm, server_id, channel_id)
 
