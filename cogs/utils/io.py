@@ -18,15 +18,16 @@ async def unwrap_code_block(statement: str) -> Tuple[str, str, str]:
     closing triple backticks. Any syntax name must be on the same line as the
     leading triple backticks, and code must be on the next line(s). If there
     are not triple backticks, the returns are 'txt' and the unchanged input. If
-    there are triple backticks and no syntax is specified, the returns will be
-    'txt' and the unwrapped code block. If there is nothing after the closing
-    triple backticks, the third returned value will be an empty string. The
-    result is not dedented. Closing triple backticks are optional.
+    there are triple backticks and no syntax is specified, the first two 
+    returns will be 'txt' and the unwrapped code block. If there is nothing 
+    after the closing triple backticks, the third returned value will be an 
+    empty string. The result is not dedented. Closing triple backticks are 
+    optional (unless something is needed after them).
     """
     syntax = 'txt'
 
     if not statement.startswith('```'):
-        return syntax, statement
+        return syntax, statement, ''
 
     statement = statement[3:]
 
@@ -40,6 +41,7 @@ async def unwrap_code_block(statement: str) -> Tuple[str, str, str]:
     if statement.startswith('\n'):
         statement = statement[1:]
 
+    suffix = ''
     if '```' in statement:
         statement, suffix = statement.split('```', 1)
     if statement.endswith('\n'):
