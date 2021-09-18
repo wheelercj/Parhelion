@@ -314,15 +314,18 @@ class Other(commands.Cog):
     async def get_cpp_jargon_header(self) -> str:
         """Returns the starting jargon for C++ (not including closing brackets)"""
         return dedent('''
-            #include <iostream>
-            #include <iomanip>
-            #include <fstream>
-            #include <cstdio>
-            #include <string>
-            #include <cstring>
+            #include <algorithm>
             #include <cctype>
+            #include <cstring>
             #include <ctime>
-            #include <cmath>
+            #include <fstream>
+            #include <iomanip>
+            #include <iostream>
+            #include <math.h>
+            #include <numeric>
+            #include <sstream>
+            #include <stdio.h>
+            #include <string>
             using namespace std;
 
             int main() {
