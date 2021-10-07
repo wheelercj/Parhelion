@@ -244,6 +244,8 @@ class Other(commands.Cog):
             language = 'cs-csc'
             if 'static void Main(string[] args)' not in expression:
                 expression = await self.wrap_with_cs_jargon(expression)
+        elif language in ('js', 'javascript'):
+            language = 'javascript-node'
 
         return language, expression
 
@@ -268,6 +270,7 @@ class Other(commands.Cog):
             c# or cs -> cs-csc
             java -> java-openjdk
             py or python -> python3
+            js or javascript -> javascript-node
 
             After this processing, the `run` command sends your code to
             https://tio.run and receives any outputs specified in your code
@@ -290,7 +293,7 @@ class Other(commands.Cog):
             title = f'supported languages that contain `{query}`'
         async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
             valid_languages = tio.languages
-            valid_languages.extend(['py', 'python', 'cpp', 'c++', 'java', 'cs', 'c#'])
+            valid_languages.extend(['py', 'python', 'cpp', 'c++', 'java', 'cs', 'c#', 'js', 'javascript'])
             valid_languages = sorted(valid_languages, key=len)
             await paginate_search(ctx, title, valid_languages, query)
 
