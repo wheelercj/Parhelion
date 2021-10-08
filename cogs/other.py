@@ -3,7 +3,7 @@ import discord
 from discord.abc import Messageable
 from discord.ext import commands
 from datetime import datetime, timedelta, timezone
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import asyncio
 import asyncpg
 from aiohttp.client_exceptions import ContentTypeError
@@ -45,8 +45,8 @@ class Other(commands.Cog):
     """A variety of commands that don't fit in the other categories."""
     def __init__(self, bot):
         self.bot = bot
-        self.quotes_task = self.bot.loop.create_task(self.run_daily_quotes())
         self.running_quote_info: RunningQuoteInfo = None
+        self.quotes_task = self.bot.loop.create_task(self.run_daily_quotes())
 
 
     def cog_unload(self):
@@ -76,6 +76,7 @@ class Other(commands.Cog):
         except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError) as error:
             print(f'  run_daily_quotes {error = }')
             self.quotes_task.cancel()
+            await asyncio.sleep(30)
             self.quotes_task = self.bot.loop.create_task(self.run_daily_quotes())
 
 
@@ -673,7 +674,9 @@ class Other(commands.Cog):
             ''', ctx.author.id, start_time, target_time, is_dm, server_id, channel_id)
 
 
-    async def get_next_quote_info(self) -> Tuple[datetime, int, Messageable]:
+    async def get_next_quote_info(self) -> Tuple[Optional[datetime],
+                                                 Optional[int],
+                                                 Optional[Messageable]]:
         """Gets from the database the info for the nearest (in time) daily quote task
 
         Returns (target_time, author_id, destination).
