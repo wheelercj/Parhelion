@@ -247,6 +247,8 @@ class Other(commands.Cog):
                 expression = await self.wrap_with_cs_jargon(expression)
         elif language in ('js', 'javascript'):
             language = 'javascript-node'
+        elif language == 'swift':
+            language = 'swift4'
 
         return language, expression
 
@@ -272,6 +274,7 @@ class Other(commands.Cog):
             java -> java-openjdk
             py or python -> python3
             js or javascript -> javascript-node
+            swift -> swift4
 
             After this processing, the `run` command sends your code to
             https://tio.run and receives any outputs specified in your code
@@ -294,7 +297,17 @@ class Other(commands.Cog):
             title = f'supported languages that contain `{query}`'
         async with await async_tio.Tio(loop=self.bot.loop, session=self.bot.session) as tio:
             valid_languages = tio.languages
-            valid_languages.extend(['py', 'python', 'cpp', 'c++', 'java', 'cs', 'c#', 'js', 'javascript'])
+            valid_languages.extend([
+                'c#',
+                'c++',
+                'cpp',
+                'cs',
+                'java',
+                'javascript',
+                'js',
+                'py',
+                'python',
+                'swift'])
             valid_languages = sorted(valid_languages, key=len)
             await paginate_search(ctx, title, valid_languages, query)
 
