@@ -73,6 +73,14 @@ class Owner(commands.Cog):
         await ctx.send('`self.bot.error_is_reported` has been reset')
 
 
+    @commands.command(name='list-servers', aliases=['ls', 'servers', 's', 'sl', 'listservers', 'server-list', 'serverlist'])
+    async def list_servers(self, ctx):
+        """Lists the names of all servers the bot is in"""
+        servers = [server.name for server in self.bot.guilds]
+        servers = "\n".join(servers)
+        await ctx.send(f'I am in the following servers:\n{servers}')
+
+
     @commands.command(name='server-id', aliases=['sid', 'serverid'])
     async def get_server_id(self, ctx, *, server_name: str):
         """Gets the ID of a server by its name, if the bot can see the server
