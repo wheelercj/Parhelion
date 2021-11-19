@@ -736,7 +736,7 @@ class Other(commands.Cog):
             requester_name = requester.name + '#' + requester.discriminator
         else:
             requester_name = requester_id
-        embed = discord.Embed(description=f'"{quote}"\n — {author}')
+        embed = discord.Embed(description=f'"{quote.strip()}"\n — {author}')
         embed.set_footer(text=f'Requested by {requester_name}')
         await destination.send(embed=embed)
 
