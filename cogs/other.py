@@ -343,6 +343,7 @@ class Other(commands.Cog):
             #include <sstream>
             #include <stdio.h>
             #include <string>
+            #include <vector>
             using namespace std;
 
             int main() {
