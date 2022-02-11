@@ -13,60 +13,60 @@ import traceback
 
 async def unwrap_code_block(statement: str) -> Tuple[str, str, str]:
     """Removes triple backticks and a syntax name around a code block
-    
+
     Returns any syntax name found, the unwrapped code, and anything after
     closing triple backticks. Any syntax name must be on the same line as the
     leading triple backticks, and code must be on the next line(s). If there
     are not triple backticks, the returns are 'txt' and the unchanged input. If
-    there are triple backticks and no syntax is specified, the first two 
-    returns will be 'txt' and the unwrapped code block. If there is nothing 
-    after the closing triple backticks, the third returned value will be an 
-    empty string. The result is not dedented. Closing triple backticks are 
+    there are triple backticks and no syntax is specified, the first two
+    returns will be 'txt' and the unwrapped code block. If there is nothing
+    after the closing triple backticks, the third returned value will be an
+    empty string. The result is not dedented. Closing triple backticks are
     optional (unless something is needed after them).
     """
-    syntax = 'txt'
+    syntax = "txt"
 
-    if not statement.startswith('```'):
-        return syntax, statement, ''
+    if not statement.startswith("```"):
+        return syntax, statement, ""
 
     statement = statement[3:]
 
     # Find the syntax name if one is given.
-    i = statement.find('\n')
+    i = statement.find("\n")
     if i != -1:
         first_line = statement[:i].strip()
         if len(first_line):
             syntax = first_line
             statement = statement[i:]
-    if statement.startswith('\n'):
+    if statement.startswith("\n"):
         statement = statement[1:]
 
-    suffix = ''
-    if '```' in statement:
-        statement, suffix = statement.split('```', 1)
-    if statement.endswith('\n'):
+    suffix = ""
+    if "```" in statement:
+        statement, suffix = statement.split("```", 1)
+    if statement.endswith("\n"):
         statement = statement[:-1]
 
     return syntax, statement, suffix
 
 
-async def split_input(message: str) -> Tuple[str,str]:
-        """Splits a string into two strings
-        
-        If the input string begins with double quotes and has another double quotes later, the contents of those double quotes will be the first string returned. Otherwise, the first string returned will be the first word of the input string. The second string returned will be what remains of the input string.
-        """
-        name = None
-        if message.startswith('"'):
-            i = message.find('"', 2)
-            if i != -1:
-                name = message[1:i]
-                content = message[i+1:].strip()
+async def split_input(message: str) -> Tuple[str, str]:
+    """Splits a string into two strings
 
-        if name is None:
-            name = message.split()[0]
-            content = ' '.join(message.split()[1:])
+    If the input string begins with double quotes and has another double quotes later, the contents of those double quotes will be the first string returned. Otherwise, the first string returned will be the first word of the input string. The second string returned will be what remains of the input string.
+    """
+    name = None
+    if message.startswith('"'):
+        i = message.find('"', 2)
+        if i != -1:
+            name = message[1:i]
+            content = message[i + 1 :].strip()
 
-        return name, content
+    if name is None:
+        name = message.split()[0]
+        content = " ".join(message.split()[1:])
+
+    return name, content
 
 
 async def get_attachment_url(ctx) -> Optional[str]:
@@ -76,20 +76,22 @@ async def get_attachment_url(ctx) -> Optional[str]:
     """
     if ctx.message.attachments:
         file_url = ctx.message.attachments[0].proxy_url
-        file_type = file_url.split('.')[-1]
+        file_type = file_url.split(".")[-1]
 
         if not await is_supported_type(file_type):
-            raise ValueError(f'Attachment links do not work for files of type {file_type}')
+            raise ValueError(
+                f"Attachment links do not work for files of type {file_type}"
+            )
 
         return file_url
 
 
 async def is_supported_type(file_type: str) -> bool:
     """Says whether the file type is supported by Discord's CDN
-    
+
     This function is incomplete; more file types need to be tested.
     """
-    unsupported_types = ['md', 'pdf']
+    unsupported_types = ["md", "pdf"]
     # TODO: find a complete list of supported file types and use that instead.
     if file_type in unsupported_types:
         return False
@@ -108,6 +110,7 @@ class Channel(commands.Converter):
 
     DMChannel and GroupChannel do not have converters.
     """
+
     async def convert(self, ctx, argument):
         converters = [
             commands.TextChannelConverter,
@@ -123,7 +126,7 @@ class Channel(commands.Converter):
                 return channel
             except commands.ChannelNotFound:
                 pass
-        
+
         raise commands.BadArgument(f'Channel "{argument}" not found.')
 
 
@@ -135,12 +138,12 @@ class Channel(commands.Converter):
 async def safe_send(ctx, message: str, protect_postgres_host: bool = False) -> None:
     """Same as ctx.send but with extra security options"""
     if protect_postgres_host:
-        postgres_host = os.environ['PostgreSQL_host']
+        postgres_host = os.environ["PostgreSQL_host"]
         if postgres_host in message:
-            message = message.replace(postgres_host, '(PostgreSQL host)')
+            message = message.replace(postgres_host, "(PostgreSQL host)")
             await ctx.send(message)
             return
-    
+
     await ctx.send(message)
 
 
@@ -149,11 +152,13 @@ async def send_traceback(ctx, error: BaseException) -> None:
     etype = type(error)
     trace = error.__traceback__
     lines = traceback.format_exception(etype, error, trace)
-    traceback_text = ''.join(lines)
-    await ctx.send(f'```\n{traceback_text}\n```')
+    traceback_text = "".join(lines)
+    await ctx.send(f"```\n{traceback_text}\n```")
 
 
-async def dev_mail(bot, message: str, use_embed: bool = True, embed_title: str = 'dev mail') -> None:
+async def dev_mail(
+    bot, message: str, use_embed: bool = True, embed_title: str = "dev mail"
+) -> None:
     """Sends a private message to the bot owner"""
     user = await bot.fetch_user(bot.owner_id)
     if use_embed:

@@ -15,7 +15,7 @@ async def create_relative_timestamp(dt: datetime) -> str:
     E.g., 'a month ago', or 'in two hours'
     """
     unix_time = int(dt.timestamp())
-    return f'<t:{unix_time}:R>'
+    return f"<t:{unix_time}:R>"
 
 
 async def create_long_datetime_stamp(dt: datetime) -> str:
@@ -24,7 +24,7 @@ async def create_long_datetime_stamp(dt: datetime) -> str:
     E.g., 'Tuesday, June 22, 2021 11:14 AM'
     """
     unix_time = int(dt.timestamp())
-    return f'<t:{unix_time}:F>'
+    return f"<t:{unix_time}:F>"
 
 
 async def create_short_datetime_stamp(dt: datetime) -> str:
@@ -33,7 +33,7 @@ async def create_short_datetime_stamp(dt: datetime) -> str:
     E.g., 'June 22, 2021 11:14 AM'
     """
     unix_time = int(dt.timestamp())
-    return f'<t:{unix_time}:f>'
+    return f"<t:{unix_time}:f>"
 
 
 async def create_short_timestamp(dt: datetime) -> str:
@@ -42,22 +42,35 @@ async def create_short_timestamp(dt: datetime) -> str:
     E.g., '11:14 AM'
     """
     unix_time = int(dt.timestamp())
-    return f'<t:{unix_time}:t>'
+    return f"<t:{unix_time}:t>"
 
 
 async def get_14_digit_datetime() -> str:
     """Gets a timestamp in the format YYYYMMDDhhmmss"""
     now = str(datetime.utcnow())
     now = now[:19]  # Remove the microseconds.
-    now = now.replace('-', '').replace(':', '').replace(' ', '')
+    now = now.replace("-", "").replace(":", "").replace(" ", "")
     return now
 
 
 async def format_datetime(dt: datetime) -> str:
     """Makes an easy-to-read date and time message"""
-    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    months = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ]
     minute = str(dt.minute).zfill(2)
-    return f'{dt.hour}:{minute} on {dt.day} {months[dt.month-1]} {dt.year}'
+    return f"{dt.hour}:{minute} on {dt.day} {months[dt.month-1]} {dt.year}"
 
 
 async def format_timedelta(td: timedelta) -> str:
@@ -69,18 +82,20 @@ async def format_timedelta(td: timedelta) -> str:
 
     output = []
     if days:
-        output.append(plural(days, 'day||s'))
+        output.append(plural(days, "day||s"))
     if hours:
-        output.append(plural(hours, 'hour||s'))
+        output.append(plural(hours, "hour||s"))
     if minutes:
-        output.append(plural(minutes, 'minute||s'))
+        output.append(plural(minutes, "minute||s"))
     if seconds:
-        output.append(plural(seconds, 'second||s'))
+        output.append(plural(seconds, "second||s"))
 
-    return ', '.join(output)
+    return ", ".join(output)
 
 
-async def parse_time_message(ctx, user_input: str, to_timezone: str = 'UTC') -> Tuple[datetime, str]:
+async def parse_time_message(
+    ctx, user_input: str, to_timezone: str = "UTC"
+) -> Tuple[datetime, str]:
     """Parses a string containing both a time description and a message, or just a time description
 
     The user's input can have a date, duration, etc. written in natural language,
@@ -92,36 +107,41 @@ async def parse_time_message(ctx, user_input: str, to_timezone: str = 'UTC') -> 
     """
     tz = await get_timezone(ctx.bot.db, ctx.author.id)
     if tz is None:
-        tz = 'UTC'
+        tz = "UTC"
 
     # https://dateparser.readthedocs.io/en/latest/
     dateparser_settings = {
-        'TIMEZONE': str(tz),
-        'TO_TIMEZONE': str(to_timezone),
-        'RETURN_AS_TIMEZONE_AWARE': True,
-        'PREFER_DATES_FROM': 'future'
+        "TIMEZONE": str(tz),
+        "TO_TIMEZONE": str(to_timezone),
+        "RETURN_AS_TIMEZONE_AWARE": True,
+        "PREFER_DATES_FROM": "future",
     }
-    split_input = user_input.split(' ')
-    max_length = len(split_input[:7])  # The longest possible time description accepted is 7 words long.
+    split_input = user_input.split(" ")
+    max_length = len(
+        split_input[:7]
+    )  # The longest possible time description accepted is 7 words long.
 
     # Gradually try parsing fewer words as a time description until a valid one is found.
-    message = ''
+    message = ""
     for i in range(max_length, 0, -1):
-        time_description = ' '.join(split_input[:i])
+        time_description = " ".join(split_input[:i])
         date_time = dateparser.parse(time_description, settings=dateparser_settings)
         if date_time is not None:
-            message = user_input.replace(time_description, '')[1:]
+            message = user_input.replace(time_description, "")[1:]
             break
 
     if date_time is None:
-        raise commands.BadArgument('Invalid time description')
+        raise commands.BadArgument("Invalid time description")
     return date_time, message
 
 
 async def get_timezone(db: asyncpg.Pool, user_id: int) -> Optional[str]:
     """Gets a user's chosen timezone from the database"""
-    return await db.fetchval('''
+    return await db.fetchval(
+        """
         SELECT timezone
         FROM timezones
         WHERE user_id = $1;
-        ''', user_id)
+        """,
+        user_id,
+    )
