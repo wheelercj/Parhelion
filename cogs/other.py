@@ -251,6 +251,10 @@ class Other(commands.Cog):
             language = "cpp-clang"
             if "int main(" not in expression:
                 expression = await self.wrap_with_cpp_jargon(expression)
+        elif language == "c":
+            language = "c-clang"
+            if "int main(" not in expression:
+                expression = await self.wrap_with_c_jargon(expression)
         elif language == "java":
             language = "java-openjdk"
             if "public static void main(String[] args)" not in expression:
@@ -277,14 +281,15 @@ class Other(commands.Cog):
             and specify a language on its first line. Any input after the
             closing triple backticks will be used as inputs for the program
             (you can hold shift while pressing enter to go to the next line if
-            necessary). If you choose c++, cpp, java, c#, or cs as the language
-            and you only need the main function, you may not need to type the
-            function header and commonly needed code above main. You can use
-            the `run jargon <language>` command to see what code may be
+            necessary). If you choose c, c++, cpp, java, c#, or cs as the
+            language and you only need the main function, you may not need to
+            type the function header and commonly needed code above main. You
+            can use the `run jargon <language>` command to see what code may be
             automatically added in front of your input if you omit the function
             header.
 
             Some language names will be changed before the code is executed:
+            c -> c-clang
             c++ or cpp -> cpp-clang
             c# or cs -> cs-csc
             java -> java-openjdk
@@ -321,6 +326,7 @@ class Other(commands.Cog):
             valid_languages = tio.languages
             valid_languages.extend(
                 [
+                    "c",
                     "c#",
                     "c++",
                     "cpp",
@@ -338,9 +344,12 @@ class Other(commands.Cog):
 
     @_run.command(name="jargon", aliases=["j"])
     async def send_jargon(self, ctx, language: str):
-        """Shows the jargon the `run` command uses for a language (currently only c++, cpp, java, c#, or cs)"""
+        """Shows the jargon the `run` command uses for a language (currently only c, c++, cpp, java, c#, or cs)"""
         if language in ("c++", "cpp"):
             jargon = await self.get_cpp_jargon_header()
+            await ctx.send(jargon)
+        elif language == "c":
+            jargon = await self.get_c_jargon_header()
             await ctx.send(jargon)
         elif language == "java":
             jargon = await self.get_java_jargon_header()
@@ -376,6 +385,21 @@ class Other(commands.Cog):
             """
         )
 
+    async def get_c_jargon_header(self) -> str:
+        """Returns the starting jargon for C (not including closing brackets)"""
+        return dedent(
+            """
+            #include <ctype.h>
+            #include <math.h>
+            #include <stdio.h>
+            #include <stdlib.h>
+            #include <string.h>
+            #include <time.h>
+
+            int main(void) {
+            """
+        )
+
     async def get_java_jargon_header(self) -> str:
         """Returns the starting jargon for Java (not including closing brackets)"""
         return dedent(
@@ -401,6 +425,12 @@ class Other(commands.Cog):
     async def wrap_with_cpp_jargon(self, expression: str) -> str:
         """Wraps C++ code with common C++ jargon"""
         jargon = await self.get_cpp_jargon_header()
+        expression = jargon + expression + "}"
+        return expression
+
+    async def wrap_with_c_jargon(self, expression: str) -> str:
+        """Wraps C code with common C jargon"""
+        jargon = await self.get_c_jargon_header()
         expression = jargon + expression + "}"
         return expression
 
