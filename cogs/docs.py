@@ -47,6 +47,7 @@ class Docs(commands.Cog):
             self._task = self.bot.loop.create_task(self.load_docs_urls())
 
     @commands.group(invoke_without_command=True)
+    @commands.guild_only()
     async def doc(self, ctx, *, query: str = None):
         """A group of commands for searching documentation
 
@@ -56,6 +57,7 @@ class Docs(commands.Cog):
         await ctx.invoke(doc_search_command, query=query)
 
     @doc.command(name="search")
+    @commands.guild_only()
     async def search_doc(self, ctx, *, query: str = None):
         """An alias for `doc`; searches this server's chosen documentation"""
         try:
