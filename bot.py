@@ -1,22 +1,22 @@
-# external imports
-import discord
+from cogs.settings import DevSettings
+from cogs.utils.common import get_prefixes_list
+from cogs.utils.common import get_prefixes_message
+from cogs.utils.io import dev_mail
+from copy import copy
+from datetime import datetime
+from datetime import timezone
 from discord.ext import commands
-from datetime import datetime, timezone
+from logging.handlers import RotatingFileHandler
+from typing import Dict
+from typing import List
 import aiohttp
+import discord
+import logging
 import os
+import platform
 import re
 import sys
-import platform
-import logging
-from logging.handlers import RotatingFileHandler
 import traceback
-from copy import copy
-from typing import List, Dict
-
-# internal imports
-from cogs.utils.io import dev_mail
-from cogs.utils.common import get_prefixes_message, get_prefixes_list
-from cogs.settings import DevSettings
 
 
 class Bot(commands.Bot):

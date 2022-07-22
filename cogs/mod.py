@@ -1,6 +1,5 @@
-# external imports
-import discord
 from discord.ext import commands
+import discord
 
 
 class Mod(commands.Cog):

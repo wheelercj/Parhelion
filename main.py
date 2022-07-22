@@ -1,12 +1,9 @@
-# external imports
-import os
+from bot import Bot
 from dotenv import load_dotenv
-import sys
 import asyncio
 import asyncpg
-
-# internal imports
-from bot import Bot
+import os
+import sys
 
 
 def main():

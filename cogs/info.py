@@ -1,29 +1,26 @@
-# external imports
-import discord
-from discord.ext import commands
-import os
-from typing import List, Tuple, Union
-import platform
-from functools import lru_cache
-from textwrap import dedent
+from cogs.settings import DevSettings
+from cogs.utils.common import get_bot_invite_link
+from cogs.utils.common import get_prefixes_list
+from cogs.utils.common import get_prefixes_message
+from cogs.utils.common import get_prefixes_message
+from cogs.utils.paginator import MyPaginator
+from cogs.utils.time import create_relative_timestamp
+from cogs.utils.time import format_datetime
+from cogs.utils.time import format_timedelta
+from cogs.utils.time import parse_time_message
 from datetime import datetime
 from datetime import timezone as tz
-from typing import List, Optional, Mapping
-
-# internal imports
-from cogs.utils.time import (
-    parse_time_message,
-    format_datetime,
-    format_timedelta,
-    create_relative_timestamp,
-)
-from cogs.utils.common import (
-    get_prefixes_message,
-    get_prefixes_list,
-    get_bot_invite_link,
-)
-from cogs.utils.paginator import MyPaginator
-from cogs.settings import DevSettings
+from discord.ext import commands
+from functools import lru_cache
+from textwrap import dedent
+from typing import List
+from typing import Mapping
+from typing import Optional
+from typing import Tuple
+from typing import Union
+import discord
+import os
+import platform
 
 
 def yes_or_no(boolean: bool) -> str:

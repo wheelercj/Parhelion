@@ -1,15 +1,20 @@
-# external imports
-import discord
+from cogs.utils.common import get_prefixes_message
+from cogs.utils.common import get_prefixes_str
+from cogs.utils.paginator import MyPaginator
+from cogs.utils.paginator import paginate_search
 from discord.ext import commands
-import asyncpg
-from typing import List, Tuple, Any, Optional, Dict, Callable, Union
 from textwrap import dedent
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Union
+import asyncpg
+import discord
 import json
 import pytz
-
-# internal imports
-from cogs.utils.common import get_prefixes_message, get_prefixes_str
-from cogs.utils.paginator import MyPaginator, paginate_search
 
 
 class DevSettings:

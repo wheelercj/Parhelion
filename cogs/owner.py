@@ -1,17 +1,14 @@
-# external imports
-import os
-import sys
-import io
-import discord
-from discord.ext import commands
-import asyncio
-import aiohttp
-from textwrap import dedent
-
-# internal imports
+from cogs.utils.common import escape_json
 from cogs.utils.io import unwrap_code_block
 from cogs.utils.time import get_14_digit_datetime
-from cogs.utils.common import escape_json
+from discord.ext import commands
+from textwrap import dedent
+import aiohttp
+import asyncio
+import discord
+import io
+import os
+import sys
 
 
 class Owner(commands.Cog):

@@ -1,20 +1,17 @@
-# external imports
-import asyncpg
-from datetime import datetime, timezone
-import discord
+from cogs.utils.common import block_nsfw_channels
+from cogs.utils.common import plural
+from cogs.utils.io import safe_send
+from cogs.utils.paginator import MyPaginator
+from cogs.utils.time import create_long_datetime_stamp
+from cogs.utils.time import create_relative_timestamp
+from cogs.utils.time import parse_time_message
+from datetime import datetime
+from datetime import timezone
 from discord.abc import Messageable
 from discord.ext import commands
 from typing import Tuple
-
-# internal imports
-from cogs.utils.io import safe_send
-from cogs.utils.time import (
-    create_long_datetime_stamp,
-    create_relative_timestamp,
-    parse_time_message,
-)
-from cogs.utils.paginator import MyPaginator
-from cogs.utils.common import plural, block_nsfw_channels
+import asyncpg
+import discord
 
 
 """

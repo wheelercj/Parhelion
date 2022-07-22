@@ -1,12 +1,11 @@
-# external imports
-from discord.ext import commands
-from datetime import datetime, timedelta
-import dateparser
-from typing import Tuple, Optional
-import asyncpg
-
-# internal imports
 from cogs.utils.common import plural
+from datetime import datetime
+from datetime import timedelta
+from discord.ext import commands
+from typing import Optional
+from typing import Tuple
+import asyncpg
+import dateparser
 
 
 async def create_relative_timestamp(dt: datetime) -> str:

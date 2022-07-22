@@ -1,16 +1,16 @@
-# external imports
-import discord
-from discord.ext import commands
-import asyncpg
-import io
-from typing import Optional, List
-from datetime import datetime, timezone
-
-# internal imports
-from cogs.utils.io import split_input, get_attachment_url
-from cogs.utils.time import create_relative_timestamp
-from cogs.utils.paginator import MyPaginator
 from cogs.utils.common import plural
+from cogs.utils.io import get_attachment_url
+from cogs.utils.io import split_input
+from cogs.utils.paginator import MyPaginator
+from cogs.utils.time import create_relative_timestamp
+from datetime import datetime
+from datetime import timezone
+from discord.ext import commands
+from typing import List
+from typing import Optional
+import asyncpg
+import discord
+import io
 
 
 """

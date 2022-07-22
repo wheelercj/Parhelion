@@ -1,34 +1,38 @@
-# external imports
-import discord
+from aiohttp.client_exceptions import ContentTypeError
+from cogs.utils.common import block_nsfw_channels
+from cogs.utils.io import get_attachment_url
+from cogs.utils.io import safe_send
+from cogs.utils.io import send_traceback
+from cogs.utils.io import unwrap_code_block
+from cogs.utils.paginator import MyPaginator
+from cogs.utils.paginator import paginate_search
+from cogs.utils.time import create_short_timestamp
+from cogs.utils.time import parse_time_message
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
+from deep_translator import GoogleTranslator
+from deep_translator.google_trans import LanguageNotSupportedException
+from deep_translator.google_trans import TranslationNotFound
 from discord.abc import Messageable
 from discord.ext import commands
-from datetime import datetime, timedelta, timezone
-from typing import List, Tuple, Optional
+from textwrap import dedent
+from typing import List
+from typing import Optional
+from typing import Tuple
+from wordhoard import Antonyms
+from wordhoard import Definitions
+from wordhoard import Homophones
+from wordhoard import Hypernyms
+from wordhoard import Hyponyms
+from wordhoard import Synonyms
+import async_tio
 import asyncio
 import asyncpg
-from aiohttp.client_exceptions import ContentTypeError
-import async_tio
-import mystbin
-from textwrap import dedent
+import discord
 import json
+import mystbin
 import random
-from deep_translator import GoogleTranslator
-from deep_translator.google_trans import (
-    LanguageNotSupportedException,
-    TranslationNotFound,
-)
-from wordhoard import Definitions, Synonyms, Antonyms, Hypernyms, Hyponyms, Homophones
-
-# internal imports
-from cogs.utils.io import (
-    unwrap_code_block,
-    send_traceback,
-    get_attachment_url,
-    safe_send,
-)
-from cogs.utils.time import parse_time_message, create_short_timestamp
-from cogs.utils.paginator import paginate_search, MyPaginator
-from cogs.utils.common import block_nsfw_channels
 
 
 """

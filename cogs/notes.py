@@ -1,11 +1,11 @@
-# external imports
-from discord.ext import commands
-from typing import List, Optional, Tuple
-from datetime import datetime, timezone
-
-# internal imports
 from cogs.utils.common import block_nsfw_channels
 from cogs.utils.paginator import MyPaginator
+from datetime import datetime
+from datetime import timezone
+from discord.ext import commands
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 
 """

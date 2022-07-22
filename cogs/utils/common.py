@@ -1,9 +1,9 @@
-# external imports
-import re
-import discord
 from discord.abc import Messageable
 from discord.ext import commands
-from typing import List, Union
+from typing import List
+from typing import Union
+import discord
+import re
 
 
 async def get_bot_invite_link(bot) -> str:

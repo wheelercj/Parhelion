@@ -1,8 +1,8 @@
-# external imports
-import os
-import discord
 from discord.ext import commands
-from typing import Tuple, Optional
+from typing import Optional
+from typing import Tuple
+import discord
+import os
 import traceback
 
 

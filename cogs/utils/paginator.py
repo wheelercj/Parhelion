@@ -1,8 +1,7 @@
-# external imports
-import discord
-from discord.ext import commands
 from discord.ext import buttons
+from discord.ext import commands
 from typing import List
+import discord
 
 
 class MyPaginator(buttons.Paginator):

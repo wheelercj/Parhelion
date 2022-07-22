@@ -1,12 +1,11 @@
-# external imports
-import discord
-from discord.ext import commands
-import asyncpg
 from bs4 import BeautifulSoup
-from typing import Tuple, List, Dict
-
-# internal imports
 from cogs.utils.paginator import MyPaginator
+from discord.ext import commands
+from typing import Dict
+from typing import List
+from typing import Tuple
+import asyncpg
+import discord
 
 
 """
