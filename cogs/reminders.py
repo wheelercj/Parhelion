@@ -1,3 +1,12 @@
+from datetime import datetime
+from datetime import timezone
+from typing import Tuple
+
+import asyncpg  # https://pypi.org/project/asyncpg/
+import discord  # https://pypi.org/project/discord.py/
+from discord.abc import Messageable  # https://pypi.org/project/discord.py/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
+
 from cogs.utils.common import block_nsfw_channels
 from cogs.utils.common import plural
 from cogs.utils.io import safe_send
@@ -5,13 +14,6 @@ from cogs.utils.paginator import MyPaginator
 from cogs.utils.time import create_long_datetime_stamp
 from cogs.utils.time import create_relative_timestamp
 from cogs.utils.time import parse_time_message
-from datetime import datetime
-from datetime import timezone
-from discord.abc import Messageable
-from discord.ext import commands
-from typing import Tuple
-import asyncpg
-import discord
 
 
 """
@@ -168,7 +170,7 @@ class Reminders(commands.Cog):
             )
             if (
                 self.running_reminder_info is not None
-                and record["id"] == self.running_reminder_info.id
+                and record["id"] == self.running_reminder_info.id  # noqa: W503
             ):
                 self._task.cancel()
                 self._task = self.bot.loop.create_task(self.run_reminders())
@@ -203,7 +205,7 @@ class Reminders(commands.Cog):
             for r in records:
                 if (
                     self.running_reminder_info is not None
-                    and r["id"] == self.running_reminder_info.id
+                    and r["id"] == self.running_reminder_info.id  # noqa: W503
                 ):
                     self._task.cancel()
                     self._task = self.bot.loop.create_task(self.run_reminders())
@@ -230,7 +232,7 @@ class Reminders(commands.Cog):
             )
             if (
                 self.running_reminder_info is not None
-                and record["id"] == self.running_reminder_info.id
+                and record["id"] == self.running_reminder_info.id  # noqa: W503
             ):
                 self._task.cancel()
                 self._task = self.bot.loop.create_task(self.run_reminders())
@@ -252,7 +254,7 @@ class Reminders(commands.Cog):
         members_reminder_count = await self.count_authors_reminders(author_id)
         if (
             members_reminder_count >= self.reminder_ownership_limit
-            and self.bot.owner_id != author_id
+            and self.bot.owner_id != author_id  # noqa: W503
         ):
             raise commands.UserInputError(
                 f"The current limit to how many reminders each person can have is {self.reminder_ownership_limit}."

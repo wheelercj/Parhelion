@@ -1,11 +1,13 @@
-from cogs.utils.common import plural
 from datetime import datetime
 from datetime import timedelta
-from discord.ext import commands
 from typing import Optional
 from typing import Tuple
-import asyncpg
-import dateparser
+
+import asyncpg  # https://pypi.org/project/asyncpg/
+import dateparser  # https://pypi.org/project/dateparser/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
+
+from cogs.utils.common import plural
 
 
 async def create_relative_timestamp(dt: datetime) -> str:

@@ -1,16 +1,7 @@
-from cogs.settings import DevSettings
-from cogs.utils.common import get_bot_invite_link
-from cogs.utils.common import get_prefixes_list
-from cogs.utils.common import get_prefixes_message
-from cogs.utils.common import get_prefixes_message
-from cogs.utils.paginator import MyPaginator
-from cogs.utils.time import create_relative_timestamp
-from cogs.utils.time import format_datetime
-from cogs.utils.time import format_timedelta
-from cogs.utils.time import parse_time_message
+import os
+import platform
 from datetime import datetime
 from datetime import timezone as tz
-from discord.ext import commands
 from functools import lru_cache
 from textwrap import dedent
 from typing import List
@@ -18,9 +9,19 @@ from typing import Mapping
 from typing import Optional
 from typing import Tuple
 from typing import Union
-import discord
-import os
-import platform
+
+import discord  # https://pypi.org/project/discord.py/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
+
+from cogs.settings import DevSettings
+from cogs.utils.common import get_bot_invite_link
+from cogs.utils.common import get_prefixes_list
+from cogs.utils.common import get_prefixes_message
+from cogs.utils.paginator import MyPaginator
+from cogs.utils.time import create_relative_timestamp
+from cogs.utils.time import format_datetime
+from cogs.utils.time import format_timedelta
+from cogs.utils.time import parse_time_message
 
 
 def yes_or_no(boolean: bool) -> str:
@@ -64,8 +65,8 @@ class MyHelp(commands.HelpCommand):
         help_cmd_name: str = self.context.invoked_with
         message = f"Use `{prefix}{help_cmd_name} [category]` for more info on a category.\n\u200b"
 
-        for cog, commands in mapping.items():
-            filtered_commands = await self.filter_commands(commands, sort=True)
+        for cog, commands_ in mapping.items():
+            filtered_commands = await self.filter_commands(commands_, sort=True)
             if filtered_commands:
                 cog_name = getattr(cog, "qualified_name", "No Category")
                 if not cog.description:
@@ -101,7 +102,7 @@ class MyHelp(commands.HelpCommand):
         entries = [cog.description]
         entries.append(
             f"\nUse `{prefix}{help_cmd_name} [command]` for more info on a command."
-            + " Some command arguments are <required> and others are [optional]."
+            " Some command arguments are <required> and others are [optional]."
         )
         entries.append("\n**Commands**")
         entries.extend(cmd_signatures)
@@ -127,11 +128,10 @@ class MyHelp(commands.HelpCommand):
         prefix: str = await self.get_clean_prefix()
         help_cmd_name: str = self.context.invoked_with
         message += (
-            "\n\n"
-            + group.help
-            + f"\n\nUse `{prefix}{help_cmd_name} [command]` for more info on a command."
-            + " Some command arguments are <required> and others are [optional]."
-            + "\n\n**Commands**"
+            f"\n\n{group.help}"
+            f"\n\nUse `{prefix}{help_cmd_name} [command]` for more info on a command."
+            " Some command arguments are <required> and others are [optional]."
+            "\n\n**Commands**"
         )
         filtered_commands = await self.filter_commands(group.commands, sort=True)
         for c in filtered_commands:
@@ -420,27 +420,29 @@ class Info(commands.Cog):
         embed = discord.Embed(title="server info")
         embed.add_field(
             name="\u200b",
-            value=f"name: {server.name}\n"
-            + f"owner: {server.owner.name}#{server.owner.discriminator}\n"
-            + f"description: {server.description}\n"
-            + f"created: {created}\n"
-            + f"region: {server.region}\n"
-            + f"preferred locale: {server.preferred_locale}\n"
-            + f"total members: {server.member_count}/{server.max_members} ({bot_count} bots)\n"
-            + f"roles: {len(server.roles)}\n"
-            + f"current boosts: {server.premium_subscription_count}\n"
-            + f"boost level: {server.premium_tier}\n"
-            + f"emojis: {len(server.emojis)}/{server.emoji_limit}\n"
-            + f"file size limit: {server.filesize_limit/1000000:.2f} MB\n"
-            + f"bitrate limit: {server.bitrate_limit/1000} kbps\n"
-            + "\n"
-            + "**channels**\n"
-            + f"categories: {cat_count}\n"
-            + f"total channels: {len(server.channels) - cat_count}\n"
-            + f"text channels: {len(server.text_channels)}\n"
-            + f"voice channels: {len(server.voice_channels)}\n"
-            + f"stages: {len(server.stage_channels)}\n"
-            + f"max video channel users: {server.max_video_channel_users}\n",
+            value=(
+                f"name: {server.name}\n"
+                f"owner: {server.owner.name}#{server.owner.discriminator}\n"
+                f"description: {server.description}\n"
+                f"created: {created}\n"
+                f"region: {server.region}\n"
+                f"preferred locale: {server.preferred_locale}\n"
+                f"total members: {server.member_count}/{server.max_members} ({bot_count} bots)\n"
+                f"roles: {len(server.roles)}\n"
+                f"current boosts: {server.premium_subscription_count}\n"
+                f"boost level: {server.premium_tier}\n"
+                f"emojis: {len(server.emojis)}/{server.emoji_limit}\n"
+                f"file size limit: {server.filesize_limit/1000000:.2f} MB\n"
+                f"bitrate limit: {server.bitrate_limit/1000} kbps\n"
+                "\n"
+                "**channels**\n"
+                f"categories: {cat_count}\n"
+                f"total channels: {len(server.channels) - cat_count}\n"
+                f"text channels: {len(server.text_channels)}\n"
+                f"voice channels: {len(server.voice_channels)}\n"
+                f"stages: {len(server.stage_channels)}\n"
+                f"max video channel users: {server.max_video_channel_users}\n",
+            ),
         )
 
         features = await self.get_server_features(server)
@@ -459,7 +461,7 @@ class Info(commands.Cog):
         """Gets the server's features or returns any empty string if there are none"""
         features = ""
         for feature in sorted(server.features):
-            features += f"\n• " + feature.replace("_", " ").lower()
+            features += "\n• " + feature.replace("_", " ").lower()
         return features
 
     @commands.command(
@@ -478,14 +480,16 @@ class Info(commands.Cog):
         embed = discord.Embed()
         embed.add_field(
             name=f"{member.name}#{member.discriminator}\n\u2800",
-            value=f"**display name:** {member.display_name}\n"
-            + await self.get_whether_bot(member)
-            + f"**account created:** {creation_timestamp}\n"
-            + f"**joined server:** {join_timestamp}\n"
-            + f"**top server role:** {member.top_role}\n"
-            + await self.get_server_roles(member)
-            + await self.get_premium_since(member)
-            + await self.get_global_roles(member),
+            value=(
+                f"**display name:** {member.display_name}\n"
+                f"{await self.get_whether_bot(member)}"
+                f"**account created:** {creation_timestamp}\n"
+                f"**joined server:** {join_timestamp}\n"
+                f"**top server role:** {member.top_role}\n"
+                f"{await self.get_server_roles(member)}"
+                f"{await self.get_premium_since(member)}"
+                f"{await self.get_global_roles(member)}"
+            ),
         )
         embed.set_thumbnail(url=member.avatar_url)
 
@@ -504,7 +508,7 @@ class Info(commands.Cog):
         Otherwise returns an empty string.
         """
         if len(member.roles) <= 10:
-            return f"**server roles:** " + ", ".join(x.name for x in member.roles)
+            return "**server roles:** " + ", ".join(x.name for x in member.roles)
         else:
             return ""
 
@@ -548,15 +552,17 @@ class Info(commands.Cog):
         embed = discord.Embed()
         embed.add_field(
             name="role info",
-            value=f"name: {role.name}\n"
-            + f"members: {len(role.members)}\n"
-            + f"hierarcy position: {role.position}\n"
-            + f"created: {creation_timestamp}\n"
-            + f"mentionable: {yes_or_no(role.mentionable)}\n"
-            + f"default: {yes_or_no(role.is_default())}\n"
-            + f"premium: {yes_or_no(role.is_premium_subscriber())}\n"
-            + f"3rd-party integration: {yes_or_no(role.managed)}\n"
-            + f"managing bot: {managing_bot}\n",
+            value=(
+                f"name: {role.name}\n"
+                f"members: {len(role.members)}\n"
+                f"hierarcy position: {role.position}\n"
+                f"created: {creation_timestamp}\n"
+                f"mentionable: {yes_or_no(role.mentionable)}\n"
+                f"default: {yes_or_no(role.is_default())}\n"
+                f"premium: {yes_or_no(role.is_premium_subscriber())}\n"
+                f"3rd-party integration: {yes_or_no(role.managed)}\n"
+                f"managing bot: {managing_bot}\n",
+            ),
         )
 
         await ctx.send(embed=embed)
@@ -579,7 +585,7 @@ class Info(commands.Cog):
             raise commands.BadArgument("Could not find the user or role.")
 
         embed = discord.Embed(title=title)
-        embed.add_field(name=f"server permissions", value=server_perms)
+        embed.add_field(name="server permissions", value=server_perms)
         if len(overwrites):
             embed = await self.embed_overwrites(embed, server_perms, overwrites)
 

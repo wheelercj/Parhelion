@@ -1,9 +1,11 @@
-from bot import Bot
-from dotenv import load_dotenv
 import asyncio
-import asyncpg
 import os
 import sys
+
+import asyncpg  # https://pypi.org/project/asyncpg/
+from dotenv import load_dotenv  # https://pypi.org/project/python-dotenv/
+
+from bot import Bot
 
 
 def main():

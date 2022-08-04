@@ -1,4 +1,39 @@
-from aiohttp.client_exceptions import ContentTypeError
+import asyncio
+import json
+import random
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
+from textwrap import dedent
+from typing import List
+from typing import Optional
+from typing import Tuple
+
+import async_tio  # https://pypi.org/project/async-tio/
+import asyncpg  # https://pypi.org/project/asyncpg/
+import discord  # https://pypi.org/project/discord.py/
+import mystbin  # https://pypi.org/project/mystbin.py/
+from aiohttp.client_exceptions import (
+    ContentTypeError,
+)  # https://pypi.org/project/aiohttp/
+from deep_translator import (
+    GoogleTranslator,
+)  # https://pypi.org/project/deep-translator/
+from deep_translator.google_trans import (
+    LanguageNotSupportedException,
+)  # https://pypi.org/project/deep-translator/
+from deep_translator.google_trans import (
+    TranslationNotFound,
+)  # https://pypi.org/project/deep-translator/
+from discord.abc import Messageable  # https://pypi.org/project/discord.py/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
+from wordhoard import Antonyms  # https://pypi.org/project/wordhoard/
+from wordhoard import Definitions  # https://pypi.org/project/wordhoard/
+from wordhoard import Homophones  # https://pypi.org/project/wordhoard/
+from wordhoard import Hypernyms  # https://pypi.org/project/wordhoard/
+from wordhoard import Hyponyms  # https://pypi.org/project/wordhoard/
+from wordhoard import Synonyms  # https://pypi.org/project/wordhoard/
+
 from cogs.utils.common import block_nsfw_channels
 from cogs.utils.io import get_attachment_url
 from cogs.utils.io import safe_send
@@ -8,31 +43,6 @@ from cogs.utils.paginator import MyPaginator
 from cogs.utils.paginator import paginate_search
 from cogs.utils.time import create_short_timestamp
 from cogs.utils.time import parse_time_message
-from datetime import datetime
-from datetime import timedelta
-from datetime import timezone
-from deep_translator import GoogleTranslator
-from deep_translator.google_trans import LanguageNotSupportedException
-from deep_translator.google_trans import TranslationNotFound
-from discord.abc import Messageable
-from discord.ext import commands
-from textwrap import dedent
-from typing import List
-from typing import Optional
-from typing import Tuple
-from wordhoard import Antonyms
-from wordhoard import Definitions
-from wordhoard import Homophones
-from wordhoard import Hypernyms
-from wordhoard import Hyponyms
-from wordhoard import Synonyms
-import async_tio
-import asyncio
-import asyncpg
-import discord
-import json
-import mystbin
-import random
 
 
 """
@@ -193,11 +203,11 @@ class Other(commands.Cog):
     async def choose_error(self, ctx, error):
         if (
             isinstance(error, commands.errors.BadArgument)
-            or isinstance(error, commands.errors.CommandInvokeError)
-            or isinstance(error, commands.errors.MissingRequiredArgument)
+            or isinstance(error, commands.errors.CommandInvokeError)  # noqa: W503
+            or isinstance(error, commands.errors.MissingRequiredArgument)  # noqa: W503
         ):
             await ctx.send(
-                f"Error: the first argument must be the number of choices you want to be made. Following arguments must be the choices to choose from."
+                "Error: the first argument must be the number of choices you want to be made. Following arguments must be the choices to choose from."
             )
         else:
             await ctx.send(error)
@@ -422,7 +432,7 @@ class Other(commands.Cog):
         return dedent(
             """
             namespace MyNamespace {
-                class MyClass {         
+                class MyClass {
                     static void Main(string[] args) {
             """
         )
@@ -462,7 +472,7 @@ class Other(commands.Cog):
         Without a subcommand, this command translates words from any language (auto-detected) to English.
         """
         translated = await self._translate("auto", "en", words)
-        embed = discord.Embed(title=f"English translation", description=translated)
+        embed = discord.Embed(title="English translation", description=translated)
         await ctx.send(embed=embed)
 
     @translate.command(name="to")
@@ -509,7 +519,7 @@ class Other(commands.Cog):
         if query:
             title = f"languages that contain `{query}`"
         else:
-            title = f"languages supported by the translate commands"
+            title = "languages supported by the translate commands"
         await paginate_search(ctx, title, languages, query)
 
     #################
@@ -678,7 +688,7 @@ class Other(commands.Cog):
             )
             if (
                 self.running_quote_info is not None
-                and ctx.author.id == self.running_quote_info.author_id
+                and ctx.author.id == self.running_quote_info.author_id  # noqa: W503
             ):
                 self.quotes_task.cancel()
                 self.quotes_task = self.bot.loop.create_task(self.run_daily_quotes())
@@ -703,7 +713,7 @@ class Other(commands.Cog):
             )
             if (
                 self.running_quote_info is not None
-                and member.id == self.running_quote_info.author_id
+                and member.id == self.running_quote_info.author_id  # noqa: W503
             ):
                 self.quotes_task.cancel()
                 self.quotes_task = self.bot.loop.create_task(self.run_daily_quotes())

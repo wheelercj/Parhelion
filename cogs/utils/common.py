@@ -1,9 +1,10 @@
-from discord.abc import Messageable
-from discord.ext import commands
+import re
 from typing import List
 from typing import Union
-import discord
-import re
+
+import discord  # https://pypi.org/project/discord.py/
+from discord.abc import Messageable  # https://pypi.org/project/discord.py/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
 async def get_bot_invite_link(bot) -> str:
@@ -64,7 +65,7 @@ async def escape_json(text: str) -> str:
         .replace("\b", r"\b")
         .replace("\f", r"\f")
         .replace(r"\u", r"\\u")
-        .replace("/", "\/")
+        .replace("/", r"\/")
     )
     return text
 

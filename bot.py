@@ -1,22 +1,24 @@
-from cogs.settings import DevSettings
-from cogs.utils.common import get_prefixes_list
-from cogs.utils.common import get_prefixes_message
-from cogs.utils.io import dev_mail
-from copy import copy
-from datetime import datetime
-from datetime import timezone
-from discord.ext import commands
-from logging.handlers import RotatingFileHandler
-from typing import Dict
-from typing import List
-import aiohttp
-import discord
 import logging
 import os
 import platform
 import re
 import sys
 import traceback
+from copy import copy
+from datetime import datetime
+from datetime import timezone
+from logging.handlers import RotatingFileHandler
+from typing import Dict
+from typing import List
+
+import aiohttp  # https://pypi.org/project/aiohttp/
+import discord  # https://pypi.org/project/discord.py/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
+
+from cogs.settings import DevSettings
+from cogs.utils.common import get_prefixes_list
+from cogs.utils.common import get_prefixes_message
+from cogs.utils.io import dev_mail
 
 
 class Bot(commands.Bot):
@@ -129,7 +131,8 @@ class Bot(commands.Bot):
     async def detect_token(self, message: discord.Message) -> None:
         """Detects bot tokens and warns people about them"""
         token_regex = re.compile(
-            r"([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})"
+            r"([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}"
+            r"|mfa\.[a-zA-Z0-9_\-]{84})"
         )
         match = token_regex.search(message.content)
         if match is not None:
@@ -145,7 +148,12 @@ class Bot(commands.Bot):
             % discord_bot_token
         )
         github_token = os.environ["ALTERNATE_GITHUB_GISTS_TOKEN"]
-        auth = aiohttp.BasicAuth("beep-boop-82197842", password=github_token)
+        try:
+            github_account_name = os.environ["ALTERNATE_GITHUB_ACCOUNT_NAME"]
+        except KeyError:
+            auth = aiohttp.BasicAuth("beep-boop-82197842", password=github_token)
+        else:
+            auth = aiohttp.BasicAuth(github_account_name, password=github_token)
 
         async with self.session.post(url, data=data, auth=auth) as response:
             if not response.ok:
@@ -154,7 +162,11 @@ class Bot(commands.Bot):
                 )
 
         await message.reply(
-            f"Bot token detected and invalidated! If the token was in use, the bot it belonged to will need to get a new token before being able to reconnect to Discord. For more details, see <https://gist.github.com/beep-boop-82197842/4255864be63966b8618e332d1df30619>"
+            "Bot token detected and invalidated! If the token was in use, the bot it"
+            " belonged to will need to get a new token before being able to reconnect"
+            " to Discord. For more details, see"
+            " <https://gist.github.com/beep-boop-82197842/"
+            "4255864be63966b8618e332d1df30619>"
         )
 
     async def is_only_bot_mention(self, message: discord.Message) -> bool:
@@ -169,11 +181,15 @@ class Bot(commands.Bot):
         prefixes_message = await get_prefixes_message(self, message, prefixes)
 
         await message.channel.send(
-            f"Hello {message.author.display_name}! My command {prefixes_message}. Use `{prefixes[0]}help` to get help with commands."
+            f"Hello {message.author.display_name}! My command {prefixes_message}. Use"
+            f" `{prefixes[0]}help` to get help with commands."
         )
 
     async def on_command(self, ctx):
-        log_message = f"[author {ctx.author.display_name}][guild {ctx.guild}][command {ctx.message.content}]"
+        log_message = (
+            f"[author {ctx.author.display_name}][guild {ctx.guild}][command"
+            f" {ctx.message.content}]"
+        )
         self.logger.info(log_message)
 
         self.command_use_count += 1
@@ -202,7 +218,8 @@ class Bot(commands.Bot):
             await ctx.send("This command has been disabled.")
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.send(
-                f"Commands on cooldown. Please try again in {error.retry_after:.2f} seconds."
+                f"Commands on cooldown. Please try again in {error.retry_after:.2f}"
+                " seconds."
             )
         elif isinstance(error, commands.UserInputError):
             await ctx.send(error)
@@ -210,33 +227,38 @@ class Bot(commands.Bot):
             await ctx.send("Only the owner can use this command.")
         elif isinstance(error, commands.MissingRole):
             await ctx.send(
-                f"You do not have the necessary role to use this command: {error.missing_role}"
+                "You do not have the necessary role to use this command:"
+                f" {error.missing_role}"
             )
         elif isinstance(error, commands.MissingPermissions):
-            message = f"You do not have the necessary permissions to use this command"
+            message = "You do not have the necessary permissions to use this command"
             try:
                 message += ": " + error.missing_perms
-            except:
+            except Exception:
                 pass
             await ctx.send(message)
         elif isinstance(error, commands.BotMissingPermissions):
             perms_needed = ", ".join(error.missing_perms).replace("_", " ")
             await ctx.send(
-                f"I have not been granted some permission(s) needed for this command to work: {perms_needed}. Permissions can be managed in the server's settings."
+                "I have not been granted some permission(s) needed for this command to"
+                f" work: {perms_needed}. Permissions can be managed in the server's"
+                " settings."
             )
             await dev_mail(
                 self,
-                f"The invite link may need to be updated with more permission(s): {perms_needed}",
+                "The invite link may need to be updated with more permission(s):"
+                f" {perms_needed}",
             )
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send("This command cannot be used in private messages.")
         elif isinstance(error, commands.CheckFailure):
-            await ctx.send(f"You do not have access to this command.")
+            await ctx.send("You do not have access to this command.")
         elif isinstance(error, commands.BadUnionArgument):
             await ctx.send("Error: one or more inputs could not be understood.")
         else:
             tb = traceback.format_exception(type(error), error, error.__traceback__)
-            log_message = f'[command {ctx.message.content}][type(error) {type(error)}][error {error}]\n{"".join(tb)}'
+            log_message = f"[command {ctx.message.content}][type(error)"
+            f' {type(error)}][error {error}]\n{"".join(tb)}'
             channel = self.get_channel(DevSettings.error_log_channel_id)
             await channel.send(log_message)
 
@@ -246,7 +268,8 @@ class Bot(commands.Bot):
 
             await ctx.send(
                 "I encountered an error and notified my developer. If you would like to"
-                f" join the support server, here's the link: {DevSettings.support_server_link}"
+                " join the support server, here's the link:"
+                f" {DevSettings.support_server_link}"
             )
 
             print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)

@@ -1,5 +1,5 @@
-from discord.ext import commands
-import discord
+import discord  # https://pypi.org/project/discord.py/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
 class Mod(commands.Cog):
@@ -19,8 +19,11 @@ class Mod(commands.Cog):
         This cannot be undone or stopped once it begins. You may
         not be able to delete messages more than 14 days old.
         """
-        check = lambda message: message.author == self.bot.user
-        deleted = await ctx.channel.purge(limit=amount, check=check, bulk=False)
+        deleted = await ctx.channel.purge(
+            limit=amount,
+            check=lambda message: message.author == self.bot.user,
+            bulk=False,
+        )
         await ctx.send(f":thumbsup: Deleted {len(deleted)} messages.", delete_after=8)
 
     @commands.command(name="bulk-delete", aliases=["bulkdelete"])
@@ -36,11 +39,11 @@ class Mod(commands.Cog):
         not be able to delete messages more than 14 days old.
         """
         if member is None:
-            check = None
+            deleted = await ctx.channel.purge(limit=amount, check=None)
         else:
-            check = lambda message: message.author == member
-
-        deleted = await ctx.channel.purge(limit=amount, check=check)
+            deleted = await ctx.channel.purge(
+                limit=amount, check=lambda message: message.author == member
+            )
         await ctx.send(f":thumbsup: Deleted {len(deleted)} messages.", delete_after=8)
 
     async def strip_quotes(self, message: str) -> str:

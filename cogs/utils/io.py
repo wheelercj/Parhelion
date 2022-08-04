@@ -1,9 +1,10 @@
-from discord.ext import commands
-from typing import Optional
-from typing import Tuple
-import discord
 import os
 import traceback
+from typing import Optional
+from typing import Tuple
+
+import discord  # https://pypi.org/project/discord.py/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
 #########

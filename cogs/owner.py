@@ -1,14 +1,16 @@
-from cogs.utils.common import escape_json
-from cogs.utils.io import unwrap_code_block
-from cogs.utils.time import get_14_digit_datetime
-from discord.ext import commands
-from textwrap import dedent
-import aiohttp
 import asyncio
-import discord
 import io
 import os
 import sys
+from textwrap import dedent
+
+import aiohttp  # https://pypi.org/project/aiohttp/
+import discord  # https://pypi.org/project/discord.py/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
+
+from cogs.utils.common import escape_json
+from cogs.utils.io import unwrap_code_block
+from cogs.utils.time import get_14_digit_datetime
 
 
 class Owner(commands.Cog):
@@ -40,7 +42,7 @@ class Owner(commands.Cog):
                     "This command can only be used without an argument in a server."
                 )
             else:
-                await ctx.send(f"Now leaving the server. Goodbye!")
+                await ctx.send("Now leaving the server. Goodbye!")
                 await ctx.guild.leave()
         else:
             for server in ctx.bot.guilds:

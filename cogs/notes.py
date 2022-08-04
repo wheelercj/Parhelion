@@ -1,11 +1,13 @@
-from cogs.utils.common import block_nsfw_channels
-from cogs.utils.paginator import MyPaginator
 from datetime import datetime
 from datetime import timezone
-from discord.ext import commands
 from typing import List
 from typing import Optional
 from typing import Tuple
+
+from discord.ext import commands  # https://pypi.org/project/discord.py/
+
+from cogs.utils.common import block_nsfw_channels
+from cogs.utils.paginator import MyPaginator
 
 
 """
@@ -253,7 +255,7 @@ class Notes(commands.Cog):
         members_note_count = await self.count_users_notes(author_id)
         if (
             members_note_count >= self.note_ownership_limit
-            and self.bot.owner_id != author_id
+            and self.bot.owner_id != author_id  # noqa: W503
         ):
             raise commands.UserInputError(
                 f"The current limit to how many notes each person can have is {self.note_ownership_limit}."

@@ -1,8 +1,4 @@
-from cogs.utils.common import get_prefixes_message
-from cogs.utils.common import get_prefixes_str
-from cogs.utils.paginator import MyPaginator
-from cogs.utils.paginator import paginate_search
-from discord.ext import commands
+import json
 from textwrap import dedent
 from typing import Any
 from typing import Callable
@@ -11,10 +7,16 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Union
-import asyncpg
-import discord
-import json
-import pytz
+
+import asyncpg  # https://pypi.org/project/asyncpg/
+import discord  # https://pypi.org/project/discord.py/
+import pytz  # https://pypi.org/project/pytz/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
+
+from cogs.utils.common import get_prefixes_message
+from cogs.utils.common import get_prefixes_str
+from cogs.utils.paginator import MyPaginator
+from cogs.utils.paginator import paginate_search
 
 
 class DevSettings:
@@ -744,7 +746,7 @@ class Settings(commands.Cog):
             Since the bot's and each command's use is allowed by default, most settings will
             be to deny access except in cases where it is easier to deny access by default
             and allow access by exception.
-            
+
             Please let me know in the support server (use the `support` command) if you have
             any questions/concerns/etc. Some commands, such as the `tag` commands, may be
             disabled by default and only enabled for servers that have requested them and
@@ -839,7 +841,7 @@ class Settings(commands.Cog):
                     nds_names.append(server.name)
 
             if len(nds_names):
-                title = f"servers with non-default settings for the bot"
+                title = "servers with non-default settings for the bot"
                 paginator = MyPaginator(
                     title=title, embed=True, timeout=90, entries=nds_names, length=15
                 )
@@ -1417,7 +1419,7 @@ class Settings(commands.Cog):
                 await self.bot.db.execute("""TRUNCATE TABLE bot_access_settings;""")
                 await self.bot.db.execute("""INSERT INTO bot_access_settings;""")
                 await ctx.send(
-                    f"Deleted all setting for the bot, including the global settings."
+                    "Deleted all setting for the bot, including the global settings."
                 )
             except KeyError:
                 raise commands.BadArgument("No settings found.")
@@ -1455,7 +1457,7 @@ class Settings(commands.Cog):
                     "servers",
                     str(ctx.guild.id),
                 )
-                await ctx.send(f"Deleted all server setting for the bot.")
+                await ctx.send("Deleted all server setting for the bot.")
             except KeyError:
                 raise commands.BadArgument("No settings found.")
 
@@ -1486,7 +1488,7 @@ class Settings(commands.Cog):
                 """,
                 "null",
             )
-            await ctx.send(f"Deleted global setting for the bot.")
+            await ctx.send("Deleted global setting for the bot.")
 
         await self.cleanup_after_setting_delete(command_name)
 
@@ -1613,7 +1615,7 @@ class Settings(commands.Cog):
                 "server",
                 "null",
             )
-            await ctx.send(f"Deleted setting for the bot for this server.")
+            await ctx.send("Deleted setting for the bot for this server.")
 
         await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
 

@@ -1,16 +1,18 @@
+import io
+from datetime import datetime
+from datetime import timezone
+from typing import List
+from typing import Optional
+
+import asyncpg  # https://pypi.org/project/asyncpg/
+import discord  # https://pypi.org/project/discord.py/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
+
 from cogs.utils.common import plural
 from cogs.utils.io import get_attachment_url
 from cogs.utils.io import split_input
 from cogs.utils.paginator import MyPaginator
 from cogs.utils.time import create_relative_timestamp
-from datetime import datetime
-from datetime import timezone
-from discord.ext import commands
-from typing import List
-from typing import Optional
-import asyncpg
-import discord
-import io
 
 
 """
@@ -297,7 +299,7 @@ class Tags(commands.Cog):
         )
 
         if not records or not len(records):
-            raise commands.BadArgument(f"No matches found.")
+            raise commands.BadArgument("No matches found.")
 
         await self.paginate_tag_list(ctx, "", records)
 
@@ -314,7 +316,7 @@ class Tags(commands.Cog):
         )
 
         if not records or not len(records):
-            raise commands.UserInputError(f"There are no tags on this server.")
+            raise commands.UserInputError("There are no tags on this server.")
 
         await self.paginate_tag_list(ctx, "", records)
 
@@ -568,7 +570,7 @@ class Tags(commands.Cog):
             )
 
         if send_raw:
-            content = record["content"].replace("`", "\`")
+            content = record["content"].replace("`", "\\`")
             if record["file_url"]:
                 content += "\n" + record["file_url"]
             await ctx.send(content)
@@ -633,11 +635,13 @@ class Tags(commands.Cog):
         timestamp = await create_relative_timestamp(record["created"])
         embed.add_field(
             name=record["name"],
-            value=f"owner: {owner}\n"
-            + f"created: {timestamp}\n"
-            + f'views: {record["views"]}\n'
-            + f'ID: {record["id"]}\n'
-            + parent_tag,
+            value=(
+                f"owner: {owner}\n"
+                f"created: {timestamp}\n"
+                f'views: {record["views"]}\n'
+                f'ID: {record["id"]}\n'
+                f"{parent_tag}"
+            ),
         )
 
         await ctx.send(embed=embed)
@@ -649,7 +653,7 @@ class Tags(commands.Cog):
         records = sorted(records, key=lambda x: x["name"])
         entries = []
         for i, r in enumerate(records):
-            tag_name = r["name"].replace("`", "\`")
+            tag_name = r["name"].replace("`", "\\`")
             entries.append(f'{i+1}. `{tag_name}` (ID: {r["id"]})')
 
         paginator = MyPaginator(
@@ -673,7 +677,7 @@ class Tags(commands.Cog):
         members_tag_count = await self.count_members_tags(ctx.author.id)
         if (
             members_tag_count >= self.tag_ownership_limit
-            and self.bot.owner_id != ctx.author.id
+            and self.bot.owner_id != ctx.author.id  # noqa: W503
         ):
             raise commands.UserInputError(
                 f"The current limit to how many tags each person can have is {self.tag_ownership_limit}."
@@ -716,7 +720,7 @@ class Tags(commands.Cog):
             tag_subcommands.extend(c.aliases)
         if name.split()[0] in tag_subcommands:
             raise commands.BadArgument(
-                f"Tag names must not begin with a tag subcommand."
+                "Tag names must not begin with a tag subcommand."
             )
 
         # Prevent new tag names from being the same as existing tag names; not case-sensitive.
@@ -741,7 +745,7 @@ class Tags(commands.Cog):
                 )
             if len(name) == 0:
                 raise commands.BadArgument(
-                    f"Tag name length must be at least 1 character."
+                    "Tag name length must be at least 1 character."
                 )
         if content is not None:
             if len(content) > self.tag_content_length_limit:
@@ -750,7 +754,7 @@ class Tags(commands.Cog):
                 )
             if len(content) == 0:
                 raise commands.BadArgument(
-                    f"Tag content length must be at least 1 character."
+                    "Tag content length must be at least 1 character."
                 )
 
         return True
