@@ -371,7 +371,7 @@ class Info(commands.Cog):
 
     @commands.command(hidden=True)
     async def source(self, ctx):
-        await ctx.send("I am closed source.")
+        await ctx.send("https://github.com/wheelercj/Parhelion")
 
     @commands.command()
     async def tips(self, ctx):
