@@ -29,44 +29,6 @@ class DevSettings:
     error_log_channel_id = 881374348441694258
 
 
-"""
-    CREATE TABLE timezones (
-        user_id BIGINT PRIMARY KEY NOT NULL,
-        timezone TEXT NOT NULL
-    );
-
-    CREATE TABLE prefixes (
-        id SERIAL PRIMARY KEY,
-        server_id BIGINT UNIQUE,
-        custom_prefixes TEXT[],
-        removed_default_prefixes TEXT[]
-    );
-
-    CREATE TABLE command_access_settings (
-        id SERIAL PRIMARY KEY,
-        cmd_name TEXT UNIQUE,
-        cmd_settings JSONB NOT NULL
-            DEFAULT '{
-                "global_users": {},
-                "global_servers": {},
-                "global": null,
-                "servers": {}
-            }'::jsonb
-    );
-
-    CREATE TABLE bot_access_settings (
-        -- This table should only ever have one row and one column. Note its similarity to the table above.
-        bot_settings JSONB NOT NULL
-            DEFAULT '{
-                "global_users": {},
-                "global_servers": {},
-                "global": null,
-                "servers": {}
-            }'::jsonb
-    );
-"""
-
-
 class CommandName(commands.Converter):
     """Converter to validate a string input of a command name
 
@@ -187,8 +149,50 @@ class Settings(commands.Cog):
             self.default_server_bot_settings
         )
 
+    async def create_tables_if_not_exists(self) -> None:
+        await self.bot.wait_until_ready()
+        await self.bot.db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS timezones (
+                user_id BIGINT PRIMARY KEY NOT NULL,
+                timezone TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS prefixes (
+                id SERIAL PRIMARY KEY,
+                server_id BIGINT UNIQUE,
+                custom_prefixes TEXT[],
+                removed_default_prefixes TEXT[]
+            );
+
+            CREATE TABLE IF NOT EXISTS command_access_settings (
+                id SERIAL PRIMARY KEY,
+                cmd_name TEXT UNIQUE,
+                cmd_settings JSONB NOT NULL
+                    DEFAULT '{
+                        "global_users": {},
+                        "global_servers": {},
+                        "global": null,
+                        "servers": {}
+                    }'::jsonb
+            );
+
+            CREATE TABLE IF NOT EXISTS bot_access_settings (
+                -- This table should only ever have one row and one column. Note its similarity to the table above.
+                bot_settings JSONB NOT NULL
+                    DEFAULT '{
+                        "global_users": {},
+                        "global_servers": {},
+                        "global": null,
+                        "servers": {}
+                    }'::jsonb
+            );
+            """
+        )
+
     async def load_custom_prefixes(self):
         await self.bot.wait_until_ready()
+        await self.create_tables_if_not_exists()
         try:
             records = await self.bot.db.fetch(
                 """

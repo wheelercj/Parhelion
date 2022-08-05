@@ -15,29 +15,12 @@ from cogs.utils.paginator import MyPaginator
 from cogs.utils.time import create_relative_timestamp
 
 
-"""
-    CREATE TABLE tags (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(50) NOT NULL,
-        parent_tag_id INT,
-        content VARCHAR(1500),
-        file_url TEXT,
-        created TIMESTAMPTZ NOT NULL,
-        owner_id BIGINT NOT NULL,
-        server_id BIGINT NOT NULL,
-        views INT DEFAULT 0,
-        UNIQUE (name, server_id)
-    );
-"""
-# Either parent_tag_id is NULL, or content and file_url are both NULL
-# (though either content or file_url may be NULL regardless).
-
-
 class Tags(commands.Cog):
     """Save and share messages such as FAQs."""
 
     def __init__(self, bot):
         self.bot = bot
+        self._task = bot.loop.create_task(self.create_table_if_not_exists())
         self.tag_ownership_limit = 20
         self.tag_name_length_limit = 50
         self.tag_content_length_limit = 1500
@@ -46,6 +29,27 @@ class Tags(commands.Cog):
         if not ctx.guild:
             raise commands.NoPrivateMessage
         return True
+
+    async def create_table_if_not_exists(self) -> None:
+        await self.bot.wait_until_ready()
+        await self.bot.db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS tags (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(50) NOT NULL,
+                parent_tag_id INT,
+                content VARCHAR(1500),
+                file_url TEXT,
+                created TIMESTAMPTZ NOT NULL,
+                owner_id BIGINT NOT NULL,
+                server_id BIGINT NOT NULL,
+                views INT DEFAULT 0,
+                UNIQUE (name, server_id)
+            );
+            """
+            # Either parent_tag_id is NULL, or content and file_url are both NULL
+            # (though either content or file_url may be NULL regardless).
+        )
 
     @commands.group(invoke_without_command=True)
     async def tag(self, ctx, *, tag_name: str):

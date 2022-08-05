@@ -10,15 +10,6 @@ from discord.ext import commands  # https://pypi.org/project/discord.py/
 from cogs.utils.paginator import MyPaginator
 
 
-"""
-CREATE TABLE docs (
-    id SERIAL PRIMARY KEY,
-    server_id BIGINT UNIQUE,
-    url TEXT NOT NULL
-);
-"""
-
-
 class Docs(commands.Cog):
     """Browse documentation."""
 
@@ -27,8 +18,20 @@ class Docs(commands.Cog):
         self._task = bot.loop.create_task(self.load_docs_urls())
         self.docs_urls: Dict[int, str] = dict()  # Server IDs and URLs.
 
+    async def create_table_if_not_exists(self) -> None:
+        await self.bot.db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS docs (
+                id SERIAL PRIMARY KEY,
+                server_id BIGINT UNIQUE,
+                url TEXT NOT NULL
+            );
+            """
+        )
+
     async def load_docs_urls(self):
         await self.bot.wait_until_ready()
+        await self.create_table_if_not_exists()
         try:
             records = await self.bot.db.fetch(
                 """

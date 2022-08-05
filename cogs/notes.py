@@ -10,20 +10,6 @@ from cogs.utils.common import block_nsfw_channels
 from cogs.utils.paginator import MyPaginator
 
 
-"""
-    CREATE TABLE notes (
-        author_id BIGINT PRIMARY KEY,
-        contents VARCHAR(500)[],
-        jump_urls TEXT[],  -- The URLs to the messages in which the notes were created. This array is parallel to the contents array.
-        last_viewed_at TIMESTAMPTZ NOT NULL
-    );
-"""
-# Discord embed descriptions have a character limit of 4096 characters.
-# Each note has a 500 character limit.
-# The paginator in the notes command allows 7 notes in each embed.
-# 7 * 500 = 3500, so there's some extra space for indexes, URLs, etc.
-
-
 class Notes(commands.Cog):
     """Save and view your notes.
 
@@ -32,7 +18,25 @@ class Notes(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self._task = bot.loop.create_task(self.create_table_if_not_exists())
         self.note_ownership_limit = 20
+
+    async def create_table_if_not_exists(self) -> None:
+        await self.bot.wait_until_ready()
+        await self.bot.db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS notes (
+                author_id BIGINT PRIMARY KEY,
+                contents VARCHAR(500)[],
+                jump_urls TEXT[],  -- The URLs to the messages in which the notes were created. This array is parallel to the contents array.
+                last_viewed_at TIMESTAMPTZ NOT NULL
+            );
+            """
+        )
+        # Discord embed descriptions have a character limit of 4096 characters.
+        # Each note has a 500 character limit.
+        # The paginator in the notes command allows 7 notes in each embed.
+        # 7 * 500 = 3500, so there's some extra space for indexes, URLs, etc.
 
     @commands.command(
         aliases=[

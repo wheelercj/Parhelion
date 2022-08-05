@@ -45,18 +45,6 @@ from cogs.utils.time import create_short_timestamp
 from cogs.utils.time import parse_time_message
 
 
-"""
-    CREATE TABLE daily_quotes (
-        author_id BIGINT PRIMARY KEY,
-        start_time TIMESTAMPTZ NOT NULL,
-        target_time TIMESTAMPTZ NOT NULL,
-        is_dm BOOLEAN NOT NULL,
-        server_id BIGINT,
-        channel_id BIGINT
-    );
-"""
-
-
 class RunningQuoteInfo:
     def __init__(self, target_time: datetime, author_id: int):
         self.target_time = target_time
@@ -74,9 +62,24 @@ class Other(commands.Cog):
     def cog_unload(self):
         self.quotes_task.cancel()
 
+    async def create_table_if_not_exists(self) -> None:
+        await self.bot.db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS daily_quotes (
+                author_id BIGINT PRIMARY KEY,
+                start_time TIMESTAMPTZ NOT NULL,
+                target_time TIMESTAMPTZ NOT NULL,
+                is_dm BOOLEAN NOT NULL,
+                server_id BIGINT,
+                channel_id BIGINT
+            );
+            """
+        )
+
     async def run_daily_quotes(self) -> None:
         """A task that finds the next quote time, waits for that time, and sends"""
         await self.bot.wait_until_ready()
+        await self.create_table_if_not_exists()
         try:
             while not self.bot.is_closed():
                 target_time, author_id, destination = await self.get_next_quote_info()

@@ -16,21 +16,6 @@ from cogs.utils.time import create_relative_timestamp
 from cogs.utils.time import parse_time_message
 
 
-"""
-    CREATE TABLE IF NOT EXISTS reminders (
-        id SERIAL PRIMARY KEY,
-        author_id BIGINT NOT NULL,
-        start_time TIMESTAMPTZ NOT NULL,
-        target_time TIMESTAMPTZ NOT NULL,
-        message VARCHAR(500) NOT NULL,
-        is_dm BOOLEAN NOT NULL,
-        server_id BIGINT,
-        channel_id BIGINT,
-        UNIQUE (author_id, start_time)
-    )
-"""
-
-
 class RunningReminderInfo:
     def __init__(self, target_time: datetime, id: int):
         self.target_time = target_time
@@ -49,9 +34,27 @@ class Reminders(commands.Cog):
     def cog_unload(self):
         self._task.cancel()
 
+    async def create_table_if_not_exists(self) -> None:
+        await self.bot.db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS reminders (
+                id SERIAL PRIMARY KEY,
+                author_id BIGINT NOT NULL,
+                start_time TIMESTAMPTZ NOT NULL,
+                target_time TIMESTAMPTZ NOT NULL,
+                message VARCHAR(500) NOT NULL,
+                is_dm BOOLEAN NOT NULL,
+                server_id BIGINT,
+                channel_id BIGINT,
+                UNIQUE (author_id, start_time)
+            );
+            """
+        )
+
     async def run_reminders(self) -> None:
         """A task that finds the next reminder time, waits for that time, and sends"""
         await self.bot.wait_until_ready()
+        await self.create_table_if_not_exists()
         try:
             while not self.bot.is_closed():
                 (
