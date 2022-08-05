@@ -693,26 +693,28 @@ class Settings(commands.Cog):
         entries = [
             dedent(
                 """
-            A command or the entire bot can be enabled or disabled for the entire server, or for
-            a channel, a role, or a member. If a setting is not chosen, most of the bot's features
-            are enabled by default for most users. Some commands have extra requirements
-            not listed in settings. For example, these setting commands require the user
-            to have the "manage server" permission."""
+                A command or the entire bot can be enabled or disabled for the entire server, or for
+                a channel, a role, or a member. If a setting is not chosen, most of the bot's features
+                are enabled by default for most users. Some commands have extra requirements
+                not listed in settings. For example, these setting commands require the user
+                to have the "manage server" permission.
+                """
             ),
             dedent(
                 """
-            When creating or deleting a setting for a command, use the command's full
-            name (not an alias). For commands that have subcommands (such as the `remind`
-            commands), settings can only be applied to the root command. If two or more
-            settings conflict, the most specific one will be used (except that some global
-            settings cannot be overridden by server settings; global settings can only be
-            set by the bot owner). For example, if the `remind` command is disabled for the
-            server but enabled for one of its users, then that command can only be used by
-            that user. Role settings are considered more specific than channel settings."""
+                When creating or deleting a setting for a command, use the command's full
+                name (not an alias). For commands that have subcommands (such as the `remind`
+                commands), settings can only be applied to the root command. If two or more
+                settings conflict, the most specific one will be used (except that some global
+                settings cannot be overridden by server settings; global settings can only be
+                set by the bot owner). For example, if the `remind` command is disabled for the
+                server but enabled for one of its users, then that command can only be used by
+                that user. Role settings are considered more specific than channel settings.
+                """
             ),
             dedent(
                 """
-            Here is the precedence of the settings:
+                Here is the precedence of the settings:
                 1. Does the bot owner allow the command invoker to use the command?
                 2. Does the bot owner allow the command invoker to use the bot?
                 3. Does the bot owner allow the server to use the command?
@@ -726,31 +728,34 @@ class Settings(commands.Cog):
                 11. Does the server allow the channel to use the command?
                 12. Does the server allow the channel to use the bot?
                 13. Does the server allow the server to use the command?
-                14. Does the server allow the server to use the bot?"""
+                14. Does the server allow the server to use the bot?
+                """
             ),
             dedent(
                 """
-            There are three possible answers to each of the questions on the previous page:
-            allow, deny, or undefined. Each time someone tries to use a command, the bot
-            starts checking the questions. If an answer is undefined, the next question is
-            checked. If all the answers are undefined, use of the command will be allowed.
-            If an answer is to allow or deny, the bot will immediately stop checking the
-            questions and allow or deny access to the command, except that a server can
-            choose to deny access even if the owner is allowing access to that specific
-            server or to a user in that server. If the owner is denying access in any way or
-            globally allowing access to all servers, then that cannot be overridden by
-            server settings."""
+                There are three possible answers to each of the questions on the previous page:
+                allow, deny, or undefined. Each time someone tries to use a command, the bot
+                starts checking the questions. If an answer is undefined, the next question is
+                checked. If all the answers are undefined, use of the command will be allowed.
+                If an answer is to allow or deny, the bot will immediately stop checking the
+                questions and allow or deny access to the command, except that a server can
+                choose to deny access even if the owner is allowing access to that specific
+                server or to a user in that server. If the owner is denying access in any way or
+                globally allowing access to all servers, then that cannot be overridden by
+                server settings.
+                """
             ),
             dedent(
                 """
-            Since the bot's and each command's use is allowed by default, most settings will
-            be to deny access except in cases where it is easier to deny access by default
-            and allow access by exception.
+                Since the bot's and each command's use is allowed by default, most settings will
+                be to deny access except in cases where it is easier to deny access by default
+                and allow access by exception.
 
-            Please let me know in the support server (use the `support` command) if you have
-            any questions/concerns/etc. Some commands, such as the `tag` commands, may be
-            disabled by default and only enabled for servers that have requested them and
-            have a good use for them."""
+                Please let me know in the support server (use the `support` command) if you have
+                any questions/concerns/etc. Some commands, such as the `tag` commands, may be
+                disabled by default and only enabled for servers that have requested them and
+                have a good use for them.
+                """
             ),
         ]
 
