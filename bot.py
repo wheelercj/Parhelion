@@ -257,8 +257,10 @@ class Bot(commands.Bot):
             await ctx.send("Error: one or more inputs could not be understood.")
         else:
             tb = traceback.format_exception(type(error), error, error.__traceback__)
-            log_message = f"[command {ctx.message.content}][type(error)"
-            f' {type(error)}][error {error}]\n{"".join(tb)}'
+            log_message = (
+                f"[command {ctx.message.content}][type(error)"
+                f' {type(error)}][error {error}]\n{"".join(tb)}'
+            )
             channel = self.get_channel(DevSettings.error_log_channel_id)
             await channel.send(log_message)
 
