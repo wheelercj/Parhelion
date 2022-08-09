@@ -9,7 +9,7 @@ from bot import Bot
 
 
 def main():
-    loop = asyncio.get_event_loop()
+    loop: asyncio.AbstractEventLoop = get_or_create_event_loop()
     try:
         db: asyncpg.Pool = loop.run_until_complete(get_db_connection())
     except Exception as error:
@@ -18,11 +18,19 @@ def main():
             file=sys.stderr,
         )
         return
-
     bot = Bot()
     bot.db = db
     token = os.environ["DISCORD_BOT_SECRET_TOKEN"]
     bot.run(token, bot=True, reconnect=True)
+
+
+def get_or_create_event_loop() -> asyncio.AbstractEventLoop:
+    try:
+        return asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return loop
 
 
 async def get_db_connection() -> asyncpg.Pool:
