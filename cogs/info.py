@@ -241,15 +241,17 @@ class Info(commands.Cog):
         embed = discord.Embed()
         embed.add_field(
             name="stats",
-            value=f"websocket latency: {self.bot.latency * 1000:.2f} ms\n"
-            f"uptime: {await self.get_uptime()}\n"
-            f"servers: {len(self.bot.guilds)}\n"
-            f"users: {len(self.bot.users)}\n"
-            f"commands: {len(self.bot.commands)}\n"
-            f"commands used since last restart: {self.bot.command_use_count}\n"
-            f"commands {ctx.author} can use here: {await self.count_available_cmds(ctx)}\n"
-            f"lines of code: {self.count_bot_loc()}\n"
-            f"Python files: {self.count_bot_files()}",
+            value=(
+                f"websocket latency: {self.bot.latency * 1000:.2f} ms\n"
+                f"uptime: {await self.get_uptime()}\n"
+                f"servers: {len(self.bot.guilds)}\n"
+                f"users: {len(self.bot.users)}\n"
+                f"commands: {len(self.bot.commands)}\n"
+                f"commands used since last restart: {self.bot.command_use_count}\n"
+                f"commands {ctx.author} can use here: {await self.count_available_cmds(ctx)}\n"
+                f"lines of code: {self.count_bot_loc()}\n"
+                f"Python files: {self.count_bot_files()}"
+            ),
         )
         await ctx.send(embed=embed)
 
@@ -355,15 +357,19 @@ class Info(commands.Cog):
 
         embed.add_field(
             name="links\u2800",
-            value=f"[invite]({bot_invite_link})\u2800\n"
-            f"[support server]({DevSettings.support_server_link})\u2800\n"
-            f"[privacy policy]({DevSettings.privacy_policy_link})\u2800\n"
-            f"[donate]({DevSettings.donations_link})\u2800\n",
+            value=(
+                f"[invite]({bot_invite_link})\u2800\n"
+                f"[support server]({DevSettings.support_server_link})\u2800\n"
+                f"[privacy policy]({DevSettings.privacy_policy_link})\u2800\n"
+                f"[donate]({DevSettings.donations_link})\u2800\n"
+            ),
         )
         embed.add_field(
             name="\u2800made with\u2800",
-            value=f"\u2800Python v{platform.python_version()}\u2800\n"
-            f"\u2800and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\u2800\n",
+            value=(
+                f"\u2800Python v{platform.python_version()}\u2800\n"
+                f"\u2800and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\u2800\n"
+            ),
         )
         embed.add_field(name="\u200b", value="\u200b")
 
