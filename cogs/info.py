@@ -269,13 +269,21 @@ class Info(commands.Cog):
     @lru_cache
     def count_bot_files(self) -> int:
         """Counts the Python files in the entire bot"""
-        return self.count_dir_files(".")
+        if "parhelion" == os.path.basename(os.getcwd()).lower():
+            path = "."
+        else:
+            path = os.path.join(os.getcwd(), "Documents/programming/Parhelion")
+            if not os.path.exists(path):
+                return -1
+        return self.count_dir_files(path)
 
     def count_dir_files(self, dir_path: str) -> int:
         """Counts the Python files in a directory and its subdirectories"""
         file_count = 0
         for name in os.listdir(dir_path):
-            if name in (".git", "__pycache__"):
+            if name in (".git", ".vs", ".vscode", "__pycache__"):
+                continue
+            if name.startswith("venv"):
                 continue
             path = os.path.join(dir_path, name)
             if os.path.isdir(path):
@@ -283,20 +291,26 @@ class Info(commands.Cog):
             elif os.path.isfile(path):
                 if path.endswith(".py"):
                     file_count += 1
-
         return file_count
 
     @lru_cache
     def count_bot_loc(self) -> int:
         """Counts the lines of Python code in the entire bot"""
-        return self.count_dir_loc(".")
+        if "parhelion" == os.path.basename(os.getcwd()).lower():
+            path = "."
+        else:
+            path = os.path.join(os.getcwd(), "Documents/programming/Parhelion")
+            if not os.path.exists(path):
+                return -1
+        return self.count_dir_loc(path)
 
     def count_dir_loc(self, dir_path: str) -> int:
         """Counts the lines of Python code in a directory and its subdirectories"""
         line_count = 0
-
         for name in os.listdir(dir_path):
-            if name in (".git", "__pycache__"):
+            if name in (".git", ".vs", ".vscode", "__pycache__"):
+                continue
+            if name.startswith("venv"):
                 continue
             path = os.path.join(dir_path, name)
             if os.path.isdir(path):
@@ -305,7 +319,6 @@ class Info(commands.Cog):
                 if path.endswith(".py"):
                     with open(path, "r", encoding="utf8") as file:
                         line_count += len(file.readlines())
-
         return line_count
 
     @commands.command(hidden=True)
