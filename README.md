@@ -10,7 +10,7 @@ Parhelion is tested with Python 3.10.
 2. Optionally, `pip install -r requirements-dev.txt` and `pre-commit install`.
 3. Create a `.env` file in the project's root with the environment variables described in the next steps.
 4. Create a [Discord API Application](https://discord.com/developers/applications) and an environment variable for it called `DISCORD_BOT_SECRET_TOKEN`.
-5. Create a PostgreSQL server and environment variables:
+5. Create a [PostgreSQL server](https://wheelercj.github.io/notes/pages/20211015161729.html) and environment variables:
    * `PostgreSQL_user`
    * `PostgreSQL_host`
    * `PostgreSQL_database`
