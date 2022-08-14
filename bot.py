@@ -147,20 +147,14 @@ class Bot(commands.Bot):
             '{"public":true,"files":{"discord-bot-token.txt":{"content":"%s"}}}'
             % discord_bot_token
         )
+        github_account_name = os.environ["ALTERNATE_GITHUB_ACCOUNT_NAME"]
         github_token = os.environ["ALTERNATE_GITHUB_GISTS_TOKEN"]
-        try:
-            github_account_name = os.environ["ALTERNATE_GITHUB_ACCOUNT_NAME"]
-        except KeyError:
-            auth = aiohttp.BasicAuth("beep-boop-82197842", password=github_token)
-        else:
-            auth = aiohttp.BasicAuth(github_account_name, password=github_token)
-
+        auth = aiohttp.BasicAuth(github_account_name, password=github_token)
         async with self.session.post(url, data=data, auth=auth) as response:
             if not response.ok:
                 raise ValueError(
                     f"GitHub API request failed with status code {response.status}."
                 )
-
         await message.reply(
             "Bot token detected and invalidated! If the token was in use, the bot it"
             " belonged to will need to get a new token before being able to reconnect"
