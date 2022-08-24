@@ -220,5 +220,5 @@ class Docs(commands.Cog):
         return result_pages
 
 
-def setup(bot):
-    bot.add_cog(Docs(bot))
+async def setup(bot):
+    await bot.add_cog(Docs(bot))

@@ -8,10 +8,9 @@ from dotenv import load_dotenv  # https://pypi.org/project/python-dotenv/
 from bot import Bot
 
 
-def main():
-    loop: asyncio.AbstractEventLoop = get_or_create_event_loop()
+async def main():
     try:
-        db: asyncpg.Pool = loop.run_until_complete(get_db_connection())
+        db: asyncpg.Pool = await get_db_connection()
     except Exception as error:
         print(
             f"Error: unable to connect to the database because {error}.",
@@ -21,7 +20,8 @@ def main():
     bot = Bot()
     bot.db = db
     token = os.environ["DISCORD_BOT_SECRET_TOKEN"]
-    bot.run(token, bot=True, reconnect=True)
+    async with bot:
+        await bot.start(token, reconnect=True)
 
 
 def get_or_create_event_loop() -> asyncio.AbstractEventLoop:
@@ -51,4 +51,4 @@ async def get_db_connection() -> asyncpg.Pool:
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

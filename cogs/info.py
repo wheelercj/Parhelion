@@ -419,7 +419,10 @@ class Info(commands.Cog):
     @commands.guild_only()
     async def avatar(self, ctx, *, member: discord.Member):
         """Shows a member's avatar"""
-        await ctx.send(member.avatar_url)
+        if member.avatar is None:
+            await ctx.send(f"{member.nick} does not have an avatar.")
+        else:
+            await ctx.send(member.avatar)
 
     @commands.command(
         name="server-info",
@@ -444,7 +447,6 @@ class Info(commands.Cog):
                 f"owner: {server.owner.name}#{server.owner.discriminator}\n"
                 f"description: {server.description}\n"
                 f"created: {created}\n"
-                f"region: {server.region}\n"
                 f"preferred locale: {server.preferred_locale}\n"
                 f"total members: {server.member_count}/{server.max_members} ({bot_count} bots)\n"
                 f"roles: {len(server.roles)}\n"
@@ -468,7 +470,8 @@ class Info(commands.Cog):
         if len(features):
             embed.add_field(name="\u2800", value="**features**\n" + features)
 
-        embed.set_thumbnail(url=server.icon_url)
+        if server.icon is not None:
+            embed.set_thumbnail(url=server.icon)
 
         await ctx.send(embed=embed)
 
@@ -510,7 +513,8 @@ class Info(commands.Cog):
                 f"{await self.get_global_roles(member)}"
             ),
         )
-        embed.set_thumbnail(url=member.avatar_url)
+        if member.avatar is not None:
+            embed.set_thumbnail(url=member.avatar)
 
         await ctx.send(embed=embed)
 
@@ -701,5 +705,5 @@ class Info(commands.Cog):
         return perm_str
 
 
-def setup(bot):
-    bot.add_cog(Info(bot))
+async def setup(bot):
+    await bot.add_cog(Info(bot))

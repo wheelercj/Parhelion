@@ -106,7 +106,6 @@ class Channel(commands.Converter):
         TextChannelConverter
         VoiceChannelConverter
         StageChannelConverter
-        StoreChannelConverter
         CategoryChannelConverter
 
     DMChannel and GroupChannel do not have converters.
@@ -117,7 +116,6 @@ class Channel(commands.Converter):
             commands.TextChannelConverter,
             commands.VoiceChannelConverter,
             commands.StageChannelConverter,
-            commands.StoreChannelConverter,
             commands.CategoryChannelConverter,
         ]
 

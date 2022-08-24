@@ -868,5 +868,5 @@ class Other(commands.Cog):
         return quote, author
 
 
-def setup(bot):
-    bot.add_cog(Other(bot))
+async def setup(bot):
+    await bot.add_cog(Other(bot))

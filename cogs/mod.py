@@ -39,7 +39,7 @@ class Mod(commands.Cog):
         not be able to delete messages more than 14 days old.
         """
         if member is None:
-            deleted = await ctx.channel.purge(limit=amount, check=None)
+            deleted = await ctx.channel.purge(limit=amount)
         else:
             deleted = await ctx.channel.purge(
                 limit=amount, check=lambda message: message.author == member
@@ -58,5 +58,5 @@ class Mod(commands.Cog):
         return message
 
 
-def setup(bot):
-    bot.add_cog(Mod(bot))
+async def setup(bot):
+    await bot.add_cog(Mod(bot))

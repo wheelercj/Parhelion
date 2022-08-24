@@ -25,6 +25,7 @@ class Bot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
         intents.members = True
+        intents.message_content = True
         intents.presences = False
 
         super().__init__(intents=intents, command_prefix=self.get_command_prefixes)
@@ -37,7 +38,7 @@ class Bot(commands.Bot):
         self.global_cd = commands.CooldownMapping.from_cooldown(
             1, 5, commands.BucketType.user
         )
-        self.session = aiohttp.ClientSession(loop=self.loop)
+        self.session = aiohttp.ClientSession()
         self.custom_prefixes: Dict[int, List[str]] = dict()
         self.removed_default_prefixes: Dict[int, List[str]] = dict()
         self.logger: logging.Logger = None
@@ -45,9 +46,7 @@ class Bot(commands.Bot):
         self.command_use_count = 0
         self.error_is_reported = False
 
-        self.load_default_extensions()
-
-    def load_default_extensions(self) -> None:
+    async def setup_hook(self) -> None:
         default_extensions = [
             "cogs.docs",
             "cogs.info",
@@ -62,7 +61,7 @@ class Bot(commands.Bot):
         ]
 
         for extension in default_extensions:
-            self.load_extension(extension)
+            await self.load_extension(extension)
 
     def get_command_prefixes(self, bot, message: discord.Message) -> List[str]:
         """Returns the bot's server-aware unrendered command prefixes
@@ -227,12 +226,12 @@ class Bot(commands.Bot):
         elif isinstance(error, commands.MissingPermissions):
             message = "You do not have the necessary permissions to use this command"
             try:
-                message += ": " + error.missing_perms
+                message += ": " + error.missing_permissions
             except Exception:
                 pass
             await ctx.send(message)
         elif isinstance(error, commands.BotMissingPermissions):
-            perms_needed = ", ".join(error.missing_perms).replace("_", " ")
+            perms_needed = ", ".join(error.missing_permissions).replace("_", " ")
             await ctx.send(
                 "I have not been granted some permission(s) needed for this command to"
                 f" work: {perms_needed}. Permissions can be managed in the server's"

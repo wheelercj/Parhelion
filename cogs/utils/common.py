@@ -25,7 +25,7 @@ async def get_bot_invite_link(bot) -> str:
     perms.manage_messages = True
     perms.read_message_history = True
 
-    bot_invite_link = discord.utils.oauth_url(bot.user.id, perms)
+    bot_invite_link = discord.utils.oauth_url(bot.user.id, permissions=perms)
     return bot_invite_link
 
 

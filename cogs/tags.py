@@ -905,5 +905,5 @@ class Tags(commands.Cog):
             raise commands.BadArgument(f'A tag named "{new_alias}" already exists.')
 
 
-def setup(bot):
-    bot.add_cog(Tags(bot))
+async def setup(bot):
+    await bot.add_cog(Tags(bot))
