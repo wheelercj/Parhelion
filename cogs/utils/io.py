@@ -1,7 +1,6 @@
 import os
 import traceback
 from typing import Optional
-from typing import Tuple
 
 import discord  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
@@ -12,7 +11,7 @@ from discord.ext import commands  # https://pypi.org/project/discord.py/
 #########
 
 
-async def unwrap_code_block(statement: str) -> Tuple[str, str, str]:
+async def unwrap_code_block(statement: str) -> tuple[str, str, str]:
     """Removes triple backticks and a syntax name around a code block
 
     Returns any syntax name found, the unwrapped code, and anything after
@@ -51,7 +50,7 @@ async def unwrap_code_block(statement: str) -> Tuple[str, str, str]:
     return syntax, statement, suffix
 
 
-async def split_input(message: str) -> Tuple[str, str]:
+async def split_input(message: str) -> tuple[str, str]:
     """Splits a string into two strings
 
     If the input string begins with double quotes and has another double quotes later, the contents of those double quotes will be the first string returned. Otherwise, the first string returned will be the first word of the input string. The second string returned will be what remains of the input string.

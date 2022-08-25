@@ -1,6 +1,5 @@
 from datetime import datetime
 from datetime import timezone
-from typing import Tuple
 
 import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
@@ -276,7 +275,7 @@ class Reminders(commands.Cog):
 
     async def get_next_reminder_info(
         self,
-    ) -> Tuple[datetime, int, Messageable, int, str]:
+    ) -> tuple[datetime, int, Messageable, int, str]:
         """Gets from the database the info for the nearest (in time) reminder task
 
         Returns (target_time, id, destination, author_id, message).

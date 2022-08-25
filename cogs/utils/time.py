@@ -1,7 +1,6 @@
 from datetime import datetime
 from datetime import timedelta
 from typing import Optional
-from typing import Tuple
 
 import asyncpg  # https://pypi.org/project/asyncpg/
 import dateparser  # https://pypi.org/project/dateparser/
@@ -96,7 +95,7 @@ async def format_timedelta(td: timedelta) -> str:
 
 async def parse_time_message(
     ctx, user_input: str, to_timezone: str = "UTC"
-) -> Tuple[datetime, str]:
+) -> tuple[datetime, str]:
     """Parses a string containing both a time description and a message, or just a time description
 
     The user's input can have a date, duration, etc. written in natural language,

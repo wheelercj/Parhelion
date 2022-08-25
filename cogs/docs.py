@@ -1,7 +1,3 @@
-from typing import Dict
-from typing import List
-from typing import Tuple
-
 import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
 from bs4 import BeautifulSoup  # https://pypi.org/project/beautifulsoup4/
@@ -16,7 +12,7 @@ class Docs(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self._task = bot.loop.create_task(self.load_docs_urls())
-        self.docs_urls: Dict[int, str] = dict()  # Server IDs and URLs.
+        self.docs_urls: dict[int, str] = dict()  # Server IDs and URLs.
 
     async def create_table_if_not_exists(self) -> None:
         await self.bot.db.execute(
@@ -166,7 +162,7 @@ class Docs(commands.Cog):
 
         await ctx.send("Documentation URL deleted")
 
-    async def parse_doc_url(self, url: str) -> Tuple[str, str, str, str]:
+    async def parse_doc_url(self, url: str) -> tuple[str, str, str, str]:
         """Splits a ReadTheDocs URL into project_name, project_version, language, and search_url
 
         E.g. 'https://discordpy.readthedocs.io/en/latest/index.html'
@@ -188,7 +184,7 @@ class Docs(commands.Cog):
 
     async def parse_search_results(
         self, json_text: str, language: str = None
-    ) -> List[str]:
+    ) -> list[str]:
         """Formats doc search results for easy pagination"""
         result_pages = []
         for i, r in enumerate(json_text["results"]):

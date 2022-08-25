@@ -5,9 +5,7 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
 from textwrap import dedent
-from typing import List
 from typing import Optional
-from typing import Tuple
 
 import async_tio  # https://pypi.org/project/async-tio/
 import asyncpg  # https://pypi.org/project/asyncpg/
@@ -259,7 +257,7 @@ class Other(commands.Cog):
 
     async def parse_exec_language(
         self, language: str, expression: str
-    ) -> Tuple[str, str]:
+    ) -> tuple[str, str]:
         """Changes some language names so TIO will understand, and wraps jargon for some languages"""
         if language in ("txt", "py", "python"):
             language = "python3"
@@ -602,7 +600,7 @@ class Other(commands.Cog):
         title = f"homophones of `{word}`"
         await self.send_word_results(ctx, results, title)
 
-    async def send_word_results(self, ctx, results: List[str], title: str) -> None:
+    async def send_word_results(self, ctx, results: list[str], title: str) -> None:
         """Bullet-points and paginates a list of strings in ctx"""
         if not results or isinstance(results, str):
             raise commands.BadArgument("No results found.")
@@ -793,7 +791,7 @@ class Other(commands.Cog):
 
     async def get_next_quote_info(
         self,
-    ) -> Tuple[Optional[datetime], Optional[int], Optional[Messageable]]:
+    ) -> tuple[Optional[datetime], Optional[int], Optional[Messageable]]:
         """Gets from the database the info for the nearest (in time) daily quote task
 
         Returns (target_time, author_id, destination).
@@ -850,7 +848,7 @@ class Other(commands.Cog):
         embed.set_footer(text=f"Requested by {requester_name}")
         await destination.send(embed=embed)
 
-    async def get_quote(self) -> Tuple[str, str]:
+    async def get_quote(self) -> tuple[str, str]:
         """Gets a quote and the quote's author from the forismatic API
 
         May raise ContentTypeError or json.decoder.JSONDecodeError.

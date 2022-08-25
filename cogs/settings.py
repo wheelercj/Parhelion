@@ -2,10 +2,7 @@ import json
 from textwrap import dedent
 from typing import Any
 from typing import Callable
-from typing import Dict
-from typing import List
 from typing import Optional
-from typing import Tuple
 from typing import Union
 
 import asyncpg  # https://pypi.org/project/asyncpg/
@@ -56,7 +53,7 @@ class Settings(commands.Cog):
         self.settings_task = bot.loop.create_task(self.load_settings())
         self.prefixes_task = bot.loop.create_task(self.load_custom_prefixes())
 
-        self.all_cmd_settings: Dict[str, dict] = dict()
+        self.all_cmd_settings: dict[str, dict] = dict()
         """
         Command access settings hierarchy and types:
             self.all_cmd_settings = {
@@ -103,7 +100,7 @@ class Settings(commands.Cog):
             self.default_server_cmd_settings
         )
 
-        self.all_bot_settings: Dict[str, Union[dict, bool]] = dict()
+        self.all_bot_settings: dict[str, Union[dict, bool]] = dict()
         """
         Bot access settings hierarchy and types:
             self.all_bot_settings = {
@@ -328,7 +325,7 @@ class Settings(commands.Cog):
         return True
 
     async def check_categories(
-        self, ctx, settings_categories: List[Tuple]
+        self, ctx, settings_categories: list[tuple]
     ) -> Optional[bool]:
         """Determines whether to grant access if there is at least one setting
 
@@ -518,7 +515,7 @@ class Settings(commands.Cog):
             pass
 
         try:
-            custom_prefixes: List[str] = self.bot.custom_prefixes[ctx.guild.id]
+            custom_prefixes: list[str] = self.bot.custom_prefixes[ctx.guild.id]
             if custom_prefixes is None:
                 custom_prefixes = []
         except KeyError:
@@ -558,9 +555,9 @@ class Settings(commands.Cog):
         If the prefix contains any spaces, surround it with double quotes.
         You cannot delete the bot mention prefix.
         """
-        default_prefixes: List[str] = DevSettings.default_bot_prefixes
+        default_prefixes: list[str] = DevSettings.default_bot_prefixes
         try:
-            custom_prefixes: List[str] = self.bot.custom_prefixes[ctx.guild.id]
+            custom_prefixes: list[str] = self.bot.custom_prefixes[ctx.guild.id]
             if custom_prefixes is None:
                 custom_prefixes = []
         except KeyError:
@@ -622,7 +619,7 @@ class Settings(commands.Cog):
 
         You cannot delete the bot mention prefix.
         """
-        default_prefixes: List[str] = DevSettings.default_bot_prefixes
+        default_prefixes: list[str] = DevSettings.default_bot_prefixes
         self.bot.removed_default_prefixes[ctx.guild.id] = default_prefixes
 
         try:
@@ -813,7 +810,7 @@ class Settings(commands.Cog):
             nds = self.all_cmd_settings[command_name][
                 "servers"
             ]  # nds: non-default-servers
-            nds_IDs: List[str] = list(nds.keys())
+            nds_IDs: list[str] = list(nds.keys())
             nds_names = []
             for server in self.bot.guilds:
                 if str(server.id) in nds_IDs:
@@ -828,7 +825,7 @@ class Settings(commands.Cog):
                 )
         else:
             nds = self.all_bot_settings["servers"]  # nds: non-default-servers
-            nds_IDs: List[str] = list(nds.keys())
+            nds_IDs: list[str] = list(nds.keys())
             nds_names = []
             for server in self.bot.guilds:
                 if str(server.id) in nds_IDs:
@@ -1235,7 +1232,7 @@ class Settings(commands.Cog):
 
     async def get_global_settings_messages(
         self, ctx, bot_settings: dict, cmd_settings: Optional[dict]
-    ) -> List[str]:
+    ) -> list[str]:
         """Gets the settings chosen by the bot owner"""
         entries = []
         if cmd_settings and cmd_settings["global_users"]:
@@ -1265,7 +1262,7 @@ class Settings(commands.Cog):
 
     async def get_server_settings_messages(
         self, ctx, bot_settings: dict, cmd_settings: Optional[dict]
-    ) -> List[str]:
+    ) -> list[str]:
         """Gets the settings chosen by ctx.guild"""
         entries = []
         try:
@@ -1328,7 +1325,7 @@ class Settings(commands.Cog):
 
     async def add_global_users_field(
         self, ctx, settings: dict, title_suffix: str
-    ) -> List[str]:
+    ) -> list[str]:
         """Gets the names and settings of users in ctx.guild that have a global setting"""
         entries = []
         members = dict()
@@ -1346,7 +1343,7 @@ class Settings(commands.Cog):
 
     async def get_global_server_setting_message(
         self, ctx, settings: dict, title_suffix: str
-    ) -> List[str]:
+    ) -> list[str]:
         """Gets ctx.guild.name and ctx.guild's setting if and only if it has a setting"""
         entries = []
         try:
@@ -1361,7 +1358,7 @@ class Settings(commands.Cog):
         return entries
 
     async def get_settings_message(
-        self, settings_dict: Dict[str, bool], get_function: Callable[[int], object]
+        self, settings_dict: dict[str, bool], get_function: Callable[[int], object]
     ) -> str:
         """Creates a str listing whether each setting in a settings dict is on or off
 
@@ -1960,7 +1957,7 @@ class Settings(commands.Cog):
         else:
             raise commands.BadArgument("No settings found.")
 
-    async def paginate_settings(self, ctx, title: str, entries: List[str]) -> None:
+    async def paginate_settings(self, ctx, title: str, entries: list[str]) -> None:
         """Sends ctx a list of settings and their names, paginated and with reaction buttons"""
         if len(entries):
             title = f"command settings {title}"
@@ -1969,7 +1966,7 @@ class Settings(commands.Cog):
         else:
             await ctx.send(f"No command settings found {title}")
 
-    async def get_cmd_setting_entries(self, keys: List[str]) -> List[str]:
+    async def get_cmd_setting_entries(self, keys: list[str]) -> list[str]:
         """Gets the setting and command name of non-default settings for all commands for a specific object
 
         The name or ID of that specific object must be the last key. The last key may only be a server ID if the second-to-last key is 'global_servers'.

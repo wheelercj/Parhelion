@@ -1,7 +1,6 @@
 import io
 from datetime import datetime
 from datetime import timezone
-from typing import List
 from typing import Optional
 
 import asyncpg  # https://pypi.org/project/asyncpg/
@@ -651,7 +650,7 @@ class Tags(commands.Cog):
         await ctx.send(embed=embed)
 
     async def paginate_tag_list(
-        self, ctx, title: str, records: List[asyncpg.Record]
+        self, ctx, title: str, records: list[asyncpg.Record]
     ) -> None:
         """Sends ctx a list of tag names, paginated and with reaction buttons"""
         records = sorted(records, key=lambda x: x["name"])
@@ -708,7 +707,7 @@ class Tags(commands.Cog):
         The server_id arg is needed to validate a new tag name.
         """
         # Prevent new tag names from starting with tag subcommand names.
-        tag_subcommands: List[str] = []
+        tag_subcommands: list[str] = []
         tag_command = self.bot.get_command("tag")
         for c in tag_command.commands:
             tag_subcommands.append(c.name)

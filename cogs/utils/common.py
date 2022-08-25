@@ -1,5 +1,4 @@
 import re
-from typing import List
 from typing import Union
 
 import discord  # https://pypi.org/project/discord.py/
@@ -83,12 +82,12 @@ async def block_nsfw_channels(channel: Messageable) -> None:
 #####################
 
 
-async def get_prefixes_list(bot, message: discord.Message) -> List[str]:
+async def get_prefixes_list(bot, message: discord.Message) -> list[str]:
     """Returns a list of the bot's rendered server-aware command prefixes
 
     The prefixes are sorted from shortest to longest. Use `bot.command_prefix(bot, message)` if you want the unrendered prefixes.
     """
-    raw_prefixes: List[str] = bot.command_prefix(bot, message)
+    raw_prefixes: list[str] = bot.command_prefix(bot, message)
     if "" in raw_prefixes:
         raw_prefixes.remove("")
 
@@ -108,7 +107,7 @@ async def get_prefixes_list(bot, message: discord.Message) -> List[str]:
 
 
 async def get_prefixes_str(
-    bot, message: discord.Message, display_prefixes: List[str] = None
+    bot, message: discord.Message, display_prefixes: list[str] = None
 ) -> str:
     """Returns a string of the bot's rendered server-aware command prefixes, comma separated
 
@@ -121,7 +120,7 @@ async def get_prefixes_str(
 
 
 async def get_prefixes_message(
-    bot, message: discord.Message, display_prefixes: List[str] = None
+    bot, message: discord.Message, display_prefixes: list[str] = None
 ) -> str:
     """Returns a message of the bot's rendered server-aware command prefixes
 

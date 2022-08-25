@@ -8,8 +8,6 @@ from copy import copy
 from datetime import datetime
 from datetime import timezone
 from logging.handlers import RotatingFileHandler
-from typing import Dict
-from typing import List
 
 import aiohttp  # https://pypi.org/project/aiohttp/
 import discord  # https://pypi.org/project/discord.py/
@@ -39,10 +37,10 @@ class Bot(commands.Bot):
             1, 5, commands.BucketType.user
         )
         self.session = aiohttp.ClientSession()
-        self.custom_prefixes: Dict[int, List[str]] = dict()
-        self.removed_default_prefixes: Dict[int, List[str]] = dict()
+        self.custom_prefixes: dict[int, list[str]] = dict()
+        self.removed_default_prefixes: dict[int, list[str]] = dict()
         self.logger: logging.Logger = None
-        self.previous_command_ctxs: List[commands.Context] = []
+        self.previous_command_ctxs: list[commands.Context] = []
         self.command_use_count = 0
         self.error_is_reported = False
 
@@ -63,7 +61,7 @@ class Bot(commands.Bot):
         for extension in default_extensions:
             await self.load_extension(extension)
 
-    def get_command_prefixes(self, bot, message: discord.Message) -> List[str]:
+    def get_command_prefixes(self, bot, message: discord.Message) -> list[str]:
         """Returns the bot's server-aware unrendered command prefixes
 
         This function is called each time a command is invoked, so the prefixes can be customized based on where the message is from.

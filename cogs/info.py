@@ -4,10 +4,8 @@ from datetime import datetime
 from datetime import timezone as tz
 from functools import lru_cache
 from textwrap import dedent
-from typing import List
 from typing import Mapping
 from typing import Optional
-from typing import Tuple
 from typing import Union
 
 import discord  # https://pypi.org/project/discord.py/
@@ -58,7 +56,7 @@ class MyHelp(commands.HelpCommand):
         return f"{prefix}{command.qualified_name} {command.signature}"
 
     async def send_bot_help(
-        self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]
+        self, mapping: Mapping[Optional[commands.Cog], list[commands.Command]]
     ) -> None:
         """Gets called with `<prefix>help`"""
         prefix: str = await self.get_clean_prefix()
@@ -633,7 +631,7 @@ class Info(commands.Cog):
 
     async def get_perms(
         self, ctx, member_or_role: Union[discord.Member, discord.Role]
-    ) -> Tuple[str, str, str]:
+    ) -> tuple[str, str, str]:
         """Gets the formatted server perms, channel overwrites, and embed title"""
         if isinstance(member_or_role, discord.Member):
             member = member_or_role
@@ -677,7 +675,7 @@ class Info(commands.Cog):
 
         return overwrites
 
-    async def perm_list_message(self, perm_list: List[Tuple[str, bool]]) -> str:
+    async def perm_list_message(self, perm_list: list[tuple[str, bool]]) -> str:
         """Converts a permissions list to a printable string
 
         perm_list is a list of tuples in the format

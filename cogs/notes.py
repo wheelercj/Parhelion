@@ -1,8 +1,6 @@
 from datetime import datetime
 from datetime import timezone
-from typing import List
 from typing import Optional
-from typing import Tuple
 
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
@@ -190,7 +188,7 @@ class Notes(commands.Cog):
         swap_command = self.bot.get_command("swap-notes")
         await ctx.invoke(swap_command, index_1=index, index_2=len(n))
 
-    async def fetch_notes(self, ctx) -> Optional[Tuple[List[str], List[str]]]:
+    async def fetch_notes(self, ctx) -> Optional[tuple[list[str], list[str]]]:
         """Gets ctx.author's notes and their jump URLs from the database, and updates last_viewed_at
 
         Raises commands.BadArgument if ctx.author has no notes.
@@ -230,7 +228,7 @@ class Notes(commands.Cog):
         )
 
     async def validate_note_indexes(
-        self, _notes: List[str], *indexes: List[int]
+        self, _notes: list[str], *indexes: list[int]
     ) -> None:
         """Raises commands.BadArgument if any index is to low or to high, or if this receives any duplicate indexes"""
         for i in indexes:
@@ -243,7 +241,7 @@ class Notes(commands.Cog):
                 raise commands.BadArgument("Please use two different indexes")
 
     async def _swap_notes(
-        self, _notes: List[str], jump_urls: List[str], index_1: int, index_2: int
+        self, _notes: list[str], jump_urls: list[str], index_1: int, index_2: int
     ) -> None:
         """Swaps two notes; assumes the indexes are valid"""
         _notes[index_2], _notes[index_1] = _notes[index_1], _notes[index_2]
