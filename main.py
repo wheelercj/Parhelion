@@ -24,15 +24,6 @@ async def main():
         await bot.start(token, reconnect=True)
 
 
-def get_or_create_event_loop() -> asyncio.AbstractEventLoop:
-    try:
-        return asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        return loop
-
-
 async def get_db_connection() -> asyncpg.Pool:
     """Connects to the PostgreSQL database"""
     load_dotenv()
