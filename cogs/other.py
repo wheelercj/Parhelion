@@ -39,8 +39,7 @@ from cogs.utils.io import get_attachment_url
 from cogs.utils.io import safe_send
 from cogs.utils.io import send_traceback
 from cogs.utils.io import unwrap_code_block
-from cogs.utils.paginator import MyPaginator
-from cogs.utils.paginator import paginate_search
+from cogs.utils.paginator import Paginator
 from cogs.utils.time import create_short_timestamp
 from cogs.utils.time import parse_time_message
 
@@ -357,7 +356,10 @@ class Other(commands.Cog):
                 ]
             )
             valid_languages = sorted(valid_languages, key=len)
-            await paginate_search(ctx, title, valid_languages, query)
+            paginator = Paginator(
+                title=title, entries=valid_languages, filter_query=query
+            )
+            await paginator.run(ctx)
 
     @_run.command(name="jargon", aliases=["j"])
     async def send_jargon(self, ctx, language: str):
@@ -523,7 +525,8 @@ class Other(commands.Cog):
             title = f"languages that contain `{query}`"
         else:
             title = "languages supported by the translate commands"
-        await paginate_search(ctx, title, languages, query)
+        paginator = Paginator(title=title, entries=languages, filter_query=query)
+        await paginator.run(ctx)
 
     #################
     # word commands #
@@ -603,17 +606,12 @@ class Other(commands.Cog):
         """Bullet-points and paginates a list of strings in ctx"""
         if not results or isinstance(results, str):
             raise commands.BadArgument("No results found.")
-        for i, result in enumerate(results):
-            results[i] = "• " + result
-        paginator = MyPaginator(
+        paginator = Paginator(
             title=title,
-            embed=True,
-            timeout=90,
-            use_defaults=True,
             entries=results,
-            length=15,
+            prefix="• ",
         )
-        await paginator.start(ctx)
+        await paginator.run(ctx)
 
     @commands.command(name="auto-incorrect", aliases=["ai", "autoincorrect"])
     async def auto_incorrect(self, ctx, *, words: str):

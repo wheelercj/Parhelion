@@ -7,7 +7,7 @@ from typing import Tuple
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 from cogs.utils.common import block_nsfw_channels
-from cogs.utils.paginator import MyPaginator
+from cogs.utils.paginator import Paginator
 
 
 class Notes(commands.Cog):
@@ -56,17 +56,12 @@ class Notes(commands.Cog):
         _notes, jump_urls = await self.fetch_notes(ctx)
         for i, n in enumerate(_notes):
             _notes[i] = f"[**{i+1}**.]({jump_urls[i]}) {n}"
-
-        embed_title = f"{ctx.author.display_name}'s notes"
-        paginator = MyPaginator(
-            title=embed_title,
-            embed=True,
-            timeout=90,
-            use_defaults=True,
+        paginator = Paginator(
+            title=f"{ctx.author.display_name}'s notes",
             entries=_notes,
             length=7,
         )
-        await paginator.start(ctx)
+        await paginator.run(ctx)
 
     @commands.command(aliases=["n", "todo"])
     async def note(self, ctx, *, text: str):

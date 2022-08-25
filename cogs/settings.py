@@ -15,8 +15,7 @@ from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 from cogs.utils.common import get_prefixes_message
 from cogs.utils.common import get_prefixes_str
-from cogs.utils.paginator import MyPaginator
-from cogs.utils.paginator import paginate_search
+from cogs.utils.paginator import Paginator
 
 
 class DevSettings:
@@ -394,7 +393,10 @@ class Settings(commands.Cog):
         else:
             query = query.replace(" ", "_")
             title = f"supported timezones that contain `{query}`"
-        await paginate_search(ctx, title, pytz.all_timezones, query)
+        paginator = Paginator(
+            title=title, entries=pytz.all_timezones, filter_query=query
+        )
+        await paginator.run(ctx)
 
     @_timezone.command(name="set")
     async def set_timezone(self, ctx, *, timezone: str):
@@ -762,17 +764,12 @@ class Settings(commands.Cog):
                 """
             ),
         ]
-
-        title = "how the settings work"
-        paginator = MyPaginator(
-            title=title,
-            embed=True,
-            timeout=90,
-            use_defaults=True,
+        paginator = Paginator(
+            title="how the settings work",
             entries=entries,
             length=1,
         )
-        await paginator.start(ctx)
+        await paginator.run(ctx)
 
     @setting.command(name="view", aliases=["v"])
     @commands.has_guild_permissions(manage_guild=True)
@@ -791,24 +788,15 @@ class Settings(commands.Cog):
             title = "**bot settings**"
             if command_name:
                 await ctx.send(f"settings for command `{command_name}` not found")
-
         entries.extend(
             await self.get_global_settings_messages(ctx, bot_settings, cmd_settings)
         )
         entries.extend(
             await self.get_server_settings_messages(ctx, bot_settings, cmd_settings)
         )
-
         if len(entries):
-            paginator = MyPaginator(
-                title=title,
-                embed=True,
-                timeout=90,
-                use_defaults=True,
-                entries=entries,
-                length=20,
-            )
-            await paginator.start(ctx)
+            paginator = Paginator(title=title, entries=entries)
+            await paginator.run(ctx)
         else:
             await ctx.send("No settings found.")
 
@@ -830,13 +818,10 @@ class Settings(commands.Cog):
             for server in self.bot.guilds:
                 if str(server.id) in nds_IDs:
                     nds_names.append(server.name)
-
             if len(nds_names):
                 title = f"servers with non-default settings for `{command_name}`"
-                paginator = MyPaginator(
-                    title=title, embed=True, timeout=90, entries=nds_names, length=15
-                )
-                await paginator.start(ctx)
+                paginator = Paginator(title=title, entries=nds_names)
+                await paginator.run(ctx)
             else:
                 await ctx.send(
                     f"No servers found with non-default settings for the `{command_name}` command."
@@ -848,13 +833,10 @@ class Settings(commands.Cog):
             for server in self.bot.guilds:
                 if str(server.id) in nds_IDs:
                     nds_names.append(server.name)
-
             if len(nds_names):
                 title = "servers with non-default settings for the bot"
-                paginator = MyPaginator(
-                    title=title, embed=True, timeout=90, entries=nds_names, length=15
-                )
-                await paginator.start(ctx)
+                paginator = Paginator(title=title, entries=nds_names)
+                await paginator.run(ctx)
             else:
                 await ctx.send(
                     "No servers found with non-default settings for the bot."
@@ -1885,10 +1867,8 @@ class Settings(commands.Cog):
             title = (
                 "all commands with any non-default settings, and their global setting"
             )
-            paginator = MyPaginator(
-                title=title, embed=True, timeout=90, entries=entries, length=15
-            )
-            await paginator.start(ctx)
+            paginator = Paginator(title=title, entries=entries)
+            await paginator.run(ctx)
         else:
             raise commands.BadArgument("No settings found.")
 
@@ -1984,10 +1964,8 @@ class Settings(commands.Cog):
         """Sends ctx a list of settings and their names, paginated and with reaction buttons"""
         if len(entries):
             title = f"command settings {title}"
-            paginator = MyPaginator(
-                title=title, embed=True, timeout=90, entries=entries, length=15
-            )
-            await paginator.start(ctx)
+            paginator = Paginator(title=title, entries=entries)
+            await paginator.run(ctx)
         else:
             await ctx.send(f"No command settings found {title}")
 

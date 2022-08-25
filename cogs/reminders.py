@@ -10,7 +10,7 @@ from discord.ext import commands  # https://pypi.org/project/discord.py/
 from cogs.utils.common import block_nsfw_channels
 from cogs.utils.common import plural
 from cogs.utils.io import safe_send
-from cogs.utils.paginator import MyPaginator
+from cogs.utils.paginator import Paginator
 from cogs.utils.time import create_long_datetime_stamp
 from cogs.utils.time import create_relative_timestamp
 from cogs.utils.time import parse_time_message
@@ -152,10 +152,8 @@ class Reminders(commands.Cog):
             )
 
         title = f'You currently have {plural(len(records), "reminder||s")}:'
-        paginator = MyPaginator(
-            title=title, embed=True, timeout=90, entries=r_list, length=10
-        )
-        await paginator.start(ctx)
+        paginator = Paginator(title=title, entries=r_list, length=10)
+        await paginator.run(ctx)
 
     @remind.command(name="delete", aliases=["del"])
     async def delete_reminder(self, ctx, ID: int):

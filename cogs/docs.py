@@ -7,7 +7,7 @@ import discord  # https://pypi.org/project/discord.py/
 from bs4 import BeautifulSoup  # https://pypi.org/project/beautifulsoup4/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
-from cogs.utils.paginator import MyPaginator
+from cogs.utils.paginator import Paginator
 
 
 class Docs(commands.Cog):
@@ -97,16 +97,12 @@ class Docs(commands.Cog):
             if not len(result_pages):
                 raise commands.BadArgument("No matches found")
 
-        title = f"search results for `{query}`"
-        paginator = MyPaginator(
-            title=title,
-            embed=True,
-            timeout=90,
-            use_defaults=True,
+        paginator = Paginator(
+            title=f"search results for `{query}`",
             entries=result_pages,
             length=3,
         )
-        await paginator.start(ctx)
+        await paginator.run(ctx)
 
     @doc.command(name="set")
     @commands.has_guild_permissions(manage_guild=True)

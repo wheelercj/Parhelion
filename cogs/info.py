@@ -17,7 +17,7 @@ from cogs.settings import DevSettings
 from cogs.utils.common import get_bot_invite_link
 from cogs.utils.common import get_prefixes_list
 from cogs.utils.common import get_prefixes_message
-from cogs.utils.paginator import MyPaginator
+from cogs.utils.paginator import Paginator
 from cogs.utils.time import create_relative_timestamp
 from cogs.utils.time import format_datetime
 from cogs.utils.time import format_timedelta
@@ -108,16 +108,12 @@ class MyHelp(commands.HelpCommand):
         entries.extend(cmd_signatures)
 
         cog_name = getattr(cog, "qualified_name", "No Category")
-        title = f"{cog_name}"
-        paginator = MyPaginator(
-            title=title,
-            embed=True,
-            timeout=90,
-            use_defaults=True,
+        paginator = Paginator(
+            title=f"{cog_name}",
             entries=entries,
             length=10,
         )
-        await paginator.start(self.context)
+        await paginator.run(self.context)
 
     async def send_group_help(self, group: commands.Group) -> None:
         """Gets called with `<prefix>help <group>`"""
@@ -399,17 +395,13 @@ class Info(commands.Cog):
             "For each command with a hyphen in its name, typing the hyphen is optional.",
             f"Most commands have aliases that are easier to type; see a command's aliases with `{ctx.prefix}help [command]`.",
         ]
-
-        paginator = MyPaginator(
+        paginator = Paginator(
             title="tips",
-            prefix="•",
-            embed=True,
-            timeout=90,
-            use_defaults=True,
             entries=_tips,
-            length=15,
+            length=10,
+            prefix="•",
         )
-        await paginator.start(ctx)
+        await paginator.run(ctx)
 
     #########################
     # Discord info commands #

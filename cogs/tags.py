@@ -11,7 +11,7 @@ from discord.ext import commands  # https://pypi.org/project/discord.py/
 from cogs.utils.common import plural
 from cogs.utils.io import get_attachment_url
 from cogs.utils.io import split_input
-from cogs.utils.paginator import MyPaginator
+from cogs.utils.paginator import Paginator
 from cogs.utils.time import create_relative_timestamp
 
 
@@ -659,17 +659,8 @@ class Tags(commands.Cog):
         for i, r in enumerate(records):
             tag_name = r["name"].replace("`", "\\`")
             entries.append(f'{i+1}. `{tag_name}` (ID: {r["id"]})')
-
-        paginator = MyPaginator(
-            title=title,
-            embed=True,
-            timeout=90,
-            use_defaults=True,
-            entries=entries,
-            length=15,
-        )
-
-        await paginator.start(ctx)
+        paginator = Paginator(title=title, entries=entries)
+        await paginator.run(ctx)
 
     async def check_tag_ownership_permission(self, ctx, member: discord.Member) -> bool:
         """Raises commands.UserInputError if the author has >= the maximum number of tags allowed

@@ -8,19 +8,17 @@ Parhelion is tested with Python 3.10.
 
 1. `pip install -r requirements.txt`.
 2. Optionally, `pip install -r requirements-dev.txt` and `pre-commit install`.
-3. In Lib/site-packages/discord/ext/buttons/buttons.py
-in the Paginator class' \__init__ function, change each instance of `discord.Embed.Empty` to `None` (this step will be removed in the future when the buttons dependency is removed).
-4. Create a `.env` file in the project's root with the environment variables described in the next steps.
-5. Create a [Discord API Application](https://discord.com/developers/applications) and an environment variable for it called `DISCORD_BOT_SECRET_TOKEN`.
-6. Create a [PostgreSQL server](https://wheelercj.github.io/notes/pages/20211015161729.html) and environment variables:
+3. Create a `.env` file in the project's root with the environment variables described in the next steps.
+4. Create a [Discord API Application](https://discord.com/developers/applications) and an environment variable for it called `DISCORD_BOT_SECRET_TOKEN`.
+5. Create a [PostgreSQL server](https://wheelercj.github.io/notes/pages/20211015161729.html) and environment variables:
    * `PostgreSQL_user`
    * `PostgreSQL_host`
    * `PostgreSQL_database`
    * `PostgreSQL_password`
-7. [Create a GitHub personal access token](https://gist.github.com/beep-boop-82197842/4255864be63966b8618e332d1df30619) for making gists and environment variables called `ALTERNATE_GITHUB_GISTS_TOKEN` and `ALTERNATE_GITHUB_ACCOUNT_NAME`. These are used to automatically create gists of any leaked secret tokens the bot detects to invalidate the tokens and protect Discord bots. You may want to create a separate GitHub account for this.
-8. If you will use the owner-only `gist` command, create a GitHub personal access token for making gists and an environment variable called `MAIN_GITHUB_GISTS_TOKEN`.
-9. Change the bot's developer settings in the `DevSettings` class near the top of settings.py.
-10. Run main.py.
+6. [Create a GitHub personal access token](https://gist.github.com/beep-boop-82197842/4255864be63966b8618e332d1df30619) for making gists and environment variables called `ALTERNATE_GITHUB_GISTS_TOKEN` and `ALTERNATE_GITHUB_ACCOUNT_NAME`. These are used to automatically create gists of any leaked secret tokens the bot detects to invalidate the tokens and protect Discord bots. You may want to create a separate GitHub account for this.
+7. If you will use the owner-only `gist` command, create a GitHub personal access token for making gists and an environment variable called `MAIN_GITHUB_GISTS_TOKEN`.
+8. Change the bot's developer settings in the `DevSettings` class near the top of settings.py.
+9.  Run main.py.
 
 # examples
 
