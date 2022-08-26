@@ -48,6 +48,11 @@ class RunningQuoteInfo:
         self.author_id = author_id
 
 
+class MyTio(async_tio.Tio):
+    async def close(_):
+        pass  # prevent the bot's session from being closed
+
+
 class Other(commands.Cog):
     """A variety of commands that don't fit in the other categories."""
 
@@ -236,88 +241,232 @@ class Other(commands.Cog):
         name="run", aliases=["exec", "execute"], invoke_without_command=True
     )
     async def _run(self, ctx, *, code_block: str):
-        """A group of commands for executing code in almost any language
+        """A group of commands for running code in almost any language
 
-        Without a subcommand, this command executes code in almost any language.
+        Without a subcommand, this command runs code in almost any language.
         You can use a markdown-style code block and specify a language.
         """
         # https://pypi.org/project/async-tio/
         async with ctx.typing():
             language, expression, inputs = await unwrap_code_block(code_block)
             language, expression = await self.parse_exec_language(language, expression)
-
-            async with await async_tio.Tio(
-                loop=self.bot.loop, session=self.bot.session
-            ) as tio:
-                if language not in tio.languages:
+            async with MyTio(session=self.bot.session) as tio:
+                if language not in [x.tio_name for x in await tio.get_languages()]:
                     raise commands.BadArgument(f"Invalid language: {language}")
-
-                result = await tio.execute(expression, language=language, inputs=inputs)
-            await ctx.send(f"`{language}` output:\n" + str(result))
+                response = await tio.execute(
+                    expression, language=language, inputs=inputs
+                )
+            await ctx.send(f"`{language}` output:\n{response.stdout}")
 
     async def parse_exec_language(
         self, language: str, expression: str
     ) -> tuple[str, str]:
-        """Changes some language names so TIO will understand, and wraps jargon for some languages"""
-        if language in ("txt", "py", "python"):
-            language = "python3"
-        elif language in ("cpp", "c++"):
-            language = "cpp-clang"
-            if "int main(" not in expression:
-                expression = await self.wrap_with_cpp_jargon(expression)
-        elif language == "c":
-            language = "c-clang"
-            if "int main(" not in expression:
-                expression = await self.wrap_with_c_jargon(expression)
-        elif language == "java":
-            language = "java-openjdk"
-            if "public static void main(String[] args)" not in expression:
-                expression = await self.wrap_with_java_jargon(expression)
-        elif language in ("cs", "c#"):
-            language = "cs-csc"
-            if "static void Main(string[] args)" not in expression:
-                expression = await self.wrap_with_cs_jargon(expression)
-        elif language in ("js", "javascript"):
-            language = "javascript-node"
-        elif language == "swift":
-            language = "swift4"
+        """Changes some language names and wraps jargon for some languages.
 
+        Changing some language names is important for TIO.
+        """
+        aliases: dict[str, str] = await self.get_aliases()
+        if language in aliases:
+            language = aliases[language]
+        jargon: dict[str, tuple[str, str]] = await self.get_jargon()
+        if language in jargon and jargon[language][1] not in expression:
+            expression = jargon[language][0].replace("INSERT_HERE", expression, 1)
         return language, expression
+
+    async def get_aliases(self) -> dict[str, str]:
+        return {
+            "c": "c-clang",
+            "c#": "cs-csc",
+            "c++": "cpp-clang",
+            "cpp": "cpp-clang",
+            "cs": "cs-csc",
+            "f#": "fs-core",
+            "fs": "fs-core",
+            "java": "java-openjdk",
+            "javascript": "javascript-node",
+            "js": "javascript-node",
+            "objective-c": "objective-c-clang",
+            "py": "python3",
+            "python": "python3",
+            "swift": "swift4",
+        }
+
+    async def get_jargon(self) -> dict[str, tuple[str, str]]:
+        jargon: dict[str, tuple[str, str]] = {
+            # keys: the language
+            # values:
+            #   * the jargon
+            #   * the "jargon key"
+            "c": (
+                dedent(
+                    """\
+                    #include <stdbool.h>
+                    #include <stdio.h>
+                    int main(void) {
+                        INSERT_HERE
+                    }\
+                    """
+                ),
+                "int main(",
+            ),
+            "cpp": (
+                dedent(
+                    """\
+                    #include <iostream>
+                    #include <stdio.h>
+                    using namespace std;
+                    int main() {
+                        INSERT_HERE
+                    }\
+                    """,
+                ),
+                "int main(",
+            ),
+            "cs": (
+                dedent(
+                    """\
+                    namespace MyNamespace {
+                        class MyClass {
+                            static void Main(string[] args) {
+                                INSERT_HERE
+                            }
+                        }
+                    }\
+                    """
+                ),
+                "static void Main(",
+            ),
+            "dart": (
+                dedent(
+                    """\
+                    void main() {
+                        INSERT_HERE
+                    }\
+                    """
+                ),
+                "void main(",
+            ),
+            "go": (
+                dedent(
+                    """\
+                    package main
+                    import "fmt"
+                    func main() {
+                        INSERT_HERE
+                    }\
+                    """
+                ),
+                "func main(",
+            ),
+            "java": (
+                dedent(
+                    """\
+                    import java.util.*;
+                    class MyClass {
+                        public static void main(String[] args) {
+                            Scanner scanner = new Scanner(System.in);
+                            INSERT_HERE
+                        }
+                    }\
+                    """
+                ),
+                "public static void main(",
+            ),
+            "kotlin": (
+                dedent(
+                    """\
+                    fun main(args : Array<String>) {
+                        INSERT_HERE
+                    }\
+                    """
+                ),
+                "fun main(",
+            ),
+            "objective-c": (
+                dedent(
+                    """\
+                    #include <stdio.h>
+                    // Print with the `puts` function, not `NSLog`.
+                    int main() {
+                        INSERT_HERE
+                    }\
+                    """
+                ),
+                "int main(",
+            ),
+            "rust": (
+                dedent(
+                    """\
+                    fn main() {
+                        INSERT_HERE
+                    }\
+                    """
+                ),
+                "fn main(",
+            ),
+            "scala": (
+                dedent(
+                    """\
+                    object Main extends App {
+                        INSERT_HERE
+                    }\
+                    """
+                ),
+                "object Main",
+            ),
+        }
+        jargon["c-clang"] = jargon["c"]
+        jargon["c-gcc"] = jargon["c"]
+        jargon["c-tcc"] = jargon["c"]
+        jargon["c#"] = jargon["cs"]
+        jargon["c++"] = jargon["cpp"]
+        jargon["cpp-clang"] = jargon["cpp"]
+        jargon["cpp-gcc"] = jargon["cpp"]
+        jargon["cs-core"] = jargon["cs"]
+        jargon["cs-csc"] = jargon["cs"]
+        jargon["cs-csi"] = jargon["cs"]
+        jargon["cs-mono-shell"] = jargon["cs"]
+        jargon["cs-mono"] = jargon["cs"]
+        jargon["java-jdk"] = jargon["java"]
+        jargon["java-openjdk"] = jargon["java"]
+        jargon["objective-c-clang"] = jargon["objective-c"]
+        jargon["objective-c-gcc"] = jargon["objective-c"]
+        return jargon
 
     @_run.command(name="guide", aliases=["g", "i", "h", "info", "help"])
     async def exec_guide(self, ctx):
         """Explains some of the nuances of the `run` command"""
-        await ctx.send(
-            " ".join(
-                dedent(
-                    """
+        text = dedent(
+            """
             With the `run` command, you can use a triple-backtick code block
             and specify a language on its first line. Any input after the
             closing triple backticks will be used as inputs for the program
             (you can hold shift while pressing enter to go to the next line if
-            necessary). If you choose c, c++, cpp, java, c#, or cs as the
-            language and you only need the main function, you may not need to
-            type the function header and commonly needed code above main. You
-            can use the `run jargon <language>` command to see what code may be
-            automatically added in front of your input if you omit the function
-            header.
+            necessary). Many languages can automatically wrap your code with a
+            main function and commonly used imports if you do not include them.
+            You can use the `run jargon <language>` command to see what code
+            may be automatically added in front of your input if you omit the
+            main function header.
 
             Some language names will be changed before the code is executed:
-            c -> c-clang
-            c++ or cpp -> cpp-clang
-            c# or cs -> cs-csc
-            java -> java-openjdk
-            py or python -> python3
-            js or javascript -> javascript-node
-            swift -> swift4
+            c → c-clang
+            c++ or cpp → cpp-clang
+            c# or cs → cs-csc
+            f# or fs → fs-core
+            java → java-openjdk
+            js or javascript → javascript-node
+            objective-c → objective-c-clang
+            py or python → python3
+            swift → swift4
 
             After this processing, the `run` command sends your code to
-            https://tio.run and receives any outputs specified in your code
-            (as well as info about how long it took to run).
+            https://tio.run and receives any outputs specified in your code. If
+            you would like similar functionality in your terminal, check out
+            https://github.com/wheelercj/tias
             """
-                ).split("\n")
-            )
         )
+        paginator = Paginator("`run` guide", text.split("\n\n"), length=1)
+        await paginator.run(ctx)
 
     @_run.command(name="languages", aliases=["l", "s", "langs", "list", "search"])
     async def list_programming_languages(self, ctx, *, query: str = None):
@@ -334,26 +483,10 @@ class Other(commands.Cog):
             title = "languages supported by the `run` command"
         else:
             title = f"supported languages that contain `{query}`"
-        async with await async_tio.Tio(
-            loop=self.bot.loop, session=self.bot.session
-        ) as tio:
-            valid_languages = tio.languages
-            valid_languages.extend(
-                [
-                    "c",
-                    "c#",
-                    "c++",
-                    "cpp",
-                    "cs",
-                    "java",
-                    "javascript",
-                    "js",
-                    "py",
-                    "python",
-                    "swift",
-                ]
-            )
-            valid_languages = sorted(valid_languages, key=len)
+        async with MyTio(session=self.bot.session) as tio:
+            valid_languages: list[str] = [x.tio_name for x in await tio.get_languages()]
+            valid_languages.extend((await self.get_aliases()).keys())
+            valid_languages = sorted(valid_languages)
             paginator = Paginator(
                 title=title, entries=valid_languages, filter_query=query
             )
@@ -361,108 +494,16 @@ class Other(commands.Cog):
 
     @_run.command(name="jargon", aliases=["j"])
     async def send_jargon(self, ctx, language: str):
-        """Shows the jargon the `run` command uses for a language (currently only c, c++, cpp, java, c#, or cs)"""
-        if language in ("c++", "cpp"):
-            jargon = await self.get_cpp_jargon_header()
-            await ctx.send(jargon)
-        elif language == "c":
-            jargon = await self.get_c_jargon_header()
-            await ctx.send(jargon)
-        elif language == "java":
-            jargon = await self.get_java_jargon_header()
-            await ctx.send(jargon)
-        elif language in ("c#", "cs"):
-            jargon = await self.get_cs_jargon_header()
-            await ctx.send(jargon)
-        else:
+        """Shows the jargon the `run` command uses for a language"""
+        jargon: dict[str, tuple[str, str]] = await self.get_jargon()
+        if language not in jargon:
             raise commands.BadArgument(
-                f"No jargon wrapping has been set for the {language} language"
+                f"No jargon wrapping has been set for the `{language}` language"
             )
-
-    async def get_cpp_jargon_header(self) -> str:
-        """Returns the starting jargon for C++ (not including closing brackets)"""
-        return dedent(
-            """
-            #include <algorithm>
-            #include <cctype>
-            #include <cstring>
-            #include <ctime>
-            #include <fstream>
-            #include <iomanip>
-            #include <iostream>
-            #include <math.h>
-            #include <numeric>
-            #include <sstream>
-            #include <stdio.h>
-            #include <string>
-            #include <vector>
-            using namespace std;
-
-            int main() {
-            """
+        await ctx.send(
+            f"`jargon:`\n{jargon[language][0]}"
+            f"\n`jargon key:`\n{jargon[language][1]}"
         )
-
-    async def get_c_jargon_header(self) -> str:
-        """Returns the starting jargon for C (not including closing brackets)"""
-        return dedent(
-            """
-            #include <ctype.h>
-            #include <math.h>
-            #include <stdbool.h>
-            #include <stdio.h>
-            #include <stdlib.h>
-            #include <string.h>
-            #include <time.h>
-
-            int main(void) {
-            """
-        )
-
-    async def get_java_jargon_header(self) -> str:
-        """Returns the starting jargon for Java (not including closing brackets)"""
-        return dedent(
-            """
-            import java.util.*;
-
-            class MyClass {
-                public static void main(String[] args) {
-                    Scanner scanner = new Scanner(System.in);
-            """
-        )
-
-    async def get_cs_jargon_header(self) -> str:
-        """Returns the starting jargon for C# (not including closing brackets)"""
-        return dedent(
-            """
-            namespace MyNamespace {
-                class MyClass {
-                    static void Main(string[] args) {
-            """
-        )
-
-    async def wrap_with_cpp_jargon(self, expression: str) -> str:
-        """Wraps C++ code with common C++ jargon"""
-        jargon = await self.get_cpp_jargon_header()
-        expression = jargon + expression + "}"
-        return expression
-
-    async def wrap_with_c_jargon(self, expression: str) -> str:
-        """Wraps C code with common C jargon"""
-        jargon = await self.get_c_jargon_header()
-        expression = jargon + expression + "}"
-        return expression
-
-    async def wrap_with_java_jargon(self, expression: str) -> str:
-        """Wraps Java code with common Java jargon"""
-        jargon = await self.get_java_jargon_header()
-        expression = jargon + expression + "}}"
-        return expression
-
-    async def wrap_with_cs_jargon(self, expression: str) -> str:
-        """Wraps C# code with common C# jargon"""
-        jargon = await self.get_cs_jargon_header()
-        expression = jargon + expression + "}}}"
-        return expression
 
     ###########################
     # translate command group #

@@ -36,7 +36,8 @@ class Bot(commands.Bot):
         self.global_cd = commands.CooldownMapping.from_cooldown(
             1, 5, commands.BucketType.user
         )
-        self.session = aiohttp.ClientSession()
+        connector = aiohttp.TCPConnector(force_close=True)
+        self.session = aiohttp.ClientSession(connector=connector)
         self.custom_prefixes: dict[int, list[str]] = dict()
         self.removed_default_prefixes: dict[int, list[str]] = dict()
         self.logger: logging.Logger = None
