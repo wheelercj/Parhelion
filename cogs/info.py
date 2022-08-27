@@ -233,6 +233,10 @@ class Info(commands.Cog):
     async def stats(self, ctx):
         """Shows statistics about this bot"""
         embed = discord.Embed()
+        try:
+            bot_loc = self.count_bot_loc()
+        except UnicodeDecodeError:
+            bot_loc = -1
         embed.add_field(
             name="stats",
             value=(
@@ -243,7 +247,7 @@ class Info(commands.Cog):
                 f"commands: {len(self.bot.commands)}\n"
                 f"commands used since last restart: {self.bot.command_use_count}\n"
                 f"commands {ctx.author} can use here: {await self.count_available_cmds(ctx)}\n"
-                f"lines of code: {self.count_bot_loc()}\n"
+                f"lines of code: {bot_loc}\n"
                 f"Python files: {self.count_bot_files()}"
             ),
         )
@@ -307,6 +311,8 @@ class Info(commands.Cog):
             if name in (".git", ".vs", ".vscode", "__pycache__"):
                 continue
             if name.startswith("venv"):
+                continue
+            if name.lower().startswith("python"):
                 continue
             path = os.path.join(dir_path, name)
             if os.path.isdir(path):
