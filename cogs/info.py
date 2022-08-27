@@ -279,6 +279,8 @@ class Info(commands.Cog):
                 continue
             if name.startswith("venv"):
                 continue
+            if name.lower().startswith("python"):
+                continue
             path = os.path.join(dir_path, name)
             if os.path.isdir(path):
                 file_count += self.count_dir_files(path)
