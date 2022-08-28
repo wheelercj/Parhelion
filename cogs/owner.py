@@ -25,6 +25,10 @@ class Owner(commands.Cog):
             raise commands.NotOwner
         return True
 
+    @commands.command(name="raise")
+    async def raise_exception(self, ctx):
+        raise Exception("The `raise` command was used.")
+
     @commands.command()
     async def echo(self, ctx, *, message: str):
         """Repeats a message"""
