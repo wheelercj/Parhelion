@@ -245,16 +245,31 @@ class Bot(commands.Bot):
                 f"[command {ctx.message.content}][type(error)"
                 f' {type(error)}][error {error}]\n{"".join(tb)}'
             )
-            channel = self.get_channel(DevSettings.error_log_channel_id)
-            await channel.send(log_message)
-            if not self.error_is_reported:
-                await dev_mail(self, "I encountered and logged an error")
-                self.error_is_reported = True
-            await ctx.send(
-                "I encountered an error and notified my developer. If you would like to"
-                " join the support server, here's the link:"
-                f" {DevSettings.support_server_link}"
-            )
+            error_log_channel = None
+            if DevSettings.error_log_channel_id:
+                error_log_channel = self.get_channel(DevSettings.error_log_channel_id)
+            if error_log_channel is not None:
+                await error_log_channel.send(log_message)
+                if not self.error_is_reported:
+                    await dev_mail(self, "I encountered and logged an error")
+                    self.error_is_reported = True
+                await ctx.send("I encountered an error and notified my developer.")
+            else:
+                await ctx.send("Unknown error.")
+                if DevSettings.error_log_channel_id:
+                    await dev_mail(
+                        self,
+                        (
+                            "I do not have access to the channel chosen as the error"
+                            " log channel in the dev settings in settings.py.\n\nError"
+                            f" log message: {log_message}"
+                        ),
+                    )
+            if DevSettings.support_server_link:
+                await ctx.send(
+                    "If you would like to join the support server, here's"
+                    f" the link: {DevSettings.support_server_link}"
+                )
             print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)
             traceback.print_exception(
                 type(error), error, error.__traceback__, file=sys.stderr
@@ -262,8 +277,7 @@ class Bot(commands.Bot):
 
     async def on_guild_join(self, guild: discord.Guild):
         message = (
-            "I've joined a new server called "
-            f'"{guild.name}"!\nI am now in '
+            f"I've joined a new server called `{guild.name}`!\nI am now in "
             f"{len(self.guilds)} servers."
         )
         await dev_mail(self, message, use_embed=False)

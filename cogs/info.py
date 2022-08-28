@@ -74,12 +74,17 @@ class MyHelp(commands.HelpCommand):
                     raise ValueError("Each cog must have a description.")
                 cog_short_doc = cog.description.split("\n")[0]
                 message += f"\n**__{cog_name}__**: {cog_short_doc}"
+        message += "\u200b\n\n"
+        if DevSettings.support_server_link:
+            message += (
+                f"[support server]({DevSettings.support_server_link}) \u2800❂\u2800 "
+            )
         message += (
-            f"\u200b\n\n[support server]({DevSettings.support_server_link})"
-            f" \u2800❂\u2800 [invite]({await get_bot_invite_link(self.context.bot)})"
+            f"[invite]({await get_bot_invite_link(self.context.bot)})"
             f" \u2800❂\u2800 [privacy policy]({DevSettings.privacy_policy_link})"
-            f" \u2800❂\u2800 [donate]({DevSettings.donations_link})"
         )
+        if DevSettings.donations_link:
+            message += f" \u2800❂\u2800 [donate]({DevSettings.donations_link})"
         embed = discord.Embed(description=message)
         destination = self.get_destination()
         await destination.send(embed=embed)
@@ -330,9 +335,13 @@ class Info(commands.Cog):
     @commands.command(aliases=["contact", "server"], hidden=True)
     async def support(self, ctx):
         """Shows the link to this bot's support server"""
-        await ctx.send(
-            f"Here's the link to my support server: <{DevSettings.support_server_link}>"
-        )
+        if DevSettings.support_server_link:
+            await ctx.send(
+                "Here's the link to my support server:"
+                f" <{DevSettings.support_server_link}>"
+            )
+        else:
+            await ctx.send("A support server has not been set by the developer.")
 
     @commands.command(aliases=["privacy-policy", "privacypolicy"], hidden=True)
     async def privacy(self, ctx):
@@ -341,11 +350,17 @@ class Info(commands.Cog):
 
     @commands.command()
     async def donate(self, ctx):
-        """Buy me a coffee"""
-        await ctx.send(
-            "Thanks for your interest! You can support this project here:"
-            f" <{DevSettings.donations_link}>"
-        )
+        """Help keep the server running and support the bot's development"""
+        if DevSettings.donations_link:
+            await ctx.send(
+                "Thanks for your interest! You can support this project here:"
+                f" <{DevSettings.donations_link}>"
+            )
+        else:
+            await ctx.send(
+                "Thanks for your interest! However, donations are currently not being"
+                " accepted."
+            )
 
     @commands.command(aliases=["i", "info"])
     async def about(self, ctx):
@@ -365,15 +380,13 @@ class Info(commands.Cog):
             value=f"\u2800{owner.name}#{owner.discriminator}\u2800\n\u2800",
         )
         embed.add_field(name="\u200b", value="\u200b\n\u200b")
-        embed.add_field(
-            name="links\u2800",
-            value=(
-                f"[invite]({bot_invite_link})\u2800\n"
-                f"[support server]({DevSettings.support_server_link})\u2800\n"
-                f"[privacy policy]({DevSettings.privacy_policy_link})\u2800\n"
-                f"[donate]({DevSettings.donations_link})\u2800\n"
-            ),
-        )
+        links_s = f"[invite]({bot_invite_link})\u2800\n"
+        if DevSettings.support_server_link:
+            links_s += f"[support server]({DevSettings.support_server_link})\u2800\n"
+        links_s += f"[privacy policy]({DevSettings.privacy_policy_link})\u2800\n"
+        if DevSettings.donations_link:
+            links_s += f"[donate]({DevSettings.donations_link})\u2800\n"
+        embed.add_field(name="links\u2800", value=links_s)
         embed.add_field(
             name="\u2800made with\u2800",
             value=(

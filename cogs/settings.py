@@ -16,13 +16,13 @@ from cogs.utils.paginator import Paginator
 
 
 class DevSettings:
-    default_bot_prefixes = [";", "par ", "Par "]
-    support_server_link = "https://discord.gg/mCqGhPJVcN"
-    privacy_policy_link = (
+    default_bot_prefixes: list[str] = [";", "par ", "Par "]
+    support_server_link: Optional[str] = "https://discord.gg/mCqGhPJVcN"
+    privacy_policy_link: str = (
         "https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853"
     )
-    donations_link = "https://buymeacoffee.com/Parhelion"
-    error_log_channel_id = 881374348441694258
+    donations_link: Optional[str] = "https://buymeacoffee.com/Parhelion"
+    error_log_channel_id: Optional[int] = 881374348441694258
 
 
 class CommandName(commands.Converter):
