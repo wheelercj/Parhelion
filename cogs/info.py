@@ -30,7 +30,8 @@ def yes_or_no(boolean: bool) -> str:
 
 
 class MyHelp(commands.HelpCommand):
-    # Guide on subclassing HelpCommand: https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96
+    # Guide on subclassing HelpCommand:
+    # https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96
     def __init__(self):
         super().__init__()
         self.command_attrs = {
@@ -40,9 +41,9 @@ class MyHelp(commands.HelpCommand):
         }
 
     async def get_clean_prefix(self) -> str:
-        """Returns the rendered mention command prefix if self.context.prefix is the unrendered one
+        """Returns the rendered mention command prefix
 
-        Otherwise, returns self.context.prefix unchanged.
+        May or may not return self.context.prefix.
         """
         if self.context.bot.user.mention + " " == self.context.prefix.replace(
             "!", "", 1
@@ -61,8 +62,10 @@ class MyHelp(commands.HelpCommand):
         """Gets called with `<prefix>help`"""
         prefix: str = await self.get_clean_prefix()
         help_cmd_name: str = self.context.invoked_with
-        message = f"Use `{prefix}{help_cmd_name} [category]` for more info on a category.\n\u200b"
-
+        message = (
+            f"Use `{prefix}{help_cmd_name} [category]` for more info on a category."
+            "\n\u200b"
+        )
         for cog, commands_ in mapping.items():
             filtered_commands = await self.filter_commands(commands_, sort=True)
             if filtered_commands:
@@ -71,14 +74,12 @@ class MyHelp(commands.HelpCommand):
                     raise ValueError("Each cog must have a description.")
                 cog_short_doc = cog.description.split("\n")[0]
                 message += f"\n**__{cog_name}__**: {cog_short_doc}"
-
         message += (
-            f"\u200b\n\n[support server]({DevSettings.support_server_link}) \u2800❂\u2800 "
-            f"[invite]({await get_bot_invite_link(self.context.bot)}) \u2800❂\u2800 "
-            f"[privacy policy]({DevSettings.privacy_policy_link}) \u2800❂\u2800 "
-            f"[donate]({DevSettings.donations_link})"
+            f"\u200b\n\n[support server]({DevSettings.support_server_link})"
+            f" \u2800❂\u2800 [invite]({await get_bot_invite_link(self.context.bot)})"
+            f" \u2800❂\u2800 [privacy policy]({DevSettings.privacy_policy_link})"
+            f" \u2800❂\u2800 [donate]({DevSettings.donations_link})"
         )
-
         embed = discord.Embed(description=message)
         destination = self.get_destination()
         await destination.send(embed=embed)
@@ -89,12 +90,10 @@ class MyHelp(commands.HelpCommand):
         filtered_commands = await self.filter_commands(cmds, sort=True)
         if not filtered_commands:
             raise commands.BadArgument("You do not have access to this category here.")
-
         cmd_signatures = []
         for c in filtered_commands:
             signature = await self.get_command_signature(c)
             cmd_signatures.append(f"`{signature}`\n{c.short_doc}")
-
         prefix: str = await self.get_clean_prefix()
         help_cmd_name: str = self.context.invoked_with
         entries = [cog.description]
@@ -104,7 +103,6 @@ class MyHelp(commands.HelpCommand):
         )
         entries.append("\n**Commands**")
         entries.extend(cmd_signatures)
-
         cog_name = getattr(cog, "qualified_name", "No Category")
         paginator = Paginator(
             title=f"{cog_name}",
@@ -130,7 +128,6 @@ class MyHelp(commands.HelpCommand):
         filtered_commands = await self.filter_commands(group.commands, sort=True)
         for c in filtered_commands:
             message += f"\n{prefix}{c.qualified_name} – {c.short_doc}"
-
         embed = discord.Embed(description=message)
         destination = self.get_destination()
         await destination.send(embed=embed)
@@ -142,7 +139,6 @@ class MyHelp(commands.HelpCommand):
             aliases = "**Aliases:** " + ", ".join(command.aliases)
             message += "\n" + aliases
         message += "\n\n" + command.help
-
         embed = discord.Embed(description=message)
         destination = self.get_destination()
         await destination.send(embed=embed)
@@ -175,9 +171,9 @@ class Info(commands.Cog):
     async def _timestamp(self, ctx, *, time: str):
         """Shows how you can create timestamps that work with each device's timezone
 
-        You can enter the date/time/duration in natural language,
-        and you can copy and paste a raw timestamp into your discord messages.
-        If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
+        You can enter the date/time/duration in natural language, and you can copy and
+        paste a raw timestamp into your discord messages. If you have not chosen a
+        timezone with the `timezone set` command, UTC will be assumed.
         """
         dt, _ = await parse_time_message(ctx, time)
         unix_time = int(dt.timestamp())
@@ -199,7 +195,6 @@ class Info(commands.Cog):
                 `<t:{unix_time}:R>` → <t:{unix_time}:R>
             """
         )
-
         await ctx.send(output)
 
     #####################
@@ -237,6 +232,7 @@ class Info(commands.Cog):
             bot_loc = self.count_bot_loc()
         except UnicodeDecodeError:
             bot_loc = -1
+        author_cmd_count = await self.count_available_cmds(ctx)
         embed.add_field(
             name="stats",
             value=(
@@ -246,7 +242,7 @@ class Info(commands.Cog):
                 f"users: {len(self.bot.users)}\n"
                 f"commands: {len(self.bot.commands)}\n"
                 f"commands used since last restart: {self.bot.command_use_count}\n"
-                f"commands {ctx.author} can use here: {await self.count_available_cmds(ctx)}\n"
+                f"commands {ctx.author} can use here: {author_cmd_count}\n"
                 f"lines of code: {bot_loc}\n"
                 f"Python files: {self.count_bot_files()}"
             ),
@@ -347,7 +343,8 @@ class Info(commands.Cog):
     async def donate(self, ctx):
         """Buy me a coffee"""
         await ctx.send(
-            f"Thanks for your interest! You can support this project here: <{DevSettings.donations_link}>"
+            "Thanks for your interest! You can support this project here:"
+            f" <{DevSettings.donations_link}>"
         )
 
     @commands.command(aliases=["i", "info"])
@@ -359,7 +356,6 @@ class Info(commands.Cog):
         owner = self.bot.get_user(self.bot.owner_id)
         prefixes = await get_prefixes_list(self.bot, ctx.message)
         bot_invite_link = await get_bot_invite_link(self.bot)
-
         embed.add_field(
             name="\u200b\u2800",
             value=f"Use `{prefixes[0]}help` for help\nwith commands.\u2800\n\u2800",
@@ -369,7 +365,6 @@ class Info(commands.Cog):
             value=f"\u2800{owner.name}#{owner.discriminator}\u2800\n\u2800",
         )
         embed.add_field(name="\u200b", value="\u200b\n\u200b")
-
         embed.add_field(
             name="links\u2800",
             value=(
@@ -383,11 +378,11 @@ class Info(commands.Cog):
             name="\u2800made with\u2800",
             value=(
                 f"\u2800Python v{platform.python_version()}\u2800\n"
-                f"\u2800and [discord.py](https://discordpy.readthedocs.io/en/latest/) v{discord.__version__}\u2800\n"
+                "\u2800and [discord.py](https://discordpy.readthedocs.io/en/latest/)"
+                f" v{discord.__version__}\u2800\n"
             ),
         )
         embed.add_field(name="\u200b", value="\u200b")
-
         await ctx.send(embed=embed)
 
     @commands.command(hidden=True)
@@ -398,8 +393,10 @@ class Info(commands.Cog):
     async def tips(self, ctx):
         """Shows tips on how to use this bot"""
         _tips = [
-            "For each command with a hyphen in its name, typing the hyphen is optional.",
-            f"Most commands have aliases that are easier to type; see a command's aliases with `{ctx.prefix}help [command]`.",
+            "For each command with a hyphen in its name, typing the hyphen is"
+            " optional.",
+            "Most commands have aliases that are easier to type; see a command's"
+            f" aliases with `{ctx.prefix}help [command]`.",
         ]
         paginator = Paginator(
             title="tips",
@@ -431,12 +428,10 @@ class Info(commands.Cog):
         """Shows info about the current server"""
         if ctx.guild.unavailable:
             raise commands.UserInputError("The server's data is unavailable.")
-
         server = self.bot.get_guild(ctx.guild.id)
         bot_count = await self.get_bot_count(server)
         cat_count = len(server.categories)
         created = await create_relative_timestamp(server.created_at)
-
         embed = discord.Embed(title="server info")
         embed.add_field(
             name="\u200b",
@@ -446,7 +441,8 @@ class Info(commands.Cog):
                 f"description: {server.description}\n"
                 f"created: {created}\n"
                 f"preferred locale: {server.preferred_locale}\n"
-                f"total members: {server.member_count}/{server.max_members} ({bot_count} bots)\n"
+                f"total members: {server.member_count}/{server.max_members}"
+                f" ({bot_count} bots)\n"
                 f"roles: {len(server.roles)}\n"
                 f"current boosts: {server.premium_subscription_count}\n"
                 f"boost level: {server.premium_tier}\n"
@@ -463,14 +459,11 @@ class Info(commands.Cog):
                 f"max video channel users: {server.max_video_channel_users}\n",
             ),
         )
-
         features = await self.get_server_features(server)
         if len(features):
             embed.add_field(name="\u2800", value="**features**\n" + features)
-
         if server.icon is not None:
             embed.set_thumbnail(url=server.icon)
-
         await ctx.send(embed=embed)
 
     async def get_bot_count(self, server: discord.Guild) -> int:
@@ -496,7 +489,6 @@ class Info(commands.Cog):
         """
         creation_timestamp = await create_relative_timestamp(member.created_at)
         join_timestamp = await create_relative_timestamp(member.joined_at)
-
         embed = discord.Embed()
         embed.add_field(
             name=f"{member.name}#{member.discriminator}\n\u2800",
@@ -513,7 +505,6 @@ class Info(commands.Cog):
         )
         if member.avatar is not None:
             embed.set_thumbnail(url=member.avatar)
-
         await ctx.send(embed=embed)
 
     async def get_whether_bot(self, member: discord.Member) -> str:
@@ -524,7 +515,7 @@ class Info(commands.Cog):
             return ""
 
     async def get_server_roles(self, member: discord.Member) -> str:
-        """Returns a message listing all of a member's server roles, but only if they have 10 or fewer
+        """Returns a message listing all of a member's server roles if len(roles) <= 10
 
         Otherwise returns an empty string.
         """
@@ -536,8 +527,7 @@ class Info(commands.Cog):
     async def get_premium_since(self, member: discord.Member) -> str:
         """Gets the datetime of when a member's premium began
 
-        Returns an empty string if the member does not have
-        premium.
+        Returns an empty string if the member does not have premium.
         """
         r = member.premium_since
         if r is not None:
@@ -548,8 +538,8 @@ class Info(commands.Cog):
     async def get_global_roles(self, member: discord.Member) -> str:
         """Gets the global Discord roles of a member
 
-        E.g. Discord staff, bug hunter, verified bot, etc.
-        Returns an empty string if the member has no global roles.
+        For example, Discord staff, bug hunter, verified bot, etc. Returns an empty
+        string if the member has no global roles.
         """
         flags = ", ".join(member.public_flags.all())
         if len(flags):
@@ -569,7 +559,6 @@ class Info(commands.Cog):
         if role.tags is not None:
             if role.tags.bot_id is not None:
                 managing_bot = ctx.guild.get_member(role.tags.bot_id)
-
         embed = discord.Embed()
         embed.add_field(
             name="role info",
@@ -585,7 +574,6 @@ class Info(commands.Cog):
                 f"managing bot: {managing_bot}\n",
             ),
         )
-
         await ctx.send(embed=embed)
 
     @commands.command(name="permissions", aliases=["perms"])
@@ -595,27 +583,25 @@ class Info(commands.Cog):
     ):
         """Shows the server and channel permissions of a member or role
 
-        If a user and role have the same ID and/or name, the permissions
-        for the user will be shown. User permissions include the
-        permissions for all roles that user has.
+        If a user and role have the same ID and/or name, the permissions for the user
+        will be shown. User permissions include the permissions for all roles that user
+        has.
         """
         if member_or_role is None:
             member_or_role = ctx.author
         server_perms, overwrites, title = await self.get_perms(ctx, member_or_role)
         if not len(server_perms):
             raise commands.BadArgument("Could not find the user or role.")
-
         embed = discord.Embed(title=title)
         embed.add_field(name="server permissions", value=server_perms)
         if len(overwrites):
             embed = await self.embed_overwrites(embed, server_perms, overwrites)
-
         await ctx.send(embed=embed)
 
     async def embed_overwrites(
         self, embed: discord.Embed, server_perms: str, overwrites: str
     ) -> discord.Embed:
-        """Adds embed fields that list channel permission overwrites of server permissions"""
+        """Adds embed fields listing channel perm overwrites of server perms"""
         server_n = server_perms.count("\n")
         channel_n = overwrites.count("\n")
         if server_n > channel_n:
@@ -624,7 +610,6 @@ class Info(commands.Cog):
             half = channel_n / 2
             embed.add_field(name="channel overwrites", value=overwrites[:half])
             embed.add_field(name="channel overwrites cont.", value=overwrites[half:])
-
         return embed
 
     async def format_perms(self, permissions: discord.Permissions) -> Union[str, bool]:
@@ -654,7 +639,6 @@ class Info(commands.Cog):
                 overwrites = await self.get_perm_overwrites(ctx, role)
                 title = f"{role.name} role permissions"
                 return server_perms, overwrites, title
-
         return "", "", ""
 
     async def get_perm_overwrites(
@@ -674,23 +658,20 @@ class Info(commands.Cog):
                 hidden_text_count += 1
             elif len(channel_perms):
                 overwrites += f"**\u2800{channel.name}**\n" f"{channel_perms}\n"
-
         if hidden_text_count:
             overwrites += (
                 f"**\u2800({hidden_text_count} hidden text channels)**\n"
                 f"\u2800❌ read messages\n"
             )
-
         return overwrites
 
     async def perm_list_message(self, perm_list: list[tuple[str, bool]]) -> str:
         """Converts a permissions list to a printable string
 
-        perm_list is a list of tuples in the format
-        (perm_name, is_perm_granted). Using `list(perm_obj)` where
-        `perm_obj` is of type discord.Permissions gives the
-        correct format. If a permission's bool is set to None, the
-        permission will be ignored.
+        perm_list is a list of tuples in the format (perm_name, is_perm_granted). Using
+        `list(perm_obj)` where `perm_obj` is of type discord.Permissions gives the
+        correct format. If a permission's bool is set to None, the permission will be
+        ignored.
         """
         perm_str = ""
         for name, value in perm_list:
@@ -699,7 +680,6 @@ class Info(commands.Cog):
                 perm_str += f"\u2800✅ {name}\n"
             elif value is not None:
                 perm_str += f"\u2800❌ {name}\n"
-
         return perm_str
 
 

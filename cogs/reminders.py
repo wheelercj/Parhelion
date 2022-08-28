@@ -68,9 +68,7 @@ class Reminders(commands.Cog):
                     self._task.cancel()
                     return
                 self.running_reminder_info = RunningReminderInfo(target_time, id)
-
                 await discord.utils.sleep_until(target_time)
-
                 await destination.send(
                     f"<@!{author_id}>, here is your reminder: {message}"
                 )
@@ -90,28 +88,24 @@ class Reminders(commands.Cog):
     async def remind(self, ctx, *, time_and_message: str):
         """Sends you a reminder
 
-        Enter a time (or duration) in front of your reminder message. You can use natural language for this, such as
-        `remind friday at noon buy oranges`
-        or
-        `remind in 2 days 3 hours continue the project`
-        or many more options. If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
+        Enter a time (or duration) in front of your reminder message. You can use
+        natural language for this, such as `remind friday at noon buy oranges` or
+        `remind in 2 days 3 hours continue the project` or many more options. If you
+        have not chosen a timezone with the `timezone set` command, UTC will be assumed.
         """
         await block_nsfw_channels(ctx.channel)
         await self.check_reminder_ownership_permission(ctx.author.id)
-
         async with ctx.typing():
             start_time = datetime.now(timezone.utc)
             target_time, message = await parse_time_message(ctx, time_and_message)
             if target_time < start_time:
                 raise commands.BadArgument("Please choose a time in the future.")
-
             await self.save_reminder_to_db(ctx, start_time, target_time, message)
             if self.running_reminder_info is None:
                 self._task = self.bot.loop.create_task(self.run_reminders())
             elif target_time < self.running_reminder_info.target_time:
                 self._task.cancel()
                 self._task = self.bot.loop.create_task(self.run_reminders())
-
             relative_timestamp = await create_relative_timestamp(target_time)
             long_datetime_stamp = await create_long_datetime_stamp(target_time)
             await ctx.send(
@@ -137,26 +131,24 @@ class Reminders(commands.Cog):
             """,
             ctx.author.id,
         )
-
         if not len(records):
             raise commands.UserInputError("You have no saved reminders.")
-
         r_list = []
         for r in records:
             message = r["message"]
             relative_timestamp = await create_relative_timestamp(r["target_time"])
             long_datetime_stamp = await create_long_datetime_stamp(r["target_time"])
             r_list.append(
-                f'{r["id"]}.) **{relative_timestamp}** ({long_datetime_stamp})\n{message}'
+                f'{r["id"]}.) **{relative_timestamp}**'
+                f" ({long_datetime_stamp})\n{message}"
             )
-
         title = f'You currently have {plural(len(records), "reminder||s")}:'
         paginator = Paginator(title=title, entries=r_list, length=10)
         await paginator.run(ctx)
 
     @remind.command(name="delete", aliases=["del"])
     async def delete_reminder(self, ctx, ID: int):
-        """Deletes one of your reminders by its ID shown with the `remind list` command"""
+        """Deletes a reminder by its ID shown with the `remind list` command"""
         try:
             record = await self.bot.db.fetchrow(
                 """
@@ -183,7 +175,8 @@ class Reminders(commands.Cog):
     async def delete_reminder_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(
-                "Error: missing argument. Use the reminder's ID shown in the `remind list` command."
+                "Error: missing argument. Use the reminder's ID shown in the `remind"
+                " list` command."
             )
         elif isinstance(error, commands.BadArgument):
             await ctx.send(
@@ -246,18 +239,20 @@ class Reminders(commands.Cog):
             else:
                 author = author.display_name
             await ctx.send(
-                f"Successfully deleted the reminder {message} that was created by {author}"
+                f"Successfully deleted the reminder {message} that was created by"
+                f" {author}"
             )
 
     async def check_reminder_ownership_permission(self, author_id: int) -> None:
-        """Raises commands.UserInputError if the author has >= the maximum number of reminders allowed"""
+        """Raises commands.UserInputError if author has >= the max # of reminders"""
         members_reminder_count = await self.count_authors_reminders(author_id)
         if (
             members_reminder_count >= self.reminder_ownership_limit
             and self.bot.owner_id != author_id  # noqa: W503
         ):
             raise commands.UserInputError(
-                f"The current limit to how many reminders each person can have is {self.reminder_ownership_limit}."
+                "The current limit to how many reminders each person can have is"
+                f" {self.reminder_ownership_limit}."
             )
 
     async def count_authors_reminders(self, author_id: int) -> int:
@@ -270,7 +265,6 @@ class Reminders(commands.Cog):
             """,
             author_id,
         )
-
         return len(records)
 
     async def get_next_reminder_info(
@@ -278,8 +272,8 @@ class Reminders(commands.Cog):
     ) -> tuple[datetime, int, Messageable, int, str]:
         """Gets from the database the info for the nearest (in time) reminder task
 
-        Returns (target_time, id, destination, author_id, message).
-        If there is no next daily quote, this function returns (None, None, None, None, None).
+        Returns (target_time, id, destination, author_id, message). If there is no next
+        daily quote, this function returns (None, None, None, None, None).
         """
         r = await self.bot.db.fetchrow(
             """
@@ -291,7 +285,6 @@ class Reminders(commands.Cog):
         )
         if r is None:
             return None, None, None, None, None
-
         target_time = r["target_time"]
         author_id = r["author_id"]
         id = r["id"]
@@ -301,7 +294,6 @@ class Reminders(commands.Cog):
         else:
             server = self.bot.get_guild(r["server_id"])
             destination = server.get_channel(r["channel_id"])
-
         return target_time, id, destination, author_id, message
 
     async def save_reminder_to_db(
@@ -316,7 +308,6 @@ class Reminders(commands.Cog):
             is_dm = True
             server_id = 0
             channel_id = 0
-
         await self.bot.db.execute(
             """
             INSERT INTO reminders

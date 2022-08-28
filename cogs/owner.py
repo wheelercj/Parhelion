@@ -93,7 +93,8 @@ class Owner(commands.Cog):
 
         May send multiple server IDs if multiple servers have the same name.
         """
-        # This can be useful for when I need to update the database manually for servers that I'm not in.
+        # This can be useful for when I need to update the database manually for servers
+        # that I'm not in.
         servers = self.bot.guilds
         sent = False
         for server in servers:

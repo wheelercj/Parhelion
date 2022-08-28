@@ -64,13 +64,13 @@ class Docs(commands.Cog):
             url = self.docs_urls[ctx.guild.id]
         except KeyError:
             raise commands.UserInputError(
-                'This server hasn\'t chosen a ReadTheDocs URL for this command yet. If you have the "manage server" permission, you can choose the URL with the `doc set` command.'
+                "This server hasn't chosen a ReadTheDocs URL for this command yet. If"
+                ' you have the "manage server" permission, you can choose the URL with'
+                " the `doc set` command."
             )
-
         if query is None:
             await ctx.send(f"<{url}>")
             return
-
         project_name, project_version, language, search_url = await self.parse_doc_url(
             url
         )
@@ -79,7 +79,6 @@ class Docs(commands.Cog):
             "project": project_name,
             "version": project_version,
         }
-
         async with ctx.typing():
             async with self.bot.session.get(search_url, params=params) as response:
                 if not response.ok:
@@ -87,12 +86,9 @@ class Docs(commands.Cog):
                         f"API request failed with status code {response.status}."
                     )
                 json_text = await response.json()
-
             result_pages = await self.parse_search_results(json_text, language)
-
             if not len(result_pages):
                 raise commands.BadArgument("No matches found")
-
         paginator = Paginator(
             title=f"search results for `{query}`",
             entries=result_pages,
@@ -116,13 +112,15 @@ class Docs(commands.Cog):
             raise commands.BadArgument('ReadTheDocs URLs should begin with "https://"')
         if len(url.split("/")) < 5:
             raise commands.BadArgument(
-                "The URL appears to be too short. Here's an example of a valid URL: `https://discordpy.readthedocs.io/en/latest`"
+                "The URL appears to be too short. Here's an example of a valid URL:"
+                " `https://discordpy.readthedocs.io/en/latest`"
             )
         if len(url.split("/")[3]) != 2:
             raise commands.BadArgument(
-                "The part of the URL that says the language of the documentation should be two letters long. Here's an example of a valid URL: `https://discordpy.readthedocs.io/en/latest`"
+                "The part of the URL that says the language of the documentation should"
+                " be two letters long. Here's an example of a valid URL:"
+                " `https://discordpy.readthedocs.io/en/latest`"
             )
-
         url = "/".join(url.split("/")[:5])
         self.docs_urls[ctx.guild.id] = url
         await self.bot.db.execute(
@@ -138,9 +136,9 @@ class Docs(commands.Cog):
             ctx.guild.id,
             url,
         )
-
         await ctx.send(
-            "The URL has been set! Everyone can now use the `doc` command with your chosen documentation source."
+            "The URL has been set! Everyone can now use the `doc` command with your"
+            " chosen documentation source."
         )
 
     @doc.command(name="delete")
@@ -151,7 +149,6 @@ class Docs(commands.Cog):
             del self.docs_urls[ctx.guild.id]
         except KeyError:
             raise commands.UserInputError("No documentation URL had been set")
-
         await self.bot.db.execute(
             """
             DELETE FROM docs
@@ -159,11 +156,10 @@ class Docs(commands.Cog):
             """,
             ctx.guild.id,
         )
-
         await ctx.send("Documentation URL deleted")
 
     async def parse_doc_url(self, url: str) -> tuple[str, str, str, str]:
-        """Splits a ReadTheDocs URL into project_name, project_version, language, and search_url
+        """Split ReadTheDocs URL → project_name, project_version, language, & search_url
 
         E.g. 'https://discordpy.readthedocs.io/en/latest/index.html'
         becomes
@@ -179,7 +175,6 @@ class Docs(commands.Cog):
         project_version = url.split("/")[2]
         language = url.split("/")[1]
         search_url = "https://" + url.split("/")[0] + "/_/api/v2/search/"
-
         return project_name, project_version, language, search_url
 
     async def parse_search_results(
@@ -187,10 +182,9 @@ class Docs(commands.Cog):
     ) -> list[str]:
         """Formats doc search results for easy pagination"""
         result_pages = []
-        for i, r in enumerate(json_text["results"]):
+        for r in json_text["results"]:
             if language and language != r["path"][1:3]:
                 continue
-
             results = ""
             title = r["title"]
             results_url = r["domain"] + r["path"]
@@ -206,9 +200,7 @@ class Docs(commands.Cog):
                     soup = BeautifulSoup(html_content, features="html5lib")
                     content = soup.get_text()
                     results += f"• {content}\n"
-
             result_pages.append(results)
-
         return result_pages
 
 

@@ -90,9 +90,7 @@ class Other(commands.Cog):
                     self.quotes_task.cancel()
                     return
                 self.running_quote_info = RunningQuoteInfo(target_time, author_id)
-
                 await discord.utils.sleep_until(target_time)
-
                 try:
                     await self.send_quote(destination, author_id)
                     await self.update_quote_target_time(target_time, author_id)
@@ -113,20 +111,20 @@ class Other(commands.Cog):
     async def share(self, ctx, *, text: str = None):
         """Gives you a shareable URL to your text or attachment
 
-        Text is posted publicly on Mystb.in and cannot be edited or deleted once posted. Attachments stay on Discord's servers until deleted. For text, you can use a code block. Not all file types work for attachments.
+        Text is posted publicly on Mystb.in and cannot be edited or deleted once posted.
+        Attachments stay on Discord's servers until deleted. For text, you can use a
+        code block. Not all file types work for attachments.
         """
         await block_nsfw_channels(ctx.channel)
         async with ctx.typing():
             file_url = await get_attachment_url(ctx)
             if file_url:
                 await ctx.send(f"Here's a link to the attachment: <{file_url}>")
-
             if text:
                 syntax, text, _ = await unwrap_code_block(text)
                 text = dedent(text)
                 mystbin_client = mystbin.Client(session=self.bot.session)
                 paste = await mystbin_client.post(text, syntax=syntax)
-
                 await ctx.reply(f"New Mystb.in paste created at <{paste.url}>")
 
     @commands.command(name="calc", aliases=["calculate", "solve", "math", "maths"])
@@ -148,7 +146,6 @@ class Other(commands.Cog):
             raw_expressions = expression.split("\n")
             expressions = json.dumps(raw_expressions)
             expressions_json = '{\n"expr": ' + expressions + "\n}"
-
             async with ctx.typing():
                 async with self.bot.session.post(
                     "http://api.mathjs.org/v4/",
@@ -160,16 +157,12 @@ class Other(commands.Cog):
                         raise ValueError(
                             f"API request failed with status code {response.status}."
                         )
-
                     json_text = await response.json()
-
                     if response.status == 400:
                         raise ValueError(json_text["error"])
-
             result = ""
             for i, expr in enumerate(raw_expressions):
                 result += "\n`" + expr + "` = `" + json_text["result"][i] + "`"
-
             embed = discord.Embed(description=result)
             await ctx.send(embed=embed)
         except Exception as e:
@@ -212,7 +205,8 @@ class Other(commands.Cog):
             or isinstance(error, commands.errors.MissingRequiredArgument)  # noqa: W503
         ):
             await ctx.send(
-                "Error: the first argument must be the number of choices you want to be made. Following arguments must be the choices to choose from."
+                "Error: the first argument must be the number of choices you want to be"
+                " made. Following arguments must be the choices to choose from."
             )
         else:
             await ctx.send(error)
@@ -230,7 +224,6 @@ class Other(commands.Cog):
                 new_string += alphabet[new_index]
             else:
                 new_string += char
-
         await ctx.send(new_string)
 
     #######################
@@ -470,10 +463,10 @@ class Other(commands.Cog):
 
     @_run.command(name="languages", aliases=["l", "s", "langs", "list", "search"])
     async def list_programming_languages(self, ctx, *, query: str = None):
-        """Lists the languages supported by the `run` command that contain an optional search word
+        """Lists languages the `run` command supports, optionally filtered
 
-        e.g. `run languages py` will only show languages that contain `py`.
-        You can also see a full list of supported languages here: https://tio.run/#
+        For example, `run languages py` will only show languages that contain `py`. You
+        can also see a full list of supported languages here: https://tio.run/#
         """
         if query is None:
             await ctx.send(
@@ -513,7 +506,8 @@ class Other(commands.Cog):
     async def translate(self, ctx, *, words: str):
         """A group of commands for translating between languages
 
-        Without a subcommand, this command translates words from any language (auto-detected) to English.
+        Without a subcommand, this command translates words from any language (auto-
+        detected) to English.
         """
         translated = await self._translate("auto", "en", words)
         embed = discord.Embed(title="English translation", description=translated)
@@ -542,7 +536,8 @@ class Other(commands.Cog):
     async def _translate(self, from_language: str, to_language: str, words: str) -> str:
         """Translates words from one language to another
 
-        Raises commands.BadArgument if a language is not recognized or a translation is not found.
+        Raises commands.BadArgument if a language is not recognized or a translation is
+        not found.
         """
         # https://pypi.org/project/deep-translator/
         try:
@@ -553,7 +548,6 @@ class Other(commands.Cog):
             raise commands.BadArgument("Language not found.")
         except TranslationNotFound:
             raise commands.BadArgument("Translation not found.")
-
         return translated
 
     @translate.command(name="languages", aliases=["l", "s", "langs", "list", "search"])
@@ -654,7 +648,7 @@ class Other(commands.Cog):
 
     @commands.command(name="auto-incorrect", aliases=["ai", "autoincorrect"])
     async def auto_incorrect(self, ctx, *, words: str):
-        """Replaces as many words as possible with different words that sound the same"""
+        """Replaces as many words as possible with other words that sound the same"""
         results = []
         for word in words.split():
             homophone = Homophones(word)
@@ -666,7 +660,6 @@ class Other(commands.Cog):
                 results.append(word)
             else:
                 results.append(result_sentences[0].split()[-1])
-
         await ctx.send(" ".join(results))
 
     #######################
@@ -677,9 +670,9 @@ class Other(commands.Cog):
     async def quote(self, ctx, *, time: str = None):
         """Shows a random famous quote
 
-        If a time is provided in HH:mm format, a quote will be sent each day at that time.
-        You can cancel daily quotes with `quote stop`.
-        If you have not chosen a timezone with the `timezone set` command, UTC will be assumed.
+        If a time is provided in hh:mm format, a quote will be sent each day at that
+        time. You can cancel daily quotes with `quote stop`. If you have not chosen a
+        timezone with the `timezone set` command, UTC will be assumed.
         """
         if time is None:
             await self.send_quote(ctx, ctx.author.id)
@@ -706,15 +699,12 @@ class Other(commands.Cog):
         )
         if target_time < now:
             target_time += timedelta(days=1)
-
         await self.save_daily_quote_to_db(ctx, now, target_time)
-
         if self.running_quote_info is None:
             self.quotes_task = self.bot.loop.create_task(self.run_daily_quotes())
         elif target_time < self.running_quote_info.target_time:
             self.quotes_task.cancel()
             self.quotes_task = self.bot.loop.create_task(self.run_daily_quotes())
-
         timestamp = await create_short_timestamp(target_time)
         await ctx.send(
             f"Time set! At {timestamp} each day, I will send you a random quote."
@@ -789,7 +779,6 @@ class Other(commands.Cog):
             raise commands.UserInputError(
                 "There are no daily quotes set up in this channel."
             )
-
         message = "Here's everyone that set up a daily quote in this channel:"
         for r in records:
             member = ctx.guild.get_member(r["author_id"])
@@ -798,7 +787,6 @@ class Other(commands.Cog):
             else:
                 name = r["author_id"]
             message += "\n" + name
-
         await ctx.send(message)
 
     async def save_daily_quote_to_db(
@@ -813,7 +801,6 @@ class Other(commands.Cog):
             is_dm = True
             server_id = 0
             channel_id = 0
-
         await self.bot.db.execute(
             """
             INSERT INTO daily_quotes
@@ -853,7 +840,6 @@ class Other(commands.Cog):
         )
         if r is None:
             return None, None, None
-
         target_time = r["target_time"]
         author_id = r["author_id"]
         if r["is_dm"]:
@@ -861,7 +847,6 @@ class Other(commands.Cog):
         else:
             server = self.bot.get_guild(r["server_id"])
             destination = server.get_channel(r["channel_id"])
-
         return target_time, author_id, destination
 
     async def update_quote_target_time(
@@ -906,7 +891,6 @@ class Other(commands.Cog):
             json_text = await response.json()
         quote = json_text["quoteText"]
         author = json_text["quoteAuthor"]
-
         return quote, author
 
 

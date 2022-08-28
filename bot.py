@@ -25,11 +25,8 @@ class Bot(commands.Bot):
         intents.members = True
         intents.message_content = True
         intents.presences = False
-
         super().__init__(intents=intents, command_prefix=self.get_command_prefixes)
-
         self.add_check(self.check_global_cooldown, call_once=True)
-
         self.app_info: commands.Bot.AppInfo = None
         self.owner_id: int = None
         self.launch_time = datetime.now(timezone.utc)
@@ -58,18 +55,18 @@ class Bot(commands.Bot):
             "cogs.tags",
             "jishaku",
         ]
-
         for extension in default_extensions:
             await self.load_extension(extension)
 
     def get_command_prefixes(self, bot, message: discord.Message) -> list[str]:
         """Returns the bot's server-aware unrendered command prefixes
 
-        This function is called each time a command is invoked, so the prefixes can be customized based on where the message is from.
-        This function is intended to only be used when initializing the bot; to get unrendered prefixes elsewhere, it may be safer to use `bot.command_prefix(bot, message)`.
+        This function is called each time a command is invoked, so the prefixes can be
+        customized based on where the message is from. This function is intended to only
+        be used when initializing the bot; to get unrendered prefixes elsewhere, it may
+        be safer to use `bot.command_prefix(bot, message)`.
         """
         prefixes = copy(DevSettings.default_bot_prefixes)
-
         if not message.guild:
             prefixes.append("")
         else:
@@ -88,7 +85,6 @@ class Bot(commands.Bot):
                     prefixes.extend(custom_prefixes)
             except KeyError:
                 pass
-
         if message.guild and "" in prefixes:
             prefixes.remove("")
         return commands.when_mentioned_or(*prefixes)(bot, message)
@@ -163,15 +159,12 @@ class Bot(commands.Bot):
 
     async def is_only_bot_mention(self, message: discord.Message) -> bool:
         """Returns True if the entire message is a bot mention"""
-        if self.user.mention == message.content.replace("!", "", 1):
-            return True
-        return False
+        return self.user.mention == message.content.replace("!", "", 1)
 
     async def answer_mention(self, message: discord.Message) -> None:
         """Shows a list of the bot's command prefixes"""
         prefixes = await get_prefixes_list(self, message)
         prefixes_message = await get_prefixes_message(self, message, prefixes)
-
         await message.channel.send(
             f"Hello {message.author.display_name}! My command {prefixes_message}. Use"
             f" `{prefixes[0]}help` to get help with commands."
@@ -183,7 +176,6 @@ class Bot(commands.Bot):
             f" {ctx.message.content}]"
         )
         self.logger.info(log_message)
-
         self.command_use_count += 1
         await self.save_owners_command(ctx)
 
@@ -202,8 +194,8 @@ class Bot(commands.Bot):
             # All errors from command invocations are
             # temporarily wrapped in commands.CommandInvokeError
             error = error.original
-
-        # Exception hierarchy: https://discordpy.readthedocs.io/en/latest/ext/commands/api.html?highlight=permissions#exception-hierarchy
+        # Exception hierarchy:
+        # https://discordpy.readthedocs.io/en/latest/ext/commands/api.html?highlight=permissions#exception-hierarchy  # noqa: E501
         if isinstance(error, commands.CommandNotFound):
             pass
         elif isinstance(error, commands.DisabledCommand):
@@ -255,17 +247,14 @@ class Bot(commands.Bot):
             )
             channel = self.get_channel(DevSettings.error_log_channel_id)
             await channel.send(log_message)
-
             if not self.error_is_reported:
                 await dev_mail(self, "I encountered and logged an error")
                 self.error_is_reported = True
-
             await ctx.send(
                 "I encountered an error and notified my developer. If you would like to"
                 " join the support server, here's the link:"
                 f" {DevSettings.support_server_link}"
             )
-
             print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)
             traceback.print_exception(
                 type(error), error, error.__traceback__, file=sys.stderr
@@ -291,16 +280,18 @@ class Bot(commands.Bot):
         """
         bucket = self.global_cd.get_bucket(ctx.message)
         retry_after = bucket.update_rate_limit()
-
         if retry_after:
             raise commands.CommandOnCooldown(bucket, retry_after)
         return True
 
     async def set_up_logger(self, name: str, level: int) -> logging.Logger:
         """Sets up a logger for this module"""
-        # Discord logging guide: https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
-        # Python's intro to logging: https://docs.python.org/3/howto/logging.html#logging-basic-tutorial
-        # Documentation for RotatingFileHandler: https://docs.python.org/3/library/logging.handlers.html?#logging.handlers.RotatingFileHandler
+        # Discord logging guide:
+        # https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
+        # Python's intro to logging:
+        # https://docs.python.org/3/howto/logging.html#logging-basic-tutorial
+        # Documentation for RotatingFileHandler:
+        # https://docs.python.org/3/library/logging.handlers.html?#logging.handlers.RotatingFileHandler  # noqa: E501
         logger = logging.getLogger(name)
         logger.setLevel(level)
         max_bytes = 1024 * 1024  # 1 MiB
@@ -314,5 +305,4 @@ class Bot(commands.Bot):
         formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(name)s%(message)s")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
-
         return logger

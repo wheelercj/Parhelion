@@ -11,9 +11,9 @@ async def get_bot_invite_link(bot) -> str:
 
     The link will request some basic permissions.
     """
-    # Permissions docs: https://discordpy.readthedocs.io/en/latest/api.html?#discord.Permissions
+    # Permissions docs:
+    # https://discordpy.readthedocs.io/en/latest/api.html?#discord.Permissions
     perms = discord.Permissions.none()
-
     # Text channel permissions.
     perms.read_messages = True
     perms.send_messages = True
@@ -23,7 +23,6 @@ async def get_bot_invite_link(bot) -> str:
     perms.mention_everyone = True
     perms.manage_messages = True
     perms.read_message_history = True
-
     bot_invite_link = discord.utils.oauth_url(bot.user.id, permissions=perms)
     return bot_invite_link
 
@@ -33,7 +32,8 @@ def plural(number: Union[int, float], root_and_suffixes: str) -> str:
 
     Separate the root and each suffix with | (pipe symbols).
     Put the singular suffix before the plural one.
-    If there is no singular suffix, separate the root and plural suffix with || (two pipe symbols).
+    If there is no singular suffix, separate the root and plural suffix with || (two
+    pipe symbols).
     Example uses:
         plural(25, 'pe|rson|ople') -> '25 people'
         plural(1, 'pe|rson|ople') -> '1 person'
@@ -45,9 +45,7 @@ def plural(number: Union[int, float], root_and_suffixes: str) -> str:
         number = float(number)
     if root_and_suffixes.count("|") != 2:
         raise ValueError("Two pipe symbols required in root_and_suffixes.")
-
     root, singular, plural = root_and_suffixes.split("|")
-
     if number == 1:
         return f"{number} {root}{singular}"
     return f"{number} {root}{plural}"
@@ -85,12 +83,12 @@ async def block_nsfw_channels(channel: Messageable) -> None:
 async def get_prefixes_list(bot, message: discord.Message) -> list[str]:
     """Returns a list of the bot's rendered server-aware command prefixes
 
-    The prefixes are sorted from shortest to longest. Use `bot.command_prefix(bot, message)` if you want the unrendered prefixes.
+    The prefixes are sorted from shortest to longest. Use `bot.command_prefix(bot,
+    message)` if you want the unrendered prefixes.
     """
     raw_prefixes: list[str] = bot.command_prefix(bot, message)
     if "" in raw_prefixes:
         raw_prefixes.remove("")
-
     # The unrendered mention pattern looks different in code
     # than when a user types it in Discord, so remove both
     # unrendered mention prefixes, and add one with the
@@ -100,18 +98,17 @@ async def get_prefixes_list(bot, message: discord.Message) -> list[str]:
     for prefix in raw_prefixes:
         if mention_regex.match(prefix) is None:
             display_prefixes.append(prefix)
-
     display_prefixes = sorted(display_prefixes, key=len)
-
     return display_prefixes
 
 
 async def get_prefixes_str(
     bot, message: discord.Message, display_prefixes: list[str] = None
 ) -> str:
-    """Returns a string of the bot's rendered server-aware command prefixes, comma separated
+    """Returns a string of the rendered server-aware command prefixes, comma separated
 
-    The prefixes should be sorted from shortest to longest. If display_prefixes is not provided, it will be retrieved.
+    The prefixes should be sorted from shortest to longest. If display_prefixes is not
+    provided, it will be retrieved.
     """
     if display_prefixes is None:
         display_prefixes = await get_prefixes_list(bot, message)
@@ -124,7 +121,9 @@ async def get_prefixes_message(
 ) -> str:
     """Returns a message of the bot's rendered server-aware command prefixes
 
-    The message starts with `prefixes are` or `prefix is`, depending on how many there are. The prefixes should be sorted from shortest to longest. If display_prefixes is not provided, it will be retrieved.
+    The message starts with `prefixes are` or `prefix is`, depending on how many there
+    are. The prefixes should be sorted from shortest to longest. If display_prefixes is
+    not provided, it will be retrieved.
     """
     if display_prefixes is None:
         display_prefixes = await get_prefixes_list(bot, message)

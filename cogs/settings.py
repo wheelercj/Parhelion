@@ -40,7 +40,9 @@ class CommandName(commands.Converter):
         all_command_names = [x.name for x in ctx.bot.commands]
         if argument not in all_command_names:
             raise commands.BadArgument(
-                f"Command `{argument}` not found. If you are trying to choose a setting for a command alias, note that the settings commands do not work on aliases."
+                f"Command `{argument}` not found. If you are trying to choose a setting"
+                " for a command alias, note that the settings commands do not work on"
+                " aliases."
             )
         return argument
 
@@ -99,7 +101,6 @@ class Settings(commands.Cog):
         self.default_server_cmd_settings_json = json.dumps(
             self.default_server_cmd_settings
         )
-
         self.all_bot_settings: dict[str, Union[dict, bool]] = dict()
         """
         Bot access settings hierarchy and types:
@@ -153,14 +154,12 @@ class Settings(commands.Cog):
                 user_id BIGINT PRIMARY KEY NOT NULL,
                 timezone TEXT NOT NULL
             );
-
             CREATE TABLE IF NOT EXISTS prefixes (
                 id SERIAL PRIMARY KEY,
                 server_id BIGINT UNIQUE,
                 custom_prefixes TEXT[],
                 removed_default_prefixes TEXT[]
             );
-
             CREATE TABLE IF NOT EXISTS command_access_settings (
                 id SERIAL PRIMARY KEY,
                 cmd_name TEXT UNIQUE,
@@ -172,9 +171,9 @@ class Settings(commands.Cog):
                         "servers": {}
                     }'::jsonb
             );
-
             CREATE TABLE IF NOT EXISTS bot_access_settings (
-                -- This table should only ever have one row and one column. Note its similarity to the table above.
+                -- This table should only ever have one row and one column.
+                -- Note its similarity to the table above.
                 bot_settings JSONB NOT NULL
                     DEFAULT '{
                         "global_users": {},
@@ -221,7 +220,6 @@ class Settings(commands.Cog):
             )
             for r in records:
                 self.all_cmd_settings[r["cmd_name"]] = json.loads(r["cmd_settings"])
-
             record = await self.bot.db.fetchrow(
                 """
                 SELECT *
@@ -244,15 +242,14 @@ class Settings(commands.Cog):
 
         Either returns True or raises commands.CheckFailure.
         The order in which the settings are checked is important. Generally, if multiple
-        settings conflict, the most specific one will be used. Owner settings must be checked
-        before the settings chosen by the mods/admin of ctx.guild, and within each of those two
-        categories the settings must generally go from most specific to least specific, except
-        that mods/admin of ctx.guild can deny bot/commands access that was granted by the
-        owners' global_users/global_servers settings.
+        settings conflict, the most specific one will be used. Owner settings must be
+        checked before the settings chosen by the mods/admin of ctx.guild, and within
+        each of those two categories the settings must generally go from most specific
+        to least specific, except that mods/admin of ctx.guild can deny bot/commands
+        access that was granted by the owners' global_users/global_servers settings.
         """
         if await self.bot.is_owner(ctx.author):
             return True
-
         try:
             cmd = ctx.command.root_parent or ctx.command
             cmd_settings = self.all_cmd_settings[cmd.name]
@@ -275,7 +272,6 @@ class Settings(commands.Cog):
                 owner_allow = True
                 # Instead of returning True here, allow servers to disable commands that
                 # are enabled in global-server and/or global-user settings.
-
             global_settings = [
                 (cmd_settings["global"], None),
                 (bot_settings["global"], None),
@@ -294,7 +290,7 @@ class Settings(commands.Cog):
                 ]  # Might raise KeyError.
                 all_bot_server_settings = bot_settings["servers"][str(ctx.guild.id)]
 
-                # Gather the settings that don't include the roles ctx.author doesn't have.
+                # Gather settings that don't include the roles ctx.author doesn't have.
                 server_settings = [
                     (all_cmd_server_settings["members"], ctx.author.id),
                     (all_bot_server_settings["members"], ctx.author.id),
@@ -316,7 +312,6 @@ class Settings(commands.Cog):
                         (all_bot_server_settings["server"], None),
                     ]
                 )
-
                 if await self.check_categories(ctx, server_settings):
                     return True
         except KeyError:
@@ -337,7 +332,8 @@ class Settings(commands.Cog):
                 if setting:
                     return True
                 raise commands.CheckFailure(
-                    f"The `{ctx.invoked_with}` command has been disabled in this bot's settings for some servers, roles, channels, and/or users."
+                    f"The `{ctx.invoked_with}` command has been disabled in this bot's"
+                    " settings for some servers, roles, channels, and/or users."
                 )
 
     async def check_category(
@@ -362,7 +358,10 @@ class Settings(commands.Cog):
     async def _timezone(self, ctx):
         """Shows your current timezone setting if you have one
 
-        Use the `timezone set` command to set a timezone for commands that need your time input. See the valid timezone options with the `timezone search` command, or by clicking here: <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>
+        Use the `timezone set` command to set a timezone for commands that need your
+        time input. See the valid timezone options with the `timezone search` command,
+        or by clicking here:
+        <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>
         """
         # https://github.com/stub42/pytz/blob/master/src/README.rst
         timezone = await self.bot.db.fetchval(
@@ -382,8 +381,10 @@ class Settings(commands.Cog):
     async def search_timezones(self, ctx, *, query: str = None):
         """Shows all the valid timezone options that contain a search word
 
-        You can also see the valid timezone options here: <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>.
-        If the valid timezones change, the update to the GitHub gist may be delayed unlike this search command.
+        You can also see the valid timezone options here:
+        <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>.
+        If the valid timezones change, the update to the GitHub gist may be delayed
+        unlike this search command.
         """
         if query is None:
             title = "timezones supported by the `timezone set` command"
@@ -399,8 +400,10 @@ class Settings(commands.Cog):
     async def set_timezone(self, ctx, *, timezone: str):
         """Sets your timezone for commands that need your time input
 
-        If you don't set a timezone, those commands will assume you are using the UTC timezone.
-        See the valid timezone options with the `timezone search` command, or by clicking here: <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>
+        If you don't set a timezone, those commands will assume you are using the UTC
+        timezone. See the valid timezone options with the `timezone search` command, or
+        by clicking here:
+        <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>
         """
         timezone = await self.parse_timezone(timezone)
         await self.save_timezone(ctx, timezone)
@@ -412,7 +415,9 @@ class Settings(commands.Cog):
             return pytz.timezone(timezone).zone
         except (pytz.exceptions.InvalidTimeError, pytz.exceptions.UnknownTimeZoneError):
             raise commands.BadArgument(
-                "Invalid timezone. See the valid timezone options with the `timezone search` command, or by clicking here: <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>"
+                "Invalid timezone. See the valid timezone options with the `timezone"
+                " search` command, or by clicking here:"
+                " <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>"
             )
         except Exception as error:
             raise commands.BadArgument(f"Unable to set timezone because of {error = }")
@@ -440,7 +445,8 @@ class Settings(commands.Cog):
     async def delete_timezone(self, ctx):
         """Deletes your timezone setting
 
-        If you don't have a timezone setting, time-related commands will assume you are using the UTC timezone.
+        If you don't have a timezone setting, time-related commands will assume you are
+        using the UTC timezone.
         """
         record = await self.bot.db.fetchrow(
             """
@@ -452,7 +458,8 @@ class Settings(commands.Cog):
         )
         if record is not None:
             await ctx.send(
-                "Your timezone setting has been deleted. Commands that need your input about time will expect you to use the UTC timezone now."
+                "Your timezone setting has been deleted. Commands that need your input"
+                " about time will expect you to use the UTC timezone now."
             )
         else:
             await ctx.send("You do not have a timezone setting.")
@@ -464,10 +471,11 @@ class Settings(commands.Cog):
     @commands.group(invoke_without_command=True)
     @commands.has_guild_permissions(manage_guild=True)
     async def prefix(self, ctx):
-        """A group of commands for managing this bot's command prefixes for this server"""
+        """A group of commands that manage the bot's command prefixes for this server"""
         prefixes = await get_prefixes_message(self.bot, ctx.message)
         await ctx.send(
-            f"My current {prefixes}. You can use the `prefix add` and `prefix delete` commands to manage my command prefixes for this server."
+            f"My current {prefixes}. You can use the `prefix add` and `prefix delete`"
+            " commands to manage my command prefixes for this server."
         )
 
     @prefix.command(name="list", aliases=["l"])
@@ -475,7 +483,9 @@ class Settings(commands.Cog):
         """An alias for `prefix`; lists the current prefixes"""
         prefixes = await get_prefixes_message(self.bot, ctx.message)
         await ctx.send(
-            f'My current {prefixes}. If you have the "manage server" permission, you can use the `prefix add` and `prefix delete` commands to manage my command prefixes for this server.'
+            f'My current {prefixes}. If you have the "manage server" permission, you'
+            " can use the `prefix add` and `prefix delete` commands to manage my"
+            " command prefixes for this server."
         )
 
     @prefix.command(name="add", aliases=["a"])
@@ -496,7 +506,6 @@ class Settings(commands.Cog):
             raise commands.BadArgument(
                 "The maximum length of each command prefix is 15 characters."
             )
-
         # Remove the new prefix from the removed default prefixes, if it is there.
         try:
             self.bot.removed_default_prefixes[ctx.guild.id].remove(new_prefix)
@@ -513,7 +522,6 @@ class Settings(commands.Cog):
             return
         except (KeyError, ValueError, AttributeError):
             pass
-
         try:
             custom_prefixes: list[str] = self.bot.custom_prefixes[ctx.guild.id]
             if custom_prefixes is None:
@@ -528,7 +536,6 @@ class Settings(commands.Cog):
             raise commands.UserInputError(
                 "The maximum number of custom command prefixes per server is 10."
             )
-
         custom_prefixes.append(new_prefix)
         self.bot.custom_prefixes[ctx.guild.id] = custom_prefixes
         await self.bot.db.execute(
@@ -544,7 +551,6 @@ class Settings(commands.Cog):
             ctx.guild.id,
             custom_prefixes,
         )
-
         await ctx.send(f"Successfully added the command prefix `{new_prefix}`")
 
     @prefix.command(name="delete", aliases=["del"])
@@ -562,7 +568,6 @@ class Settings(commands.Cog):
                 custom_prefixes = []
         except KeyError:
             custom_prefixes = []
-
         if old_prefix in custom_prefixes:
             custom_prefixes.remove(old_prefix)
             self.bot.custom_prefixes[ctx.guild.id] = custom_prefixes
@@ -577,7 +582,6 @@ class Settings(commands.Cog):
             )
             await ctx.send(f"Successfully deleted the command prefix `{old_prefix}`")
             return
-
         elif old_prefix in default_prefixes:
             # Save the old prefix to the list of removed default prefixes.
             try:
@@ -609,24 +613,21 @@ class Settings(commands.Cog):
             )
             await ctx.send(f"Successfully deleted the command prefix `{old_prefix}`")
             return
-
         await ctx.send("Prefix not found.")
 
     @prefix.command(name="delete-all", aliases=["del-all", "delall", "deleteall"])
     @commands.has_guild_permissions(manage_guild=True)
     async def delete_all_prefixes(self, ctx):
-        """Deletes all of the bot's command prefixes for this server except the mention prefix
+        """Deletes all command prefixes for this server except the mention prefix
 
         You cannot delete the bot mention prefix.
         """
         default_prefixes: list[str] = DevSettings.default_bot_prefixes
         self.bot.removed_default_prefixes[ctx.guild.id] = default_prefixes
-
         try:
             del self.bot.custom_prefixes[ctx.guild.id]
         except KeyError:
             pass
-
         await self.bot.db.execute(
             """
             INSERT INTO prefixes
@@ -642,9 +643,9 @@ class Settings(commands.Cog):
             [],
             default_prefixes,
         )
-
         await ctx.send(
-            f"Successfully deleted all command prefixes except `@{self.bot.user.display_name}`"
+            "Successfully deleted all command prefixes except"
+            f" `@{self.bot.user.display_name}`"
         )
 
     @prefix.command(name="reset")
@@ -659,7 +660,6 @@ class Settings(commands.Cog):
             del self.bot.removed_default_prefixes[ctx.guild.id]
         except KeyError:
             pass
-
         await self.bot.db.execute(
             """
             DELETE FROM prefixes
@@ -667,10 +667,10 @@ class Settings(commands.Cog):
             """,
             ctx.guild.id,
         )
-
         default_prefixes = await get_prefixes_str(self.bot, ctx.message)
         await ctx.send(
-            f"Successfully reset the command prefixes to the defaults: {default_prefixes}"
+            "Successfully reset the command prefixes to the defaults:"
+            f" {default_prefixes}"
         )
 
     #########################
@@ -682,9 +682,9 @@ class Settings(commands.Cog):
     async def setting(self, ctx, command_name: CommandName = None):
         """A group of commands for managing the bot's settings for this server
 
-        Without a subcommand, this command shows all the settings for a command and/or the entire bot.
-        Only settings that are relevant to this server are shown.
-        Use the `set guide` command for more help with settings.
+        Without a subcommand, this command shows all the settings for a command and/or
+        the entire bot. Only settings that are relevant to this server are shown. Use
+        the `set guide` command for more help with settings.
         """
         view_setting_command = self.bot.get_command("setting view")
         await ctx.invoke(view_setting_command, command_name=command_name)
@@ -696,23 +696,25 @@ class Settings(commands.Cog):
         entries = [
             dedent(
                 """
-                A command or the entire bot can be enabled or disabled for the entire server, or for
-                a channel, a role, or a member. If a setting is not chosen, most of the bot's features
-                are enabled by default for most users. Some commands have extra requirements
-                not listed in settings. For example, these setting commands require the user
-                to have the "manage server" permission.
+                A command or the entire bot can be enabled or disabled for the entire
+                server, or for a channel, a role, or a member. If a setting is not
+                chosen, most of the bot's features are enabled by default for most
+                users. Some commands have extra requirements not listed in settings. For
+                example, these setting commands require the user to have the "manage
+                server" permission.
                 """
             ),
             dedent(
                 """
-                When creating or deleting a setting for a command, use the command's full
-                name (not an alias). For commands that have subcommands (such as the `remind`
-                commands), settings can only be applied to the root command. If two or more
-                settings conflict, the most specific one will be used (except that some global
-                settings cannot be overridden by server settings; global settings can only be
-                set by the bot owner). For example, if the `remind` command is disabled for the
-                server but enabled for one of its users, then that command can only be used by
-                that user. Role settings are considered more specific than channel settings.
+                When creating or deleting a setting for a command, use the command's
+                full name (not an alias). For commands that have subcommands (such as
+                the `remind` commands), settings can only be applied to the root
+                command. If two or more settings conflict, the most specific one will be
+                used (except that some global settings cannot be overridden by server
+                settings; global settings can only be set by the bot owner). For
+                example, if the `remind` command is disabled for the server but enabled
+                for one of its users, then that command can only be used by that user.
+                Role settings are considered more specific than channel settings.
                 """
             ),
             dedent(
@@ -726,8 +728,10 @@ class Settings(commands.Cog):
                 6. Does the bot owner allow the bot to be used?
                 7. Does the server allow the command invoker to use the command?
                 8. Does the server allow the command invoker to use the bot?
-                9. Does the server allow the command invoker's roles (sorted by decreasing importance) to use the command?
-                10. Does the server allow the command invoker's roles (sorted by decreasing importance) to use the bot?
+                9. Does the server allow the command invoker's roles (sorted by
+                   decreasing importance) to use the command?
+                10. Does the server allow the command invoker's roles (sorted by
+                    decreasing importance) to use the bot?
                 11. Does the server allow the channel to use the command?
                 12. Does the server allow the channel to use the bot?
                 13. Does the server allow the server to use the command?
@@ -736,28 +740,29 @@ class Settings(commands.Cog):
             ),
             dedent(
                 """
-                There are three possible answers to each of the questions on the previous page:
-                allow, deny, or undefined. Each time someone tries to use a command, the bot
-                starts checking the questions. If an answer is undefined, the next question is
-                checked. If all the answers are undefined, use of the command will be allowed.
-                If an answer is to allow or deny, the bot will immediately stop checking the
-                questions and allow or deny access to the command, except that a server can
-                choose to deny access even if the owner is allowing access to that specific
-                server or to a user in that server. If the owner is denying access in any way or
-                globally allowing access to all servers, then that cannot be overridden by
-                server settings.
+                There are three possible answers to each of the questions on the
+                previous page: allow, deny, or undefined. Each time someone tries to use
+                a command, the bot starts checking the questions. If an answer is
+                undefined, the next question is checked. If all the answers are
+                undefined, use of the command will be allowed. If an answer is to allow
+                or deny, the bot will immediately stop checking the questions and allow
+                or deny access to the command, except that a server can choose to deny
+                access even if the owner is allowing access to that specific server or
+                to a user in that server. If the owner is denying access in any way or
+                globally allowing access to all servers, then that cannot be overridden
+                by server settings.
                 """
             ),
             dedent(
                 """
-                Since the bot's and each command's use is allowed by default, most settings will
-                be to deny access except in cases where it is easier to deny access by default
-                and allow access by exception.
+                Since the bot's and each command's use is allowed by default, most
+                settings will be to deny access except in cases where it is easier to
+                deny access by default and allow access by exception.
 
-                Please let me know in the support server (use the `support` command) if you have
-                any questions/concerns/etc. Some commands, such as the `tag` commands, may be
-                disabled by default and only enabled for servers that have requested them and
-                have a good use for them.
+                Please let me know in the support server (use the `support` command) if
+                you have any questions/concerns/etc. Some commands, such as the `tag`
+                commands, may be disabled by default and only enabled for servers that
+                have requested them and have a good use for them.
                 """
             ),
         ]
@@ -771,7 +776,7 @@ class Settings(commands.Cog):
     @setting.command(name="view", aliases=["v"])
     @commands.has_guild_permissions(manage_guild=True)
     async def view_settings(self, ctx, command_name: CommandName = None):
-        """An alias for `set`; shows all the settings for a command and/or the entire bot
+        """An alias for `set`; shows the settings for a command and/or the entire bot
 
         Only settings that are relevant to this server are shown.
         """
@@ -821,7 +826,8 @@ class Settings(commands.Cog):
                 await paginator.run(ctx)
             else:
                 await ctx.send(
-                    f"No servers found with non-default settings for the `{command_name}` command."
+                    "No servers found with non-default settings for the"
+                    f" `{command_name}` command."
                 )
         else:
             nds = self.all_bot_settings["servers"]  # nds: non-default-servers
@@ -919,7 +925,11 @@ class Settings(commands.Cog):
             await self.bot.db.execute(
                 """
                 UPDATE command_access_settings
-                SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
+                SET cmd_settings = JSONB_SET(
+                    cmd_settings,
+                    ARRAY[$1, $2]::TEXT[],
+                    $3::JSONB,
+                    TRUE)
                 WHERE cmd_name = $4;
                 """,
                 "global_servers",
@@ -929,14 +939,19 @@ class Settings(commands.Cog):
             )
             on_or_off = "enabled" if on_or_off else "disabled"
             await ctx.send(
-                f"New global setting: `{command_name}` {on_or_off} for server: {server.name}."
+                f"New global setting: `{command_name}` {on_or_off} for server:"
+                f" {server.name}."
             )
         else:
             self.all_bot_settings["global_servers"][str(server.id)] = on_or_off
             await self.bot.db.execute(
                 """
                 UPDATE bot_access_settings
-                SET bot_settings = JSONB_SET(bot_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE);
+                SET bot_settings = JSONB_SET(
+                    bot_settings,
+                    ARRAY[$1, $2]::TEXT[],
+                    $3::JSONB,
+                    TRUE);
                 """,
                 "global_servers",
                 str(server.id),
@@ -962,7 +977,11 @@ class Settings(commands.Cog):
             await self.bot.db.execute(
                 """
                 UPDATE command_access_settings
-                SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
+                SET cmd_settings = JSONB_SET(
+                    cmd_settings,
+                    ARRAY[$1, $2]::TEXT[],
+                    $3::JSONB,
+                    TRUE)
                 WHERE cmd_name = $4;
                 """,
                 "global_users",
@@ -972,14 +991,19 @@ class Settings(commands.Cog):
             )
             on_or_off = "enabled" if on_or_off else "disabled"
             await ctx.send(
-                f"New global setting: `{command_name}` {on_or_off} for user: {user.name}#{user.discriminator}."
+                f"New global setting: `{command_name}` {on_or_off} for user:"
+                f" {user.name}#{user.discriminator}."
             )
         else:
             self.all_bot_settings["global_users"][str(user.id)] = on_or_off
             await self.bot.db.execute(
                 """
                 UPDATE bot_access_settings
-                SET bot_settings = JSONB_SET(bot_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
+                SET bot_settings = JSONB_SET(
+                    bot_settings,
+                    ARRAY[$1, $2]::TEXT[],
+                    $3::JSONB,
+                    TRUE)
                 """,
                 "global_users",
                 str(user.id),
@@ -987,7 +1011,8 @@ class Settings(commands.Cog):
             )
             on_or_off = "enabled" if on_or_off else "disabled"
             await ctx.send(
-                f"New global setting: bot {on_or_off} for user: {user.name}#{user.discriminator}."
+                f"New global setting: bot {on_or_off} for user:"
+                f" {user.name}#{user.discriminator}."
             )
 
     @setting.command(name="server", aliases=["s"])
@@ -1005,7 +1030,11 @@ class Settings(commands.Cog):
             await self.bot.db.execute(
                 """
                 UPDATE command_access_settings
-                SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3]::TEXT[], $4::JSONB, TRUE)
+                SET cmd_settings = JSONB_SET(
+                    cmd_settings,
+                    ARRAY[$1, $2, $3]::TEXT[],
+                    $4::JSONB,
+                    TRUE)
                 WHERE cmd_name = $5;
                 """,
                 "servers",
@@ -1023,7 +1052,11 @@ class Settings(commands.Cog):
             await self.bot.db.execute(
                 """
                 UPDATE bot_access_settings
-                SET bot_settings = JSONB_SET(bot_settings, ARRAY[$1, $2, $3]::TEXT[], $4::JSONB, TRUE);
+                SET bot_settings = JSONB_SET(
+                    bot_settings,
+                    ARRAY[$1, $2, $3]::TEXT[],
+                    $4::JSONB,
+                    TRUE);
                 """,
                 "servers",
                 str(ctx.guild.id),
@@ -1052,7 +1085,11 @@ class Settings(commands.Cog):
             await self.bot.db.execute(
                 """
                 UPDATE command_access_settings
-                SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
+                SET cmd_settings = JSONB_SET(
+                    cmd_settings,
+                    ARRAY[$1, $2, $3, $4]::TEXT[],
+                    $5::JSONB,
+                    TRUE)
                 WHERE cmd_name = $6;
                 """,
                 "servers",
@@ -1064,7 +1101,8 @@ class Settings(commands.Cog):
             )
             on_or_off = "enabled" if on_or_off else "disabled"
             await ctx.send(
-                f"New setting: `{command_name}` {on_or_off} for channel: {channel.name}."
+                f"New setting: `{command_name}` {on_or_off} for channel:"
+                f" {channel.name}."
             )
         else:
             self.all_bot_settings["servers"][str(ctx.guild.id)]["channels"][
@@ -1073,7 +1111,11 @@ class Settings(commands.Cog):
             await self.bot.db.execute(
                 """
                 UPDATE bot_access_settings
-                SET bot_settings = JSONB_SET(bot_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE);
+                SET bot_settings = JSONB_SET(
+                    bot_settings,
+                    ARRAY[$1, $2, $3, $4]::TEXT[],
+                    $5::JSONB,
+                    TRUE);
                 """,
                 "servers",
                 str(ctx.guild.id),
@@ -1099,7 +1141,11 @@ class Settings(commands.Cog):
             await self.bot.db.execute(
                 """
                 UPDATE command_access_settings
-                SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
+                SET cmd_settings = JSONB_SET(
+                    cmd_settings,
+                    ARRAY[$1, $2, $3, $4]::TEXT[],
+                    $5::JSONB,
+                    TRUE)
                 WHERE cmd_name = $6;
                 """,
                 "servers",
@@ -1120,7 +1166,11 @@ class Settings(commands.Cog):
             await self.bot.db.execute(
                 """
                 UPDATE bot_access_settings
-                SET bot_settings = JSONB_SET(bot_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE);
+                SET bot_settings = JSONB_SET(
+                    bot_settings,
+                    ARRAY[$1, $2, $3, $4]::TEXT[],
+                    $5::JSONB,
+                    TRUE);
                 """,
                 "servers",
                 str(ctx.guild.id),
@@ -1150,7 +1200,11 @@ class Settings(commands.Cog):
             await self.bot.db.execute(
                 """
                 UPDATE command_access_settings
-                SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE)
+                SET cmd_settings = JSONB_SET(
+                    cmd_settings,
+                    ARRAY[$1, $2, $3, $4]::TEXT[],
+                    $5::JSONB,
+                    TRUE)
                 WHERE cmd_name = $6;
                 """,
                 "servers",
@@ -1171,7 +1225,11 @@ class Settings(commands.Cog):
             await self.bot.db.execute(
                 """
                 UPDATE bot_access_settings
-                SET bot_settings = JSONB_SET(bot_settings, ARRAY[$1, $2, $3, $4]::TEXT[], $5::JSONB, TRUE);
+                SET bot_settings = JSONB_SET(
+                    bot_settings,
+                    ARRAY[$1, $2, $3, $4]::TEXT[],
+                    $5::JSONB,
+                    TRUE);
                 """,
                 "servers",
                 str(ctx.guild.id),
@@ -1185,7 +1243,7 @@ class Settings(commands.Cog):
     async def set_default_settings(
         self, server_id: int = None, command_name: str = None
     ) -> None:
-        """Sets default settings for the bot or a command, but never overwrites any existing settings
+        """Sets default settings for the bot or a command without overwriting anything
 
         The defaults are set in both this program and in the database.
         """
@@ -1208,7 +1266,11 @@ class Settings(commands.Cog):
                 await self.bot.db.execute(
                     """
                     UPDATE command_access_settings
-                    SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE)
+                    SET cmd_settings = JSONB_SET(
+                        cmd_settings,
+                        ARRAY[$1, $2]::TEXT[],
+                        $3::JSONB,
+                        TRUE)
                     WHERE cmd_name = $4;
                     """,
                     "servers",
@@ -1223,7 +1285,11 @@ class Settings(commands.Cog):
             await self.bot.db.execute(
                 """
                 UPDATE bot_access_settings
-                SET bot_settings = JSONB_SET(bot_settings, ARRAY[$1, $2]::TEXT[], $3::JSONB, TRUE);
+                SET bot_settings = JSONB_SET(
+                    bot_settings,
+                    ARRAY[$1, $2]::TEXT[],
+                    $3::JSONB,
+                    TRUE);
                 """,
                 "servers",
                 str(server_id),
@@ -1257,7 +1323,6 @@ class Settings(commands.Cog):
         if bot_settings and bot_settings["global"] is not None:
             is_allowed = "✅" if bot_settings["global"] else "❌"
             entries.append(f"\n**global bot**\n{is_allowed}")
-
         return entries
 
     async def get_server_settings_messages(
@@ -1269,7 +1334,6 @@ class Settings(commands.Cog):
             server = self.bot.get_guild(ctx.guild.id)
             if not server:
                 raise KeyError
-
             s_cmd_settings = None
             if cmd_settings:
                 try:
@@ -1281,7 +1345,6 @@ class Settings(commands.Cog):
                 s_bot_settings = bot_settings["servers"][str(ctx.guild.id)]
             except KeyError:
                 pass
-
             if s_cmd_settings and len(s_cmd_settings["members"]):
                 content = await self.get_settings_message(
                     s_cmd_settings["members"], server.get_member
@@ -1320,13 +1383,12 @@ class Settings(commands.Cog):
                 entries.append(f"\n**server bot**\n{is_allowed}")
         except KeyError:
             pass
-
         return entries
 
     async def add_global_users_field(
         self, ctx, settings: dict, title_suffix: str
     ) -> list[str]:
-        """Gets the names and settings of users in ctx.guild that have a global setting"""
+        """Gets names and settings of users in ctx.guild that have a global setting"""
         entries = []
         members = dict()
         for user_id in settings["global_users"]:
@@ -1338,13 +1400,12 @@ class Settings(commands.Cog):
             content = await self.get_settings_message(members, self.bot.get_user)
             title = "global users " + title_suffix
             entries.append(f"\n**{title}**\n{content}")
-
         return entries
 
     async def get_global_server_setting_message(
         self, ctx, settings: dict, title_suffix: str
     ) -> list[str]:
-        """Gets ctx.guild.name and ctx.guild's setting if and only if it has a setting"""
+        """Gets ctx.guild.name and ctx.guild's setting iff it has a setting"""
         entries = []
         try:
             is_allowed = settings["global_servers"][str(ctx.guild.id)]
@@ -1354,7 +1415,6 @@ class Settings(commands.Cog):
             entries.append(f"\n**{title}**{content}")
         except KeyError:
             pass
-
         return entries
 
     async def get_settings_message(
@@ -1362,14 +1422,14 @@ class Settings(commands.Cog):
     ) -> str:
         """Creates a str listing whether each setting in a settings dict is on or off
 
-        The dict keys must be Discord object IDs, and the values must be booleans. The function to get the objects must be synchronous.
+        The dict keys must be Discord object IDs, and the values must be booleans. The
+        function to get the objects must be synchronous.
         """
         content = ""
         for ID, is_allowed in settings_dict.items():
             name = get_function(int(ID))
             is_allowed = "✅" if is_allowed else "❌"
             content += f"\n{is_allowed} {name}"
-
         return content
 
     ################################
@@ -1385,7 +1445,7 @@ class Settings(commands.Cog):
     @delete_setting.command(name="global-all", aliases=["globalall"])
     @commands.is_owner()
     async def delete_all_global_settings(self, ctx, command_name: CommandName = None):
-        """Deletes all settings for a command, or all settings that are for the bot but not commands"""
+        """Deletes settings for a command, or settings for the bot but not commands"""
         if command_name:
             try:
                 del self.all_cmd_settings[command_name]
@@ -1397,7 +1457,8 @@ class Settings(commands.Cog):
                     command_name,
                 )
                 await ctx.send(
-                    f"Deleted all setting for command `{command_name}`, including the global settings."
+                    f"Deleted all setting for command `{command_name}`, including the"
+                    " global settings."
                 )
             except KeyError:
                 raise commands.BadArgument("No settings found.")
@@ -1415,7 +1476,7 @@ class Settings(commands.Cog):
     @delete_setting.command(name="all")
     @commands.has_guild_permissions(manage_guild=True)
     async def delete_all_server_settings(self, ctx, command_name: CommandName = None):
-        """Deletes all of this server's settings for a command, or all settings that are for the bot but not commands"""
+        """Deletes server settings for a command or non-command bot settings"""
         if command_name:
             try:
                 del self.all_cmd_settings[command_name]["servers"][str(ctx.guild.id)]
@@ -1448,7 +1509,6 @@ class Settings(commands.Cog):
                 await ctx.send("Deleted all server setting for the bot.")
             except KeyError:
                 raise commands.BadArgument("No settings found.")
-
         await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
 
     @delete_setting.command(name="global", aliases=["g"])
@@ -1477,7 +1537,6 @@ class Settings(commands.Cog):
                 "null",
             )
             await ctx.send("Deleted global setting for the bot.")
-
         await self.cleanup_after_setting_delete(command_name)
 
     @delete_setting.command(name="global-server", aliases=["gs", "globalserver"])
@@ -1485,7 +1544,7 @@ class Settings(commands.Cog):
     async def delete_global_server_setting(
         self, ctx, server: discord.Guild, command_name: CommandName = None
     ):
-        """Deletes the global setting for a server's access to a command or to the bot"""
+        """Deletes global setting for a server's access to a command or to the bot"""
         if command_name:
             try:
                 del self.all_cmd_settings[command_name]["global_servers"][
@@ -1502,7 +1561,8 @@ class Settings(commands.Cog):
                     command_name,
                 )
                 await ctx.send(
-                    f"Deleted global setting for command `{command_name}` for server: {server.name}."
+                    f"Deleted global setting for command `{command_name}` for server:"
+                    f" {server.name}."
                 )
             except KeyError:
                 raise commands.BadArgument("No settings found.")
@@ -1522,7 +1582,6 @@ class Settings(commands.Cog):
                 )
             except KeyError:
                 raise commands.BadArgument("No settings found.")
-
         await self.cleanup_after_setting_delete(command_name)
 
     @delete_setting.command(name="global-user", aliases=["gu", "globaluser"])
@@ -1545,7 +1604,8 @@ class Settings(commands.Cog):
                     command_name,
                 )
                 await ctx.send(
-                    f"Deleted global setting for command `{command_name}` for user: {user.name}#{user.discriminator}."
+                    f"Deleted global setting for command `{command_name}` for user:"
+                    f" {user.name}#{user.discriminator}."
                 )
             except KeyError:
                 raise commands.BadArgument("No settings found.")
@@ -1561,11 +1621,11 @@ class Settings(commands.Cog):
                     str(user.id),
                 )
                 await ctx.send(
-                    f"Deleted global setting for the bot for user: {user.name}#{user.discriminator}."
+                    "Deleted global setting for the bot for user:"
+                    f" {user.name}#{user.discriminator}."
                 )
             except KeyError:
                 raise commands.BadArgument("No settings found.")
-
         await self.cleanup_after_setting_delete(command_name)
 
     @delete_setting.command(name="server", aliases=["s"])
@@ -1579,7 +1639,11 @@ class Settings(commands.Cog):
             await self.bot.db.execute(
                 """
                 UPDATE command_access_settings
-                SET cmd_settings = JSONB_SET(cmd_settings, ARRAY[$1, $2, $3]::TEXT[], $4::JSONB, TRUE)
+                SET cmd_settings = JSONB_SET(
+                    cmd_settings,
+                    ARRAY[$1, $2, $3]::TEXT[],
+                    $4::JSONB,
+                    TRUE)
                 WHERE cmd_name = $5;
                 """,
                 "servers",
@@ -1596,7 +1660,11 @@ class Settings(commands.Cog):
             await self.bot.db.execute(
                 """
                 UPDATE bot_access_settings
-                SET bot_settings = JSONB_SET(bot_settings, ARRAY[$1, $2, $3]::TEXT[], $4::JSONB, TRUE);
+                SET bot_settings = JSONB_SET(
+                    bot_settings,
+                    ARRAY[$1, $2, $3]::TEXT[],
+                    $4::JSONB,
+                    TRUE);
                 """,
                 "servers",
                 str(ctx.guild.id),
@@ -1604,7 +1672,6 @@ class Settings(commands.Cog):
                 "null",
             )
             await ctx.send("Deleted setting for the bot for this server.")
-
         await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
 
     @delete_setting.command(name="channel", aliases=["c"])
@@ -1631,7 +1698,8 @@ class Settings(commands.Cog):
                     command_name,
                 )
                 await ctx.send(
-                    f"Deleted setting for command `{command_name}` for channel: {channel.name}."
+                    f"Deleted setting for command `{command_name}` for channel:"
+                    f" {channel.name}."
                 )
             except KeyError:
                 raise commands.BadArgument("No settings found.")
@@ -1655,7 +1723,6 @@ class Settings(commands.Cog):
                 )
             except KeyError:
                 raise commands.BadArgument("No settings found.")
-
         await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
 
     @delete_setting.command(name="role", aliases=["r"])
@@ -1682,7 +1749,8 @@ class Settings(commands.Cog):
                     command_name,
                 )
                 await ctx.send(
-                    f"Deleted setting for command `{command_name}` for role: {role.name}."
+                    f"Deleted setting for command `{command_name}` for role:"
+                    f" {role.name}."
                 )
             except KeyError:
                 raise commands.BadArgument("No settings found.")
@@ -1704,7 +1772,6 @@ class Settings(commands.Cog):
                 await ctx.send(f"Deleted setting for the bot for role: {role.name}.")
             except KeyError:
                 raise commands.BadArgument("No settings found.")
-
         await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
 
     @delete_setting.command(name="member", aliases=["m"])
@@ -1731,7 +1798,8 @@ class Settings(commands.Cog):
                     command_name,
                 )
                 await ctx.send(
-                    f"Deleted setting for command `{command_name}` for member: {member.name}."
+                    f"Deleted setting for command `{command_name}` for member:"
+                    f" {member.name}."
                 )
             except KeyError:
                 raise commands.BadArgument("No settings found.")
@@ -1755,7 +1823,6 @@ class Settings(commands.Cog):
                 )
             except KeyError:
                 raise commands.BadArgument("No settings found.")
-
         await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
 
     async def cleanup_after_setting_delete(
@@ -1763,12 +1830,13 @@ class Settings(commands.Cog):
     ) -> None:
         """Deletes a command's or the bot's settings if and only if they are empty
 
-        If server_id is given, this function will only check that server's settings.
-        If server_id is not given, all the settings will be checked.
-        The data is deleted from both the settings dict and the database.
+        If server_id is given, this function will only check that server's settings. If
+        server_id is not given, all the settings will be checked. The data is deleted
+        from both the settings dict and the database.
 
-        This function should be called each time settings have just been deleted, except for commands
-        that clean up after themselves already (such as the `set del global-all` command).
+        This function should be called each time settings have just been deleted, except
+        for commands that clean up after themselves already (such as the `set del
+        global-all` command).
         """
         if command_name:
             if server_id:
@@ -1821,7 +1889,6 @@ class Settings(commands.Cog):
                     elif len(value):
                         # Found non-empty dict setting.
                         return
-
             # Found empty settings. Delete them.
             if server_id:
                 del self.all_bot_settings["servers"][str(server_id)]
@@ -1851,7 +1918,7 @@ class Settings(commands.Cog):
     @list_settings.command(name="all", aliases=["a"])
     @commands.has_guild_permissions(manage_guild=True)
     async def list_all_settings(self, ctx):
-        """Shows the names of commands that have any non-default settings for any server"""
+        """Shows names of commands that have any non-default settings for any server"""
         entries = []
         for key, value in sorted(self.all_cmd_settings.items()):
             if value["global"]:
@@ -1872,7 +1939,7 @@ class Settings(commands.Cog):
     @list_settings.command(name="global", aliases=["g"])
     @commands.has_guild_permissions(manage_guild=True)
     async def list_global_settings(self, ctx):
-        """Shows the names and global settings of commands that have non-default global settings"""
+        """Shows names & global settings of commands with non-default global settings"""
         entries = await self.get_cmd_setting_entries(["global"])
         if len(entries):
             await self.paginate_settings(ctx, "for global", entries)
@@ -1958,7 +2025,7 @@ class Settings(commands.Cog):
             raise commands.BadArgument("No settings found.")
 
     async def paginate_settings(self, ctx, title: str, entries: list[str]) -> None:
-        """Sends ctx a list of settings and their names, paginated and with reaction buttons"""
+        """Sends ctx a paginated list of settings & their names"""
         if len(entries):
             title = f"command settings {title}"
             paginator = Paginator(title=title, entries=entries)
@@ -1967,9 +2034,10 @@ class Settings(commands.Cog):
             await ctx.send(f"No command settings found {title}")
 
     async def get_cmd_setting_entries(self, keys: list[str]) -> list[str]:
-        """Gets the setting and command name of non-default settings for all commands for a specific object
+        """Gets non-default settings' setting & cmd name ∀ cmds for a specific object
 
-        The name or ID of that specific object must be the last key. The last key may only be a server ID if the second-to-last key is 'global_servers'.
+        The name or ID of that specific object must be the last key. The last key may
+        only be a server ID if the second-to-last key is 'global_servers'.
         """
         if len(keys) <= 2:
             if keys[0] == "servers":
@@ -1977,7 +2045,6 @@ class Settings(commands.Cog):
         else:
             if keys[0] != "servers":
                 raise ValueError
-
         entries = []
         for command_name, sub_dict in self.all_cmd_settings.items():
             try:
@@ -1991,13 +2058,11 @@ class Settings(commands.Cog):
                     is_allowed = sub_dict[keys[0]][keys[1]][keys[2]][keys[3]]
                 else:
                     raise ValueError
-
                 if is_allowed is not None:
                     is_allowed = "✅" if is_allowed else "❌"
                     entries.append(is_allowed + " " + command_name)
             except KeyError:
                 pass
-
         return entries
 
 

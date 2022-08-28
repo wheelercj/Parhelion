@@ -19,7 +19,7 @@ async def create_relative_timestamp(dt: datetime) -> str:
 
 
 async def create_long_datetime_stamp(dt: datetime) -> str:
-    """Creates a long datetime stamp that shows the correct time in each viewer's timezone
+    """Creates a long datetime stamp showing the correct time in each viewer's timezone
 
     E.g., 'Tuesday, June 22, 2021 11:14 AM'
     """
@@ -28,7 +28,7 @@ async def create_long_datetime_stamp(dt: datetime) -> str:
 
 
 async def create_short_datetime_stamp(dt: datetime) -> str:
-    """Creates a short datetime stamp that shows the correct time in each viewer's timezone
+    """Creates a short datetime stamp showing the correct time in each viewer's timezone
 
     E.g., 'June 22, 2021 11:14 AM'
     """
@@ -79,7 +79,6 @@ async def format_timedelta(td: timedelta) -> str:
     hours, remainder = divmod(total_seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     days, hours = divmod(hours, 24)
-
     output = []
     if days:
         output.append(plural(days, "day||s"))
@@ -89,26 +88,25 @@ async def format_timedelta(td: timedelta) -> str:
         output.append(plural(minutes, "minute||s"))
     if seconds:
         output.append(plural(seconds, "second||s"))
-
     return ", ".join(output)
 
 
 async def parse_time_message(
     ctx, user_input: str, to_timezone: str = "UTC"
 ) -> tuple[datetime, str]:
-    """Parses a string containing both a time description and a message, or just a time description
+    """Parses a string containing a time description & optionally a message
 
-    The user's input can have a date, duration, etc. written in natural language,
-    and that time description must be at the front of the user's input.
-    The entered time will be assumed to be in UTC unless the user set a timezone for the bot.
-    The timezone-aware result will be in UTC unless the optional to_timezone argument is used.
-    If the entire user_input is converted to a datetime, the second returned value will be an empty string.
-    If a valid time description cannot be found, commands.BadArgument will be raised.
+    The user's input can have a date, duration, etc. written in natural language, and
+    that time description must be at the front of the user's input. The entered time
+    will be assumed to be in UTC unless the user set a timezone for the bot. The
+    timezone-aware result will be in UTC unless the optional to_timezone argument is
+    used. If the entire user_input is converted to a datetime, the second returned
+    value will be an empty string. If a valid time description cannot be found,
+    commands.BadArgument will be raised.
     """
     tz = await get_timezone(ctx.bot.db, ctx.author.id)
     if tz is None:
         tz = "UTC"
-
     # https://dateparser.readthedocs.io/en/latest/
     dateparser_settings = {
         "TIMEZONE": str(tz),
@@ -120,8 +118,7 @@ async def parse_time_message(
     max_length = len(
         split_input[:7]
     )  # The longest possible time description accepted is 7 words long.
-
-    # Gradually try parsing fewer words as a time description until a valid one is found.
+    # Gradually try parsing fewer words until a valid time description is found.
     message = ""
     for i in range(max_length, 0, -1):
         time_description = " ".join(split_input[:i])
@@ -129,7 +126,6 @@ async def parse_time_message(
         if date_time is not None:
             message = user_input.replace(time_description, "")[1:]
             break
-
     if date_time is None:
         raise commands.BadArgument("Invalid time description")
     return date_time, message

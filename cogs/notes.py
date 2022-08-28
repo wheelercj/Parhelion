@@ -11,7 +11,8 @@ from cogs.utils.paginator import Paginator
 class Notes(commands.Cog):
     """Save and view your notes.
 
-    For the notes commands that use indexes, use the numbers shown by the `notes` command.
+    For the notes commands that use indexes, use the numbers shown by the `notes`
+    command.
     """
 
     def __init__(self, bot):
@@ -26,7 +27,8 @@ class Notes(commands.Cog):
             CREATE TABLE IF NOT EXISTS notes (
                 author_id BIGINT PRIMARY KEY,
                 contents VARCHAR(500)[],
-                jump_urls TEXT[],  -- The URLs to the messages in which the notes were created. This array is parallel to the contents array.
+                jump_urls TEXT[],  -- The URLs to the messages that created the notes.
+                -- This array is parallel to the contents array.
                 last_viewed_at TIMESTAMPTZ NOT NULL
             );
             """
@@ -189,7 +191,7 @@ class Notes(commands.Cog):
         await ctx.invoke(swap_command, index_1=index, index_2=len(n))
 
     async def fetch_notes(self, ctx) -> Optional[tuple[list[str], list[str]]]:
-        """Gets ctx.author's notes and their jump URLs from the database, and updates last_viewed_at
+        """Gets ctx.author's notes & jump URLs from the db, & updates last_viewed_at
 
         Raises commands.BadArgument if ctx.author has no notes.
         """
@@ -205,11 +207,10 @@ class Notes(commands.Cog):
         )
         if record is None:
             raise commands.BadArgument("You have no notes")
-
         return record["contents"], record["jump_urls"]
 
     async def save_notes(self, ctx, _notes, jump_urls) -> None:
-        """Saves ctx.author's notes to the database, overwriting any notes they already have saved there"""
+        """Saves ctx.author's notes to the db, overwriting notes they already saved"""
         await self.bot.db.execute(
             """
             INSERT INTO notes
@@ -230,7 +231,7 @@ class Notes(commands.Cog):
     async def validate_note_indexes(
         self, _notes: list[str], *indexes: list[int]
     ) -> None:
-        """Raises commands.BadArgument if any index is to low or to high, or if this receives any duplicate indexes"""
+        """Raises commands.BadArgument if an index is too low, high, or duplicated"""
         for i in indexes:
             if i < 0:
                 raise commands.BadArgument("Please use a positive number")
@@ -248,14 +249,15 @@ class Notes(commands.Cog):
         jump_urls[index_2], jump_urls[index_1] = jump_urls[index_1], jump_urls[index_2]
 
     async def check_note_ownership_permission(self, author_id: int) -> None:
-        """Raises commands.UserInputError if the author has >= the maximum number of notes allowed"""
+        """Raises commands.UserInputError if author has >= max # of notes allowed"""
         members_note_count = await self.count_users_notes(author_id)
         if (
             members_note_count >= self.note_ownership_limit
             and self.bot.owner_id != author_id  # noqa: W503
         ):
             raise commands.UserInputError(
-                f"The current limit to how many notes each person can have is {self.note_ownership_limit}."
+                "The current limit to how many notes each person can have is"
+                f" {self.note_ownership_limit}."
             )
 
     async def count_users_notes(self, author_id: int) -> int:
