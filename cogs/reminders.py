@@ -19,7 +19,6 @@ class RunningReminderInfo:
     def __init__(self, target_time: datetime, id: int):
         self.target_time = target_time
         self.id = id
-        self.reminder_ownership_limit = 20
 
 
 class Reminders(commands.Cog):
@@ -29,6 +28,7 @@ class Reminders(commands.Cog):
         self.bot = bot
         self._task = self.bot.loop.create_task(self.run_reminders())
         self.running_reminder_info: RunningReminderInfo = None
+        self.reminder_ownership_limit = 20
 
     def cog_unload(self):
         self._task.cancel()
