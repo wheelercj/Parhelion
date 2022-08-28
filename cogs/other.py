@@ -684,10 +684,15 @@ class Other(commands.Cog):
         if time is None:
             await self.send_quote(ctx, ctx.author.id)
             return
-
+        if await self.bot.is_owner(ctx.author):
+            raise commands.BadArgument(
+                "This command can be used freely without a time, but setting a daily"
+                " quote time is temporarily owner-only while bugs are being fixed."
+            )
         if time.count(":") != 1 or time[-1] == ":":
             raise commands.BadArgument(
-                "Please enter a time in HH:mm format. You may use 24-hour time or either AM or PM."
+                "Please enter a time in HH:mm format. You may use 24-hour time or"
+                " either AM or PM."
             )
         dt, _ = await parse_time_message(ctx, time)
         now = datetime.now(timezone.utc)
