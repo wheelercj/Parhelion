@@ -245,7 +245,16 @@ class Other(commands.Cog):
         """
         # https://pypi.org/project/async-tio/
         async with ctx.typing():
-            language, expression, inputs = await unwrap_code_block(code_block)
+            if "```" in code_block:
+                language, expression, inputs = await unwrap_code_block(code_block)
+            else:
+                split_pieces = code_block.split(maxsplit=1)
+                if len(split_pieces) == 1:
+                    raise commands.BadArgument(
+                        "Error: please specify the language before the code."
+                    )
+                language, expression = split_pieces
+                inputs = ""
             language, expression = await self.parse_exec_language(language, expression)
             async with MyTio(session=self.bot.session) as tio:
                 if language not in [x.tio_name for x in await tio.get_languages()]:
