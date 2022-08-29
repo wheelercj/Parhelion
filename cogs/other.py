@@ -10,6 +10,7 @@ from typing import Optional
 import async_tio  # https://pypi.org/project/async-tio/
 import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
+import mystbin  # https://pypi.org/project/mystbin.py/
 from aiohttp.client_exceptions import (
     ContentTypeError,
 )  # https://pypi.org/project/aiohttp/
@@ -36,7 +37,6 @@ from cogs.utils.io import get_attachment_url
 from cogs.utils.io import safe_send
 from cogs.utils.io import send_traceback
 from cogs.utils.io import unwrap_code_block
-from cogs.utils.mystbin import MyMystbinClient
 from cogs.utils.paginator import Paginator
 from cogs.utils.time import create_short_timestamp
 from cogs.utils.time import get_14_digit_datetime
@@ -125,7 +125,7 @@ class Other(commands.Cog):
                 syntax, text, _ = await unwrap_code_block(text)
                 text = dedent(text)
                 filename = f"{await get_14_digit_datetime()}.{syntax}"
-                mystbin_client = MyMystbinClient(session=self.bot.session)
+                mystbin_client = mystbin.Client(session=self.bot.session)
                 paste = await mystbin_client.create_paste(
                     filename=filename, content=text, syntax=syntax
                 )
