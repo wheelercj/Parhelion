@@ -10,7 +10,6 @@ from typing import Optional
 import async_tio  # https://pypi.org/project/async-tio/
 import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
-import mystbin  # https://pypi.org/project/mystbin.py/
 from aiohttp.client_exceptions import (
     ContentTypeError,
 )  # https://pypi.org/project/aiohttp/
@@ -37,8 +36,10 @@ from cogs.utils.io import get_attachment_url
 from cogs.utils.io import safe_send
 from cogs.utils.io import send_traceback
 from cogs.utils.io import unwrap_code_block
+from cogs.utils.mystbin import MyMystbinClient
 from cogs.utils.paginator import Paginator
 from cogs.utils.time import create_short_timestamp
+from cogs.utils.time import get_14_digit_datetime
 from cogs.utils.time import parse_time_message
 
 
@@ -119,13 +120,16 @@ class Other(commands.Cog):
         async with ctx.typing():
             file_url = await get_attachment_url(ctx)
             if file_url:
-                await ctx.send(f"Here's a link to the attachment: <{file_url}>")
+                await ctx.reply(f"Here's a link to the attachment: <{file_url}>")
             if text:
                 syntax, text, _ = await unwrap_code_block(text)
                 text = dedent(text)
-                mystbin_client = mystbin.Client(session=self.bot.session)
-                paste = await mystbin_client.post(text, syntax=syntax)
-                await ctx.reply(f"New Mystb.in paste created at <{paste.url}>")
+                filename = f"{await get_14_digit_datetime()}.{syntax}"
+                mystbin_client = MyMystbinClient(session=self.bot.session)
+                paste = await mystbin_client.create_paste(
+                    filename=filename, content=text, syntax=syntax
+                )
+                await ctx.reply(f"New Mystb.in paste created at <{str(paste)}>")
 
     @commands.command(name="calc", aliases=["calculate", "solve", "math", "maths"])
     @commands.cooldown(25, 216, commands.BucketType.default)
