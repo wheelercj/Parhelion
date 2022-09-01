@@ -690,7 +690,7 @@ class Other(commands.Cog):
         if time is None:
             await self.send_quote(ctx, ctx.author.id)
             return
-        if await self.bot.is_owner(ctx.author):
+        if not await self.bot.is_owner(ctx.author):
             raise commands.BadArgument(
                 "This command can be used freely without a time, but setting a daily"
                 " quote time is temporarily owner-only while bugs are being fixed."
