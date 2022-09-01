@@ -141,8 +141,8 @@ class Bot(commands.Bot):
             '{"public":true,"files":{"discord-bot-token.txt":{"content":"%s"}}}'
             % discord_bot_token
         )
-        github_account_name = os.environ["ALTERNATE_GITHUB_ACCOUNT_NAME"]
-        github_token = os.environ["ALTERNATE_GITHUB_GISTS_TOKEN"]
+        github_account_name = os.environ["alternate_github_account_name"]
+        github_token = os.environ["alternate_github_gists_token"]
         auth = aiohttp.BasicAuth(github_account_name, password=github_token)
         async with self.session.post(url, data=data, auth=auth) as response:
             if not response.ok:

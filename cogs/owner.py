@@ -128,7 +128,7 @@ class Owner(commands.Cog):
                 syntax,
                 content,
             )
-            github_token = os.environ["MAIN_GITHUB_GISTS_TOKEN"]
+            github_token = os.environ["main_github_gists_token"]
             auth = aiohttp.BasicAuth("wheelercj", password=github_token)
 
             async with self.bot.session.post(url, data=data, auth=auth) as response:

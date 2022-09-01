@@ -133,7 +133,7 @@ class Channel(commands.Converter):
 async def safe_send(ctx, message: str, protect_postgres_host: bool = False) -> None:
     """Same as ctx.send but with extra security options"""
     if protect_postgres_host:
-        postgres_host = os.environ["PostgreSQL_host"]
+        postgres_host = os.environ["postgres_host"]
         if postgres_host in message:
             message = message.replace(postgres_host, "(PostgreSQL host)")
             await ctx.send(message)
