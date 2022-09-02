@@ -8,6 +8,7 @@ from textwrap import dedent
 import aiohttp  # https://pypi.org/project/aiohttp/
 import discord  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
+from psutil import Process  # https://pypi.org/project/psutil/
 
 from cogs.utils.common import escape_json
 from cogs.utils.io import unwrap_code_block
@@ -122,6 +123,12 @@ class Owner(commands.Cog):
                 sent = True
         if not sent:
             await ctx.send("No servers found with that name.")
+
+    @commands.command()
+    async def memory(self, ctx):
+        """Shows how much RAM the bot is using"""
+        mb = Process().memory_info().rss / 1024 / 1024
+        await ctx.send(f"{round(mb, 2)} MB")
 
     @commands.command()
     async def src(self, ctx, command_name: str):
