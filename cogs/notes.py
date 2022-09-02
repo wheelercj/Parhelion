@@ -1,6 +1,5 @@
 from datetime import datetime
 from datetime import timezone
-from typing import Optional
 
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
@@ -73,10 +72,9 @@ class Notes(commands.Cog):
         await self.check_note_ownership_permission(ctx.author.id)
         if len(text) > 500:
             raise commands.BadArgument(
-                "Each note has a 500 character limit."
-                f" This note is {len(text)-500} characters over the limit."
+                "Error: each note has a 500 character limit. This text is"
+                f" {len(text)-500} characters over the limit."
             )
-
         try:
             _notes, jump_urls = await self.fetch_notes(ctx)
         except commands.BadArgument:
@@ -85,7 +83,7 @@ class Notes(commands.Cog):
         _notes.append(text)
         jump_urls.append(ctx.message.jump_url)
         await self.save_notes(ctx, _notes, jump_urls)
-        await ctx.send("New note saved")
+        await ctx.send(f"New note saved with an index of {len(_notes)}")
 
     @commands.command(name="edit-note", aliases=["en", "editnote"])
     async def edit_note(self, ctx, index: int, *, text: str):
@@ -97,7 +95,6 @@ class Notes(commands.Cog):
                 "Each note has a 500 character limit."
                 f" This note is {len(text)-500} characters over the limit."
             )
-
         _notes, jump_urls = await self.fetch_notes(ctx)
         await self.validate_note_indexes(_notes, i)
         _notes[i] = text
@@ -114,14 +111,12 @@ class Notes(commands.Cog):
         i = index - 1
         _notes, jump_urls = await self.fetch_notes(ctx)
         await self.validate_note_indexes(_notes, i)
-
         try:
             _notes = _notes[:i] + _notes[i + 1 :]
             jump_urls = jump_urls[:i] + jump_urls[i + 1 :]
         except IndexError:
             _notes = _notes[:i]
             jump_urls = jump_urls[:i]
-
         if _notes:
             await self.bot.db.execute(
                 """
@@ -142,7 +137,6 @@ class Notes(commands.Cog):
                 """,
                 ctx.author.id,
             )
-
         await ctx.send(f"Deleted note {index}")
 
     @commands.command(name="swap-notes", aliases=["sn", "swapnotes"])
@@ -190,7 +184,7 @@ class Notes(commands.Cog):
         swap_command = self.bot.get_command("swap-notes")
         await ctx.invoke(swap_command, index_1=index, index_2=len(n))
 
-    async def fetch_notes(self, ctx) -> Optional[tuple[list[str], list[str]]]:
+    async def fetch_notes(self, ctx) -> tuple[list[str], list[str]]:
         """Gets ctx.author's notes & jump URLs from the db, & updates last_viewed_at
 
         Raises commands.BadArgument if ctx.author has no notes.
