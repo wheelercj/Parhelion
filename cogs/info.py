@@ -178,7 +178,8 @@ class Info(commands.Cog):
 
         You can enter the date/time/duration in natural language, and you can copy and
         paste a raw timestamp into your discord messages. If you have not chosen a
-        timezone with the `timezone set` command, UTC will be assumed.
+        timezone with the `timezone set` command, UTC will be assumed. The unusual
+        number that appears in the raw timestamps is the Unix time.
         """
         dt, _ = await parse_time_message(ctx, time)
         unix_time = int(dt.timestamp())
@@ -240,16 +241,18 @@ class Info(commands.Cog):
         author_cmd_count = await self.count_available_cmds(ctx)
         embed.add_field(
             name="stats",
-            value=(
-                f"websocket latency: {self.bot.latency * 1000:.2f} ms\n"
-                f"uptime: {await self.get_uptime()}\n"
-                f"servers: {len(self.bot.guilds)}\n"
-                f"users: {len(self.bot.users)}\n"
-                f"commands: {len(self.bot.commands)}\n"
-                f"commands used since last restart: {self.bot.command_use_count}\n"
-                f"commands {ctx.author} can use here: {author_cmd_count}\n"
-                f"lines of code: {bot_loc}\n"
-                f"Python files: {self.count_bot_files()}"
+            value=dedent(
+                f"""\
+                websocket latency: {self.bot.latency * 1000:.2f} ms
+                uptime: {await self.get_uptime()}
+                servers: {len(self.bot.guilds)}
+                users: {len(self.bot.users)}
+                commands: {len(self.bot.commands)}
+                commands used since last restart: {self.bot.command_use_count}
+                commands {ctx.author} can use here: {author_cmd_count}
+                lines of code: {bot_loc}
+                Python files: {self.count_bot_files()}
+                """
             ),
         )
         await ctx.send(embed=embed)
@@ -365,37 +368,40 @@ class Info(commands.Cog):
     @commands.command(aliases=["i", "info"])
     async def about(self, ctx):
         """Shows general info about this bot"""
-        embed = discord.Embed(
-            title=f"{self.bot.user.name}#{self.bot.user.discriminator}"
-        )
+        embed = discord.Embed()
         owner = self.bot.get_user(self.bot.owner_id)
         prefixes = await get_prefixes_list(self.bot, ctx.message)
-        bot_invite_link = await get_bot_invite_link(self.bot)
-        embed.add_field(
-            name="\u200b\u2800",
-            value=f"Use `{prefixes[0]}help` for help\nwith commands.\u2800\n\u2800",
-        )
-        embed.add_field(
-            name="\u2800owner\u2800",
-            value=f"\u2800{owner.name}#{owner.discriminator}\u2800\n\u2800",
-        )
-        embed.add_field(name="\u200b", value="\u200b\n\u200b")
-        links_s = f"[invite]({bot_invite_link})\u2800\n"
+        py_info = f"Python v{platform.python_version()}"
+        discord_link = "[discord.py](https://discordpy.readthedocs.io/en/latest/)"
+        discord_info = f"{discord_link} v{discord.__version__}"
+        links_s = ""
         if DevSettings.support_server_link:
-            links_s += f"[support server]({DevSettings.support_server_link})\u2800\n"
-        links_s += f"[privacy policy]({DevSettings.privacy_policy_link})\u2800\n"
+            links_s += (
+                f"[support server]({DevSettings.support_server_link}) \u2800❂\u2800 "
+            )
+        links_s += (
+            f"[invite]({await get_bot_invite_link(self.bot)})"
+            f" \u2800❂\u2800 [privacy policy]({DevSettings.privacy_policy_link})"
+        )
         if DevSettings.donations_link:
-            links_s += f"[donate]({DevSettings.donations_link})\u2800\n"
-        embed.add_field(name="links\u2800", value=links_s)
+            links_s += f" \u2800❂\u2800 [donate]({DevSettings.donations_link})"
         embed.add_field(
-            name="\u2800made with\u2800",
-            value=(
-                f"\u2800Python v{platform.python_version()}\u2800\n"
-                "\u2800and [discord.py](https://discordpy.readthedocs.io/en/latest/)"
-                f" v{discord.__version__}\u2800\n"
+            name=f"{self.bot.user.name}#{self.bot.user.discriminator}",
+            value=dedent(
+                f"""
+                \u200b
+                Use `{prefixes[0]}help` for help with commands.
+
+                {links_s}
+
+                **owner**
+                {owner.name}#{owner.discriminator}
+
+                **made with**
+                {py_info} and {discord_info}
+                """
             ),
         )
-        embed.add_field(name="\u200b", value="\u200b")
         await ctx.send(embed=embed)
 
     @commands.command(hidden=True)
@@ -446,31 +452,33 @@ class Info(commands.Cog):
         bot_count = await self.get_bot_count(server)
         cat_count = len(server.categories)
         created = await create_relative_timestamp(server.created_at)
+        member_count = f"{server.member_count}/{server.max_members} ({bot_count} bots)"
         embed = discord.Embed(title="server info")
         embed.add_field(
             name="\u200b",
-            value=(
-                f"name: {server.name}\n"
-                f"owner: {server.owner.name}#{server.owner.discriminator}\n"
-                f"description: {server.description}\n"
-                f"created: {created}\n"
-                f"preferred locale: {server.preferred_locale}\n"
-                f"total members: {server.member_count}/{server.max_members}"
-                f" ({bot_count} bots)\n"
-                f"roles: {len(server.roles)}\n"
-                f"current boosts: {server.premium_subscription_count}\n"
-                f"boost level: {server.premium_tier}\n"
-                f"emojis: {len(server.emojis)}/{server.emoji_limit}\n"
-                f"file size limit: {server.filesize_limit/1000000:.2f} MB\n"
-                f"bitrate limit: {server.bitrate_limit/1000} kbps\n"
-                "\n"
-                "**channels**\n"
-                f"categories: {cat_count}\n"
-                f"total channels: {len(server.channels) - cat_count}\n"
-                f"text channels: {len(server.text_channels)}\n"
-                f"voice channels: {len(server.voice_channels)}\n"
-                f"stages: {len(server.stage_channels)}\n"
-                f"max video channel users: {server.max_video_channel_users}\n",
+            value=dedent(
+                f"""\
+                name: {server.name}
+                owner: {server.owner.name}#{server.owner.discriminator}
+                description: {server.description}
+                created: {created}
+                preferred locale: {server.preferred_locale}
+                total members: {member_count}
+                roles: {len(server.roles)}
+                current boosts: {server.premium_subscription_count}
+                boost level: {server.premium_tier}
+                emojis: {len(server.emojis)}/{server.emoji_limit}
+                file size limit: {server.filesize_limit/1000000:.2f} MB
+                bitrate limit: {server.bitrate_limit/1000} kbps
+
+                **channels**
+                categories: {cat_count}
+                total channels: {len(server.channels) - cat_count}
+                text channels: {len(server.text_channels)}
+                voice channels: {len(server.voice_channels)}
+                stages: {len(server.stage_channels)}
+                max video channel users: {server.max_video_channel_users}
+                """
             ),
         )
         features = await self.get_server_features(server)
@@ -576,16 +584,18 @@ class Info(commands.Cog):
         embed = discord.Embed()
         embed.add_field(
             name="role info",
-            value=(
-                f"name: {role.name}\n"
-                f"members: {len(role.members)}\n"
-                f"hierarcy position: {role.position}\n"
-                f"created: {creation_timestamp}\n"
-                f"mentionable: {yes_or_no(role.mentionable)}\n"
-                f"default: {yes_or_no(role.is_default())}\n"
-                f"premium: {yes_or_no(role.is_premium_subscriber())}\n"
-                f"3rd-party integration: {yes_or_no(role.managed)}\n"
-                f"managing bot: {managing_bot}\n",
+            value=dedent(
+                f"""\
+                name: {role.name}
+                members: {len(role.members)}
+                hierarcy position: {role.position}
+                created: {creation_timestamp}
+                mentionable: {yes_or_no(role.mentionable)}
+                default: {yes_or_no(role.is_default())}
+                premium: {yes_or_no(role.is_premium_subscriber())}
+                3rd-party integration: {yes_or_no(role.managed)}
+                managing bot: {managing_bot}
+                """
             ),
         )
         await ctx.send(embed=embed)
