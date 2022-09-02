@@ -27,12 +27,26 @@ class Owner(commands.Cog):
 
     @commands.command(name="raise")
     async def raise_exception(self, ctx):
+        """Raises an exception"""
         raise Exception("The `raise` command was used.")
 
     @commands.command()
     async def echo(self, ctx, *, message: str):
         """Repeats a message"""
         await ctx.send(message)
+
+    @commands.command(aliases=["docstring"])
+    async def docstrings(self, ctx):
+        """Lists any commands that don't have a docstring"""
+        cmds_without_docs: list[str] = []
+        for cmd in self.bot.commands:
+            if not cmd.short_doc:
+                cmds_without_docs.append(cmd.qualified_name)
+        if cmds_without_docs:
+            cmds_without_docs = "\n".join(cmds_without_docs)
+            await ctx.send(f"Commands without a docstring:\n{cmds_without_docs}")
+        else:
+            await ctx.send("All commands have a docstring.")
 
     @commands.command()
     async def leave(self, ctx, *, server_name: str = None):

@@ -400,6 +400,7 @@ class Info(commands.Cog):
 
     @commands.command(hidden=True)
     async def source(self, ctx):
+        """See the bot's source code!"""
         await ctx.send("https://github.com/wheelercj/Parhelion")
 
     @commands.command()
