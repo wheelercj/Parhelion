@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import io
 import os
 import sys
@@ -121,6 +122,37 @@ class Owner(commands.Cog):
                 sent = True
         if not sent:
             await ctx.send("No servers found with that name.")
+
+    @commands.command()
+    async def src(self, ctx, command_name: str):
+        """Shows the bot's source code for a command
+
+        CAUTION: this command uses the ``eval`` function. Currently, this command
+        doesn't work with commands defined with a ``name`` parameter.
+        """
+        if command_name == "help":
+            raise commands.BadArgument(
+                "<https://github.com/wheelercj/Parhelion/search?q=Help>"
+            )
+        cog_name = None
+        for cmd in self.bot.commands:
+            if command_name == cmd.qualified_name:
+                try:
+                    cog_name = cmd.cog.qualified_name
+                except AttributeError:
+                    raise commands.BadArgument(f"`{command_name}` is not in a cog.")
+                break
+        if not cog_name:
+            raise commands.BadArgument(f"`{command_name}` is not a command.")
+        if cog_name == self.qualified_name:
+            command_obj_name = f"{cog_name}.{command_name}"
+        else:
+            command_obj_name = f"self.bot.cogs['{cog_name}'].{command_name}"
+        try:
+            source_code = str(inspect.getsource(eval(command_obj_name).callback))
+            await ctx.send(f"```py\n{source_code}```")
+        except Exception as e:
+            await ctx.send(e)
 
     @commands.command()
     async def gist(self, ctx, *, content: str):
