@@ -27,12 +27,12 @@ class Bot(commands.Bot):
         intents.presences = False
         super().__init__(intents=intents, command_prefix=self.get_command_prefixes)
         self.add_check(self.check_global_cooldown, call_once=True)
-        self.app_info: commands.Bot.AppInfo = None
-        self.owner_id: int = None
-        self.launch_time = datetime.now(timezone.utc)
         self.global_cd = commands.CooldownMapping.from_cooldown(
             1, 5, commands.BucketType.user
         )
+        self.app_info: commands.Bot.AppInfo = None
+        self.owner_id: int = None
+        self.launch_time = datetime.now(timezone.utc)
         connector = aiohttp.TCPConnector(force_close=True)
         self.session = aiohttp.ClientSession(connector=connector)
         self.custom_prefixes: dict[int, list[str]] = dict()
@@ -200,11 +200,6 @@ class Bot(commands.Bot):
             pass
         elif isinstance(error, commands.DisabledCommand):
             await ctx.send("This command has been disabled.")
-        elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(
-                f"Commands on cooldown. Please try again in {error.retry_after:.2f}"
-                " seconds."
-            )
         elif isinstance(error, commands.UserInputError):
             await ctx.send(error)
         elif isinstance(error, commands.NotOwner):
@@ -285,16 +280,18 @@ class Bot(commands.Bot):
     async def check_global_cooldown(self, ctx) -> bool:
         """Checks if ctx.author used any command recently
 
-        If the user has not triggered the global cooldown, the global
-        cooldown is triggered and True is returned. Otherwise, the
-        commands.CommandOnCooldown exception is raised.
-        This function must be called only once per command
-        invocation for the help command to work. So, with
-        bot.add_check use call_once=True.
+        If the user has not triggered the global cooldown, the global cooldown is
+        triggered and True is returned. Otherwise, the commands.CommandOnCooldown
+        exception is raised. This function must be called only once per command
+        invocation for the help command to work. So, with bot.add_check use
+        call_once=True.
         """
         bucket = self.global_cd.get_bucket(ctx.message)
         retry_after = bucket.update_rate_limit()
         if retry_after:
+            await ctx.send(
+                f"Commands on cooldown. Please try again in {retry_after:.2f} seconds."
+            )
             raise commands.CommandOnCooldown(bucket, retry_after)
         return True
 
