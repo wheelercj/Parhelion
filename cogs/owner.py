@@ -278,6 +278,62 @@ class Owner(commands.Cog):
             pass
         await ctx.message.add_reaction("✅")
 
+    ######################
+    # sync command group #
+    ######################
+
+    @commands.group(invoke_without_command=True)
+    async def sync(self, ctx):
+        """A group of commands for syncing slash commands to Discord
+
+        Without a subcommand, this command syncs all global commands globally.
+
+        Sync when a slash command changes, unless the change made was only to its
+        function's body or a library-side check.
+        """
+        synced = await ctx.bot.tree.sync()
+        await ctx.send(f"Synced {len(synced)} global slash commands globally.")
+
+    @sync.command()
+    @commands.guild_only()
+    async def server(self, ctx):
+        """Syncs the current server's slash commands to the current server"""
+        synced = await ctx.bot.tree.sync(guild=ctx.guild)
+        await ctx.send(
+            f"Synced {len(synced)} of this server's slash commands to this server."
+        )
+
+    @sync.command(name="resync-server", aliases=["rs"])
+    @commands.guild_only()
+    async def resync_server(self, ctx):
+        """Clears and syncs the current server's slash commands to the current server"""
+        ctx.bot.tree.clear_commands(guild=ctx.guild)
+        await ctx.bot.tree.sync(guild=ctx.guild)
+        await ctx.send("Cleared and resynced this server's slash commands.")
+
+    @sync.command(name="global-to-server", aliases=["gts"])
+    @commands.guild_only()
+    async def global_to_server(self, ctx):
+        """Syncs global slash commands to the current server"""
+        ctx.bot.tree.copy_global_to(guild=ctx.guild)
+        synced = await ctx.bot.tree.sync(guild=ctx.guild)
+        await ctx.send(f"Synced {len(synced)} global slash commands to this server.")
+
+    @sync.command()
+    async def servers(self, ctx, servers: list[discord.Object]):
+        """Syncs servers' slash commands to their respective servers"""
+        server_count = 0
+        for server_ in servers:
+            try:
+                await ctx.bot.tree.sync(guild=server_)
+            except discord.HTTPException:
+                pass
+            else:
+                server_count += 1
+        await ctx.send(
+            f"Synced server slash commands to {server_count}/{len(servers)} servers."
+        )
+
 
 async def setup(bot):
     await bot.add_cog(Owner(bot))
