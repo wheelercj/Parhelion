@@ -111,7 +111,9 @@ class Other(commands.Cog):
             self.quotes_task = self.bot.loop.create_task(self.run_daily_quotes())
             # Could this recursion eventually cause a stack problem?
 
-    @commands.command(aliases=["link", "url", "publish", "post", "paste", "mystbin"])
+    @commands.hybrid_command(
+        aliases=["link", "url", "publish", "post", "paste", "mystbin"]
+    )
     async def share(self, ctx, *, text: str = None):
         """Gives you a shareable URL to your text or attachment
 
@@ -134,7 +136,9 @@ class Other(commands.Cog):
                 )
                 await ctx.reply(f"New Mystb.in paste created at <{str(paste)}>")
 
-    @commands.command(name="calc", aliases=["calculate", "solve", "math", "maths"])
+    @commands.hybrid_command(
+        name="calc", aliases=["calculate", "solve", "math", "maths"]
+    )
     @commands.cooldown(25, 216, commands.BucketType.default)
     async def calculate(self, ctx, *, expression: str):
         """Evaluates a math expression
@@ -177,17 +181,19 @@ class Other(commands.Cog):
             if await self.bot.is_owner(ctx.author):
                 await send_traceback(ctx, e)
 
-    @commands.command(name="random", aliases=["rand"], hidden=True)
+    @commands.hybrid_command(name="random", aliases=["rand"], hidden=True)
     async def rand(self, ctx, low: int = 1, high: int = 6):
-        """Gives a random number (default bounds: 1 and 6)"""
+        """Gives a random number"""
         low = int(low)
         high = int(high)
         if low <= high:
-            await ctx.send(str(random.randint(low, high)))
+            await ctx.send(str(random.randint(low, high)), emphemeral=True)
         else:
-            await ctx.send(str(random.randint(high, low)))
+            await ctx.send(str(random.randint(high, low)), emphemeral=True)
 
-    @commands.command(name="flip-coin", aliases=["flip", "flipcoin"], hidden=True)
+    @commands.hybrid_command(
+        name="flip-coin", aliases=["flip", "flipcoin"], hidden=True
+    )
     async def flip_coin(self, ctx):
         """Flips a coin"""
         n = random.randint(1, 2)
@@ -196,13 +202,17 @@ class Other(commands.Cog):
         else:
             await ctx.send("tails")
 
-    @commands.command(hidden=True)
-    async def choose(self, ctx, choice_count: int, *choices: str):
-        """Chooses randomly from multiple choices"""
+    @commands.hybrid_command(hidden=True)
+    async def choose(self, ctx, choice_count: int, choices: str):
+        """Chooses randomly from multiple choices
+
+        Separate the choices with spaces.
+        """
+        choices_: list[str] = choices.split(" ")
         choices_made = []
         for _ in range(0, choice_count):
-            choices_made.append(random.choice(choices))
-        await ctx.send("".join(choices_made))
+            choices_made.append(random.choice(choices_))
+        await ctx.send("".join(choices_made), emphemeral=True)
 
     @choose.error
     async def choose_error(self, ctx, error):
@@ -218,7 +228,7 @@ class Other(commands.Cog):
         else:
             await ctx.send(error)
 
-    @commands.command(aliases=["rotate", "rot", "shift"], hidden=True)
+    @commands.hybrid_command(aliases=["rotate", "rot", "shift"], hidden=True)
     async def cipher(self, ctx, n: int, *, message: str):
         """Rotates each letter n letters through the alphabet"""
         message = message.lower()
@@ -237,7 +247,7 @@ class Other(commands.Cog):
     # _run command group #
     #######################
 
-    @commands.group(
+    @commands.hybrid_group(
         name="run", aliases=["exec", "execute"], invoke_without_command=True
     )
     async def _run(self, ctx, *, code_block: str):
@@ -518,7 +528,9 @@ class Other(commands.Cog):
     # translate command group #
     ###########################
 
-    @commands.group(aliases=["trans", "translation"], invoke_without_command=True)
+    @commands.hybrid_group(
+        aliases=["trans", "translation"], invoke_without_command=True
+    )
     async def translate(self, ctx, *, words: str):
         """A group of commands for translating between languages
 
@@ -581,7 +593,7 @@ class Other(commands.Cog):
     # word commands #
     #################
 
-    @commands.command(aliases=["def", "definition", "definitions"])
+    @commands.hybrid_command(aliases=["def", "definition", "definitions"])
     async def define(self, ctx, word: str):
         """Lists definitions of a given word"""
         # https://github.com/johnbumgarner/wordhoard
@@ -593,7 +605,7 @@ class Other(commands.Cog):
         title = f"definition of `{word}`"
         await self.send_word_results(ctx, results, title)
 
-    @commands.command(aliases=["syno", "synonym"])
+    @commands.hybrid_command(aliases=["syno", "synonym"])
     async def synonyms(self, ctx, word: str):
         """Lists words with the same or similar meaning to a given word"""
         synonym = Synonyms(word)
@@ -604,7 +616,7 @@ class Other(commands.Cog):
         title = f"synonyms of `{word}`"
         await self.send_word_results(ctx, results, title)
 
-    @commands.command(aliases=["anto", "antonym"])
+    @commands.hybrid_command(aliases=["anto", "antonym"])
     async def antonyms(self, ctx, word: str):
         """Lists words with the opposite meaning as a given word"""
         antonym = Antonyms(word)
@@ -615,7 +627,7 @@ class Other(commands.Cog):
         title = f"antonyms of `{word}`"
         await self.send_word_results(ctx, results, title)
 
-    @commands.command(aliases=["hyper", "hypernym"], hidden=True)
+    @commands.hybrid_command(aliases=["hyper", "hypernym"], hidden=True)
     async def hypernyms(self, ctx, word: str):
         """Lists words of more general meaning than a given word"""
         hypernym = Hypernyms(word)
@@ -626,7 +638,7 @@ class Other(commands.Cog):
         title = f"hypernyms of `{word}`"
         await self.send_word_results(ctx, results, title)
 
-    @commands.command(aliases=["hypo", "hyponym"], hidden=True)
+    @commands.hybrid_command(aliases=["hypo", "hyponym"], hidden=True)
     async def hyponyms(self, ctx, word: str):
         """Lists words of more specific meaning than a given word"""
         hyponym = Hyponyms(word)
@@ -637,7 +649,7 @@ class Other(commands.Cog):
         title = f"hyponyms of `{word}`"
         await self.send_word_results(ctx, results, title)
 
-    @commands.command(aliases=["homo", "homophone"], hidden=True)
+    @commands.hybrid_command(aliases=["homo", "homophone"], hidden=True)
     async def homophones(self, ctx, word: str):
         """Lists words that sound the same as a given word"""
         homophone = Homophones(word)
@@ -662,7 +674,7 @@ class Other(commands.Cog):
         )
         await paginator.run(ctx)
 
-    @commands.command(name="auto-incorrect", aliases=["ai", "autoincorrect"])
+    @commands.hybrid_command(name="auto-incorrect", aliases=["ai", "autoincorrect"])
     async def auto_incorrect(self, ctx, *, words: str):
         """Replaces as many words as possible with other words that sound the same"""
         results = []
@@ -682,7 +694,7 @@ class Other(commands.Cog):
     # quote command group #
     #######################
 
-    @commands.group(invoke_without_command=True)
+    @commands.hybrid_group(invoke_without_command=True)
     async def quote(self, ctx, *, time: str = None):
         """Shows a random famous quote
 

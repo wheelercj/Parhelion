@@ -27,17 +27,17 @@ class Owner(commands.Cog):
             raise commands.NotOwner
         return True
 
-    @commands.command(name="raise")
+    @commands.hybrid_command(name="raise")
     async def raise_exception(self, ctx):
         """Raises an exception"""
         raise Exception("The `raise` command was used.")
 
-    @commands.command()
+    @commands.hybrid_command()
     async def echo(self, ctx, *, message: str):
         """Repeats a message"""
         await ctx.send(message)
 
-    @commands.command(aliases=["docstring"])
+    @commands.hybrid_command(aliases=["docstring"])
     async def docstrings(self, ctx):
         """Lists any commands that don't have a docstring"""
         cmds_without_docs: list[str] = []
@@ -46,11 +46,13 @@ class Owner(commands.Cog):
                 cmds_without_docs.append(cmd.qualified_name)
         if cmds_without_docs:
             cmds_without_docs = "\n".join(cmds_without_docs)
-            await ctx.send(f"Commands without a docstring:\n{cmds_without_docs}")
+            await ctx.send(
+                f"Commands without a docstring:\n{cmds_without_docs}", emphemeral=True
+            )
         else:
-            await ctx.send("All commands have a docstring.")
+            await ctx.send("All commands have a docstring.", emphemeral=True)
 
-    @commands.command()
+    @commands.hybrid_command()
     async def leave(self, ctx, *, server_name: str = None):
         """Makes the bot leave a server
 
@@ -70,10 +72,9 @@ class Owner(commands.Cog):
                     await ctx.send(f"Now leaving server: {server.name}")
                     await server.leave()
                     return
-
             await ctx.send("Server not found.")
 
-    @commands.command()
+    @commands.hybrid_command()
     async def restart(self, ctx):
         """Restarts the bot
 
@@ -83,13 +84,13 @@ class Owner(commands.Cog):
         python = sys.executable
         os.execl(python, python, *sys.argv)
 
-    @commands.command(name="reset-error-reporting", aliases=["rer"])
+    @commands.hybrid_command(name="reset-error-reporting", aliases=["rer"])
     async def reset_error_reporting(self, ctx):
         """Allows dev mail about the next unexpected error"""
         self.bot.error_is_reported = False
-        await ctx.send("`self.bot.error_is_reported` has been reset")
+        await ctx.send("`self.bot.error_is_reported` has been reset", emphemeral=True)
 
-    @commands.command(
+    @commands.hybrid_command(
         name="list-servers",
         aliases=[
             "ls",
@@ -105,9 +106,9 @@ class Owner(commands.Cog):
         """Lists the names of all servers the bot is in"""
         servers = [server.name for server in self.bot.guilds]
         servers = "\n".join(servers)
-        await ctx.send(f"I am in the following servers:\n{servers}")
+        await ctx.send(f"I am in the following servers:\n{servers}", emphemeral=True)
 
-    @commands.command(name="server-id", aliases=["sid", "serverid"])
+    @commands.hybrid_command(name="server-id", aliases=["sid", "serverid"])
     async def get_server_id(self, ctx, *, server_name: str):
         """Gets the ID of a server by its name, if the bot can see the server
 
@@ -119,18 +120,18 @@ class Owner(commands.Cog):
         sent = False
         for server in servers:
             if server_name == server.name:
-                await ctx.send(server.id)
+                await ctx.send(server.id, emphemeral=True)
                 sent = True
         if not sent:
-            await ctx.send("No servers found with that name.")
+            await ctx.send("No servers found with that name.", emphemeral=True)
 
-    @commands.command()
+    @commands.hybrid_command()
     async def memory(self, ctx):
         """Shows how much RAM the bot is using"""
         mb = Process().memory_info().rss / 1024 / 1024
         await ctx.send(f"{round(mb, 2)} MB")
 
-    @commands.command()
+    @commands.hybrid_command()
     async def src(self, ctx, command_name: str):
         """Shows the bot's source code for a command
 
@@ -161,7 +162,7 @@ class Owner(commands.Cog):
         except Exception as e:
             await ctx.send(e)
 
-    @commands.command()
+    @commands.hybrid_command()
     async def gist(self, ctx, *, content: str):
         """Creates a new private gist on GitHub and gives you the link
 
@@ -183,19 +184,16 @@ class Owner(commands.Cog):
             )
             github_token = os.environ["main_github_gists_token"]
             auth = aiohttp.BasicAuth("wheelercj", password=github_token)
-
             async with self.bot.session.post(url, data=data, auth=auth) as response:
                 if not response.ok:
                     raise ValueError(
                         f"GitHub API request failed with status code {response.status}."
                     )
-
                 json_text = await response.json()
                 html_url = json_text["html_url"]
-
             await ctx.reply(f"New gist created at <{html_url}>")
 
-    @commands.command(name="repeat", aliases=["rep", "reinvoke"])
+    @commands.hybrid_command(name="repeat", aliases=["rep", "reinvoke"])
     async def repeat_command(self, ctx, n: int = 1, skip: int = 0):
         """Repeats the last command you used"""
         previous = ctx.bot.previous_command_ctxs
@@ -213,7 +211,7 @@ class Owner(commands.Cog):
                 except IndexError:
                     pass
 
-    @commands.command(aliases=["SQL"])
+    @commands.hybrid_command(aliases=["SQL"])
     async def sql(self, ctx, *, statement: str):
         """Execute a PostgreSQL statement"""
         _, statement, _ = await unwrap_code_block(statement)
@@ -222,18 +220,17 @@ class Owner(commands.Cog):
                 ret = await self.bot.db.fetch(statement)
             else:
                 ret = await self.bot.db.execute(statement)
-
-            await ctx.send(ret)
+            await ctx.send(ret, emphemeral=True)
             await ctx.message.add_reaction("✅")
         except Exception as e:
             await ctx.message.add_reaction("❗")
-            await ctx.reply(f"PostgreSQL error: {e}")
+            await ctx.reply(f"PostgreSQL error: {e}", emphemeral=True)
 
     #####################
     # log command group #
     #####################
 
-    @commands.group(invoke_without_command=True)
+    @commands.hybrid_group(invoke_without_command=True)
     async def log(self, ctx, log_level: int, *, message: str):
         """A group of commands for viewing and modifying the bot's logs
 
@@ -251,12 +248,15 @@ class Owner(commands.Cog):
             self.bot.logger.log(log_level, f"(`log` command)[{message}]")
             await ctx.message.add_reaction("✅")
         else:
-            await ctx.reply(f"❌ The bot's current log level is {self.bot.logger.level}")
+            await ctx.reply(
+                f"❌ The bot's current log level is {self.bot.logger.level}",
+                emphemeral=True,
+            )
 
     @log.command()
     async def level(self, ctx):
         """Shows the logger's current log level"""
-        await ctx.reply(self.bot.logger.level)
+        await ctx.reply(self.bot.logger.level, emphemeral=True)
 
     @log.command()
     async def send(self, ctx):
@@ -265,7 +265,7 @@ class Owner(commands.Cog):
             file_bytes = file.read()
             with io.BytesIO(file_bytes) as binary_stream:
                 discord_file = discord.File(binary_stream, "log")
-                await ctx.send(file=discord_file)
+                await ctx.send(file=discord_file, emphemeral=True)
 
     @log.command()
     async def clear(self, ctx):

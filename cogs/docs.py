@@ -46,7 +46,7 @@ class Docs(commands.Cog):
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.load_docs_urls())
 
-    @commands.group(invoke_without_command=True)
+    @commands.hybrid_group(invoke_without_command=True)
     @commands.guild_only()
     async def doc(self, ctx, *, query: str = None):
         """A group of commands for searching documentation

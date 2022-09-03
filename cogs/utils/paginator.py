@@ -21,6 +21,7 @@ class Paginator(discord.ui.View):
         suffix: str = "",
         timeout: Optional[float] = 180.0,
         filter_query: Optional[str] = None,
+        ephemeral: bool = False,
     ) -> None:
         """Creates a Paginator object.
 
@@ -44,6 +45,9 @@ class Paginator(discord.ui.View):
             entry, that entry will not be shown. If no entries contain the
             filter query, commands.BadArgument will be raised with an
             appropriate description.
+        ephemeral : bool
+            Whether the output should be visible to only the person who requested the
+            paginator.
         """
         super().__init__(timeout=timeout)
         self.title = title
@@ -54,6 +58,7 @@ class Paginator(discord.ui.View):
         self.prefix = prefix
         self.suffix = suffix
         self.filter_query = filter_query
+        self.ephemeral = ephemeral
         self.pages: list[str] = self.create_pages()
         self.page_index = 0
 
@@ -72,11 +77,11 @@ class Paginator(discord.ui.View):
     async def run(self, ctx) -> None:
         embed = discord.Embed(title=self.title, description="\n".join(self.pages[0]))
         if len(self.pages) == 1:
-            self.message = await ctx.send(embed=embed)
+            self.message = await ctx.send(embed=embed, ephemeral=self.ephemeral)
             return
         embed.set_footer(text=f"\u200b\npage {self.page_index + 1}/{len(self.pages)}")
         await self.on_first_page()
-        self.message = await ctx.send(embed=embed, view=self)
+        self.message = await ctx.send(embed=embed, view=self, ephemeral=self.ephemeral)
 
     async def on_timeout(self) -> None:
         await self.disable_all_buttons()

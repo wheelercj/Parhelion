@@ -50,7 +50,7 @@ class Tags(commands.Cog):
             # (though either content or file_url may be NULL regardless).
         )
 
-    @commands.group(invoke_without_command=True)
+    @commands.hybrid_group(invoke_without_command=True)
     async def tag(self, ctx, *, tag_name: str):
         """A group of commands for creating and viewing tags
 
@@ -130,7 +130,7 @@ class Tags(commands.Cog):
         title = f"{member.name}#{member.discriminator}'s tags"
         await self.paginate_tag_list(ctx, title, records)
 
-    @commands.command(hidden=True)
+    @commands.hybrid_command(hidden=True)
     async def tags(self, ctx, member: discord.Member = None):
         """Lists names of someone's tags on this server; an alias for `tag list`"""
         tag_list_command = self.bot.get_command("tag list")

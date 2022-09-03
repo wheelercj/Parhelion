@@ -199,15 +199,18 @@ class Bot(commands.Bot):
         if isinstance(error, commands.CommandNotFound):
             pass
         elif isinstance(error, commands.DisabledCommand):
-            await ctx.send("This command has been disabled.")
+            await ctx.send("This command has been disabled.", emphemeral=True)
         elif isinstance(error, commands.UserInputError):
-            await ctx.send(error)
+            await ctx.send(error, emphemeral=True)
         elif isinstance(error, commands.NotOwner):
-            await ctx.send("Only the owner can use this command.")
+            await ctx.send("Only the owner can use this command.", emphemeral=True)
         elif isinstance(error, commands.MissingRole):
             await ctx.send(
-                "You do not have the necessary role to use this command:"
-                f" {error.missing_role}"
+                (
+                    "You do not have the necessary role to use this command:"
+                    f" {error.missing_role}"
+                ),
+                emphemeral=True,
             )
         elif isinstance(error, commands.MissingPermissions):
             message = "You do not have the necessary permissions to use this command"
@@ -215,7 +218,7 @@ class Bot(commands.Bot):
                 message += ": " + error.missing_permissions
             except Exception:
                 pass
-            await ctx.send(message)
+            await ctx.send(message, emphemeral=True)
         elif isinstance(error, commands.BotMissingPermissions):
             perms_needed = ", ".join(error.missing_permissions).replace("_", " ")
             await ctx.send(
@@ -231,9 +234,11 @@ class Bot(commands.Bot):
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send("This command cannot be used in private messages.")
         elif isinstance(error, commands.CheckFailure):
-            await ctx.send("You do not have access to this command.")
+            await ctx.send("You do not have access to this command.", emphemeral=True)
         elif isinstance(error, commands.BadUnionArgument):
-            await ctx.send("Error: one or more inputs could not be understood.")
+            await ctx.send(
+                "Error: one or more inputs could not be understood.", emphemeral=True
+            )
         else:
             tb = traceback.format_exception(type(error), error, error.__traceback__)
             log_message = (
@@ -248,9 +253,11 @@ class Bot(commands.Bot):
                 if not self.error_is_reported:
                     await dev_mail(self, "I encountered and logged an error")
                     self.error_is_reported = True
-                await ctx.send("I encountered an error and notified my developer.")
+                await ctx.send(
+                    "I encountered an error and notified my developer.", emphemeral=True
+                )
             else:
-                await ctx.send("Unknown error.")
+                await ctx.send("Unknown error.", emphemeral=True)
                 if DevSettings.error_log_channel_id:
                     await dev_mail(
                         self,
@@ -262,8 +269,11 @@ class Bot(commands.Bot):
                     )
             if DevSettings.support_server_link:
                 await ctx.send(
-                    "If you would like to join the support server, here's"
-                    f" the link: {DevSettings.support_server_link}"
+                    (
+                        "If you would like to join the support server, here's"
+                        f" the link: {DevSettings.support_server_link}"
+                    ),
+                    emphemeral=True,
                 )
             print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)
             traceback.print_exception(
@@ -290,7 +300,8 @@ class Bot(commands.Bot):
         retry_after = bucket.update_rate_limit()
         if retry_after:
             await ctx.send(
-                f"Commands on cooldown. Please try again in {retry_after:.2f} seconds."
+                f"Commands on cooldown. Please try again in {retry_after:.2f} seconds.",
+                emphemeral=True,
             )
             raise commands.CommandOnCooldown(bucket, retry_after)
         return True

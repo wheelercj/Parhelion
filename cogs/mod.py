@@ -8,7 +8,7 @@ class Mod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="clean-up", aliases=["cleanup"])
+    @commands.hybrid_command(name="clean-up", aliases=["cleanup"])
     @commands.has_guild_permissions(manage_messages=True)
     @commands.bot_has_guild_permissions(read_message_history=True)
     async def clean_up(self, ctx, amount: int):
@@ -26,7 +26,7 @@ class Mod(commands.Cog):
         )
         await ctx.send(f":thumbsup: Deleted {len(deleted)} messages.", delete_after=8)
 
-    @commands.command(name="bulk-delete", aliases=["bulkdelete"])
+    @commands.hybrid_command(name="bulk-delete", aliases=["bulkdelete"])
     @commands.has_guild_permissions(manage_guild=True)
     @commands.bot_has_guild_permissions(read_message_history=True, manage_messages=True)
     async def bulk_delete(self, ctx, amount: int, member: discord.Member = None):

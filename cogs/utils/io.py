@@ -130,24 +130,26 @@ class Channel(commands.Converter):
 ##########
 
 
-async def safe_send(ctx, message: str, protect_postgres_host: bool = False) -> None:
+async def safe_send(
+    ctx, message: str, protect_postgres_host: bool = False, ephemeral: bool = False
+) -> None:
     """Same as ctx.send but with extra security options"""
     if protect_postgres_host:
         postgres_host = os.environ["postgres_host"]
         if postgres_host in message:
             message = message.replace(postgres_host, "(PostgreSQL host)")
-            await ctx.send(message)
+            await ctx.send(message, ephemeral=ephemeral)
             return
-    await ctx.send(message)
+    await ctx.send(message, ephemeral=ephemeral)
 
 
-async def send_traceback(ctx, error: BaseException) -> None:
+async def send_traceback(ctx, error: BaseException, ephemeral: bool = False) -> None:
     """Sends the traceback of an exception to ctx"""
     etype = type(error)
     trace = error.__traceback__
     lines = traceback.format_exception(etype, error, trace)
     traceback_text = "".join(lines)
-    await ctx.send(f"```\n{traceback_text}\n```")
+    await ctx.send(f"```\n{traceback_text}\n```", ephemeral=ephemeral)
 
 
 async def dev_mail(

@@ -37,7 +37,7 @@ class Notes(commands.Cog):
         # The paginator in the notes command allows 7 notes in each embed.
         # 7 * 500 = 3500, so there's some extra space for indexes, URLs, etc.
 
-    @commands.command(
+    @commands.hybrid_command(
         aliases=[
             "ns",
             "ln",
@@ -59,10 +59,11 @@ class Notes(commands.Cog):
             title=f"{ctx.author.display_name}'s notes",
             entries=_notes,
             length=7,
+            ephemeral=True,
         )
         await paginator.run(ctx)
 
-    @commands.command(aliases=["n", "todo"])
+    @commands.hybrid_command(aliases=["n", "todo"])
     async def note(self, ctx, *, text: str):
         """Creates a new note
 
@@ -83,9 +84,9 @@ class Notes(commands.Cog):
         _notes.append(text)
         jump_urls.append(ctx.message.jump_url)
         await self.save_notes(ctx, _notes, jump_urls)
-        await ctx.send(f"New note saved with an index of {len(_notes)}")
+        await ctx.send(f"New note saved with an index of {len(_notes)}", ephemeral=True)
 
-    @commands.command(name="edit-note", aliases=["en", "editnote"])
+    @commands.hybrid_command(name="edit-note", aliases=["en", "editnote"])
     async def edit_note(self, ctx, index: int, *, text: str):
         """Overwrites one of your existing notes"""
         await block_nsfw_channels(ctx.channel)
@@ -100,9 +101,9 @@ class Notes(commands.Cog):
         _notes[i] = text
         jump_urls[i] = ctx.message.jump_url
         await self.save_notes(ctx, _notes, jump_urls)
-        await ctx.send(f"Note {index} edited")
+        await ctx.send(f"Note {index} edited", ephemeral=True)
 
-    @commands.command(
+    @commands.hybrid_command(
         name="delete-note",
         aliases=["del-n", "deln", "del-note", "delnote", "deletenote"],
     )
@@ -137,9 +138,9 @@ class Notes(commands.Cog):
                 """,
                 ctx.author.id,
             )
-        await ctx.send(f"Deleted note {index}")
+        await ctx.send(f"Deleted note {index}", ephemeral=True)
 
-    @commands.command(name="swap-notes", aliases=["sn", "swapnotes"])
+    @commands.hybrid_command(name="swap-notes", aliases=["sn", "swapnotes"])
     async def swap_notes(self, ctx, index_1: int, index_2: int):
         """Swaps the order of two of your notes"""
         i = index_1 - 1
@@ -148,9 +149,9 @@ class Notes(commands.Cog):
         await self.validate_note_indexes(n, i, j)
         await self._swap_notes(n, urls, i, j)
         await self.save_notes(ctx, n, urls)
-        await ctx.send(f"Notes {i+1} and {j+1} swapped")
+        await ctx.send(f"Notes {i+1} and {j+1} swapped", ephemeral=True)
 
-    @commands.command(
+    @commands.hybrid_command(
         name="up-note", aliases=["un", "nu", "upnote", "note-up", "noteup"]
     )
     async def move_note_up(self, ctx, index: int):
@@ -158,7 +159,7 @@ class Notes(commands.Cog):
         swap_command = self.bot.get_command("swap-notes")
         await ctx.invoke(swap_command, index_1=index - 1, index_2=index)
 
-    @commands.command(
+    @commands.hybrid_command(
         name="down-note", aliases=["dn", "nd", "downnote", "note-down", "notedown"]
     )
     async def move_note_down(self, ctx, index: int):
@@ -166,7 +167,7 @@ class Notes(commands.Cog):
         swap_command = self.bot.get_command("swap-notes")
         await ctx.invoke(swap_command, index_1=index, index_2=index + 1)
 
-    @commands.command(
+    @commands.hybrid_command(
         name="top-note", aliases=["tn", "nt", "topnote", "note-top", "notetop"]
     )
     async def move_note_to_top(self, ctx, index: int):
@@ -174,7 +175,7 @@ class Notes(commands.Cog):
         swap_command = self.bot.get_command("swap-notes")
         await ctx.invoke(swap_command, index_1=1, index_2=index)
 
-    @commands.command(
+    @commands.hybrid_command(
         name="bottom-note",
         aliases=["bn", "nb", "bottomnote", "note-bottom", "notebottom"],
     )
@@ -264,9 +265,7 @@ class Notes(commands.Cog):
             """,
             author_id,
         )
-        if records:
-            return len(records)
-        return 0
+        return len(records) if records else 0
 
 
 async def setup(bot):

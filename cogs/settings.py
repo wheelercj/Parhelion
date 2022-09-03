@@ -354,7 +354,7 @@ class Settings(commands.Cog):
     # _timezone command group #
     ###########################
 
-    @commands.group(name="timezone", aliases=["tz"], invoke_without_command=True)
+    @commands.hybrid_group(name="timezone", aliases=["tz"], invoke_without_command=True)
     async def _timezone(self, ctx):
         """Shows your current timezone setting if you have one
 
@@ -373,7 +373,9 @@ class Settings(commands.Cog):
             ctx.author.id,
         )
         if timezone is not None:
-            await ctx.send(f"Your current timezone setting is `{timezone}`")
+            await ctx.send(
+                f"Your current timezone setting is `{timezone}`", emphemeral=True
+            )
         else:
             await ctx.send_help("timezone")
 
@@ -407,7 +409,7 @@ class Settings(commands.Cog):
         """
         timezone = await self.parse_timezone(timezone)
         await self.save_timezone(ctx, timezone)
-        await ctx.send(f"Your timezone has been set to `{timezone}`")
+        await ctx.send(f"Your timezone has been set to `{timezone}`", emphemeral=True)
 
     async def parse_timezone(self, timezone: str) -> str:
         """Validates and formats a timezone input"""
@@ -420,7 +422,7 @@ class Settings(commands.Cog):
                 " <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>"
             )
         except Exception as error:
-            raise commands.BadArgument(f"Unable to set timezone because of {error = }")
+            raise commands.BadArgument(f"Unable to set timezone because {error = }")
 
     async def save_timezone(self, ctx, timezone: str) -> None:
         """Saves a timezone string to the database
@@ -458,17 +460,20 @@ class Settings(commands.Cog):
         )
         if record is not None:
             await ctx.send(
-                "Your timezone setting has been deleted. Commands that need your input"
-                " about time will expect you to use the UTC timezone now."
+                (
+                    "Your timezone setting has been deleted. Commands that need your"
+                    " input about time will expect you to use the UTC timezone now."
+                ),
+                emphemeral=True,
             )
         else:
-            await ctx.send("You do not have a timezone setting.")
+            await ctx.send("You do not have a timezone setting.", emphemeral=True)
 
     ########################
     # prefix command group #
     ########################
 
-    @commands.group(invoke_without_command=True)
+    @commands.hybrid_group(invoke_without_command=True)
     @commands.has_guild_permissions(manage_guild=True)
     async def prefix(self, ctx):
         """A group of commands that manage the bot's command prefixes for this server"""
@@ -677,7 +682,7 @@ class Settings(commands.Cog):
     # setting command group #
     #########################
 
-    @commands.group(name="set", aliases=["setting"], invoke_without_command=True)
+    @commands.hybrid_group(name="set", aliases=["setting"], invoke_without_command=True)
     @commands.has_guild_permissions(manage_guild=True)
     async def setting(self, ctx, command_name: CommandName = None):
         """A group of commands for managing the bot's settings for this server
@@ -842,7 +847,8 @@ class Settings(commands.Cog):
                 await paginator.run(ctx)
             else:
                 await ctx.send(
-                    "No servers found with non-default settings for the bot."
+                    "No servers found with non-default settings for the bot.",
+                    emphemeral=True,
                 )
 
     @setting.command(name="rename")
@@ -868,10 +874,11 @@ class Settings(commands.Cog):
                 old_command_name
             )
             await ctx.send(
-                "Command renamed in the command settings table and dictionary."
+                "Command renamed in the command settings table and dictionary.",
+                emphemeral=True,
             )
         except KeyError:
-            await ctx.send("Command not found.")
+            await ctx.send("Command not found.", emphemeral=True)
 
     @setting.command(name="global", aliases=["g"])
     @commands.is_owner()

@@ -82,7 +82,7 @@ class Reminders(commands.Cog):
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.run_reminders())
 
-    @commands.group(
+    @commands.hybrid_group(
         aliases=["r", "reminder", "remindme", "timer"], invoke_without_command=True
     )
     async def remind(self, ctx, *, time_and_message: str):

@@ -24,9 +24,7 @@ from cogs.utils.time import parse_time_message
 
 def yes_or_no(boolean: bool) -> str:
     """Returns either 'yes' or 'no'"""
-    if boolean:
-        return "yes"
-    return "no"
+    return "yes" if boolean else "no"
 
 
 class MyHelp(commands.HelpCommand):
@@ -161,7 +159,7 @@ class Info(commands.Cog):
     def cog_unload(self):
         self.bot.help_command = self.old_help_command
 
-    @commands.command(name="time", aliases=["clock", "UTC", "utc"])
+    @commands.hybrid_command(name="time", aliases=["clock", "UTC", "utc"])
     async def _time(self, ctx):
         """Shows the current time in UTC"""
         current_time = await format_datetime(datetime.now(tz.utc))
@@ -172,7 +170,7 @@ class Info(commands.Cog):
         )
         await ctx.send(message)
 
-    @commands.command(name="timestamp", aliases=["ts"])
+    @commands.hybrid_command(name="timestamp", aliases=["ts"])
     async def _timestamp(self, ctx, *, time: str):
         """Shows how you can create timestamps that work with each device's timezone
 
@@ -207,18 +205,18 @@ class Info(commands.Cog):
     # bot info commands #
     #####################
 
-    @commands.command()
+    @commands.hybrid_command()
     async def prefixes(self, ctx):
         """Lists the bot's current prefixes for this server"""
         prefixes = await get_prefixes_message(self.bot, ctx.message)
         await ctx.send(f"My current {prefixes}")
 
-    @commands.command(hidden=True)
+    @commands.hybrid_command(hidden=True)
     async def ping(self, ctx):
         """Shows the bot's latency"""
         await ctx.send(f"Pong! Websocket latency: {self.bot.latency * 1000:.2f} ms")
 
-    @commands.command(hidden=True)
+    @commands.hybrid_command(hidden=True)
     async def uptime(self, ctx):
         """Shows the time since the bot last restarted"""
         _uptime = await self.get_uptime()
@@ -230,7 +228,7 @@ class Info(commands.Cog):
         time_message = await format_timedelta(_uptime)
         return time_message
 
-    @commands.command()
+    @commands.hybrid_command()
     async def stats(self, ctx):
         """Shows statistics about this bot"""
         embed = discord.Embed()
@@ -327,7 +325,7 @@ class Info(commands.Cog):
                         line_count += len(file.readlines())
         return line_count
 
-    @commands.command(hidden=True)
+    @commands.hybrid_command(hidden=True)
     async def invite(self, ctx):
         """Shows the link to invite this bot to another server"""
         bot_invite_link = await get_bot_invite_link(self.bot)
@@ -335,7 +333,7 @@ class Info(commands.Cog):
             f"Here's the link to invite me to another server: <{bot_invite_link}>"
         )
 
-    @commands.command(aliases=["contact", "server"], hidden=True)
+    @commands.hybrid_command(aliases=["contact", "server"], hidden=True)
     async def support(self, ctx):
         """Shows the link to this bot's support server"""
         if DevSettings.support_server_link:
@@ -346,12 +344,12 @@ class Info(commands.Cog):
         else:
             await ctx.send("A support server has not been set by the developer.")
 
-    @commands.command(aliases=["privacy-policy", "privacypolicy"], hidden=True)
+    @commands.hybrid_command(aliases=["privacy-policy", "privacypolicy"], hidden=True)
     async def privacy(self, ctx):
         """Shows the link to this bot's privacy policy"""
         await ctx.send(f"Here's my privacy policy: <{DevSettings.privacy_policy_link}>")
 
-    @commands.command()
+    @commands.hybrid_command()
     async def donate(self, ctx):
         """Help keep the server running and support the bot's development"""
         if DevSettings.donations_link:
@@ -365,7 +363,7 @@ class Info(commands.Cog):
                 " accepted."
             )
 
-    @commands.command(aliases=["i", "info"])
+    @commands.hybrid_command(aliases=["i", "info"])
     async def about(self, ctx):
         """Shows general info about this bot"""
         embed = discord.Embed()
@@ -404,12 +402,12 @@ class Info(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    @commands.command(hidden=True)
+    @commands.hybrid_command(hidden=True)
     async def source(self, ctx):
         """See the bot's source code!"""
         await ctx.send("https://github.com/wheelercj/Parhelion")
 
-    @commands.command()
+    @commands.hybrid_command()
     async def tips(self, ctx):
         """Shows tips on how to use this bot"""
         _tips = [
@@ -430,7 +428,7 @@ class Info(commands.Cog):
     # Discord info commands #
     #########################
 
-    @commands.command()
+    @commands.hybrid_command()
     @commands.guild_only()
     async def avatar(self, ctx, *, member: discord.Member):
         """Shows a member's avatar"""
@@ -439,7 +437,7 @@ class Info(commands.Cog):
         else:
             await ctx.send(member.avatar)
 
-    @commands.command(
+    @commands.hybrid_command(
         name="server-info",
         aliases=["si", "gi", "serverinfo", "guild-info", "guildinfo"],
     )
@@ -499,7 +497,7 @@ class Info(commands.Cog):
             features += "\n• " + feature.replace("_", " ").lower()
         return features
 
-    @commands.command(
+    @commands.hybrid_command(
         name="member-info",
         aliases=["mi", "ui", "whois", "who-is", "memberinfo", "user-info", "userinfo"],
     )
@@ -569,7 +567,7 @@ class Info(commands.Cog):
         else:
             return ""
 
-    @commands.command(name="role-info", aliases=["ri", "roleinfo"])
+    @commands.hybrid_command(name="role-info", aliases=["ri", "roleinfo"])
     @commands.guild_only()
     async def role_info(self, ctx, *, role: discord.Role):
         """Shows info about a role on the current server
@@ -600,7 +598,7 @@ class Info(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    @commands.command(name="permissions", aliases=["perms"])
+    @commands.hybrid_command(name="permissions", aliases=["perms"])
     @commands.guild_only()
     async def server_permissions(
         self, ctx, *, member_or_role: Union[discord.Member, discord.Role] = None
