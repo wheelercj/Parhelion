@@ -227,7 +227,8 @@ class Settings(commands.Cog):
                 LIMIT 1;
                 """
             )
-            self.all_bot_settings = json.loads(record["bot_settings"])
+            if record is not None:
+                self.all_bot_settings = json.loads(record["bot_settings"])
         except (
             OSError,
             discord.ConnectionClosed,
