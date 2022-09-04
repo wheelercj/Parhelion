@@ -1,6 +1,7 @@
 import os
 import traceback
 from typing import Optional
+from urllib.parse import quote_plus
 
 import discord  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
@@ -9,6 +10,33 @@ from discord.ext import commands  # https://pypi.org/project/discord.py/
 #########
 # input #
 #########
+
+
+class LinkButton(discord.ui.View):
+    """A button that opens a website when pressed"""
+
+    def __init__(self, label: str, url: str, query: str = ""):
+        """Creates a link button
+
+        Example uses:
+        await ctx.send(view=LinkButton("click here", "zombo.com"))
+        await ctx.send(view=LinkButton("search", "google.com/search?q=", user_input))
+
+        Parameters
+        ----------
+        label: str
+            The text that appears on the button.
+        url: str
+            The URL to the website to open when the button is pressed.
+        query: str
+            Text to append to the URL that may have characters that need to be escaped.
+        """
+        super().__init__()
+        if "://" not in url:
+            url = f"https://{url}"
+        if query:
+            url = f"{url}{quote_plus(query)}"
+        self.add_item(discord.ui.Button(label=label, url=url))
 
 
 async def unwrap_code_block(statement: str) -> tuple[str, str, str]:
@@ -134,12 +162,8 @@ async def safe_send(
     ctx, message: str, protect_postgres_host: bool = False, ephemeral: bool = False
 ) -> None:
     """Same as ctx.send but with extra security options"""
-    if protect_postgres_host:
-        postgres_host = os.environ["postgres_host"]
-        if postgres_host in message:
-            message = message.replace(postgres_host, "(PostgreSQL host)")
-            await ctx.send(message, ephemeral=ephemeral)
-            return
+    if protect_postgres_host and os.environ["postgres_host"] in message:
+        message = message.replace(os.environ["postgres_host"], "(PostgreSQL host)")
     await ctx.send(message, ephemeral=ephemeral)
 
 
