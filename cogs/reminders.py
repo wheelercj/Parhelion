@@ -147,7 +147,7 @@ class Reminders(commands.Cog):
         await paginator.run(ctx)
 
     @remind.command(name="delete", aliases=["del"])
-    async def delete_reminder(self, ctx, ID: int):
+    async def delete_reminder(self, ctx, id: int):
         """Deletes a reminder by its ID shown with the `remind list` command"""
         try:
             record = await self.bot.db.fetchrow(
@@ -157,7 +157,7 @@ class Reminders(commands.Cog):
                     AND author_id = $2
                 RETURNING *;
                 """,
-                ID,
+                id,
                 ctx.author.id,
             )
             if (
@@ -210,7 +210,7 @@ class Reminders(commands.Cog):
 
     @remind.command(name="mod-delete", aliases=["mdel", "moddelete"])
     @commands.has_guild_permissions(manage_messages=True)
-    async def mod_delete_reminder(self, ctx, reminder_ID: int):
+    async def mod_delete_reminder(self, ctx, reminder_id: int):
         """Delete's one of anyone's reminders made on this server"""
         try:
             record = await self.bot.db.fetch(
@@ -220,7 +220,7 @@ class Reminders(commands.Cog):
                     AND server_id = $2
                 RETURNING *;
                 """,
-                reminder_ID,
+                reminder_id,
                 ctx.guild.id,
             )
             if (

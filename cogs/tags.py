@@ -339,22 +339,22 @@ class Tags(commands.Cog):
         await ctx.send("This command is under construction.")
 
     ########################
-    # tag_ID command group #
+    # tag_id command group #
     ########################
 
     @tag.group(name="id")
-    async def tag_id(self, ctx, tag_ID: int = None):
+    async def tag_ID(self, ctx, tag_id: int = None):
         """A group of commands using tag IDs instead of tag names
 
         Without a subcommand, this command finds and shows a tag's contents.
         """
         view_tag_by_id_command = self.bot.get_command("tag id view")
-        await ctx.invoke(view_tag_by_id_command, tag_ID=tag_ID)
+        await ctx.invoke(view_tag_by_id_command, tag_id=tag_id)
 
-    @tag_id.command(name="view", aliases=["v"])
-    async def view_tag_by_id(self, ctx, tag_ID: int = None):
+    @tag_ID.command(name="view", aliases=["v"])
+    async def view_tag_by_id(self, ctx, tag_id: int = None):
         """An alias for `tag id`; finds and shows a tag's contents"""
-        if tag_ID is None:
+        if tag_id is None:
             await ctx.send_help("tag id")
             return
         record = await self.bot.db.fetchrow(
@@ -365,13 +365,13 @@ class Tags(commands.Cog):
                 AND server_id = $2
             RETURNING *;
             """,
-            tag_ID,
+            tag_id,
             ctx.guild.id,
         )
         await self.send_tag_contents(ctx, record)
 
-    @tag_id.command(name="info", aliases=["i"])
-    async def tag_info_by_id(self, ctx, tag_ID: int):
+    @tag_ID.command(name="info", aliases=["i"])
+    async def tag_info_by_id(self, ctx, tag_id: int):
         """Shows info about a tag"""
         record = await self.bot.db.fetchrow(
             """
@@ -380,13 +380,13 @@ class Tags(commands.Cog):
             WHERE id = $1
                 AND server_id = $2;
             """,
-            tag_ID,
+            tag_id,
             ctx.guild.id,
         )
         await self.send_tag_info(ctx, record)
 
-    @tag_id.command(name="edit", aliases=["e"])
-    async def edit_tag_by_id(self, ctx, tag_ID: int, *, new_content: str):
+    @tag_ID.command(name="edit", aliases=["e"])
+    async def edit_tag_by_id(self, ctx, tag_id: int, *, new_content: str):
         """Rewrites one of your tags
 
         If the tag has an attachment, the message in which the tag was edited must not
@@ -401,7 +401,7 @@ class Tags(commands.Cog):
                 AND owner_id = $2
                 AND server_id = $3;
             """,
-            tag_ID,
+            tag_id,
             ctx.author.id,
             ctx.guild.id,
         )
@@ -411,8 +411,8 @@ class Tags(commands.Cog):
             raise commands.BadArgument("You cannot edit a tag alias.")
         await self.handle_tag_edit(ctx, record, new_content)
 
-    @tag_id.command(name="delete", aliases=["del"])
-    async def delete_tag_by_id(self, ctx, tag_ID: int):
+    @tag_ID.command(name="delete", aliases=["del"])
+    async def delete_tag_by_id(self, ctx, tag_id: int):
         """Deletes one of your tags (or aliases) and all aliases it may have"""
         record = await self.bot.db.fetchrow(
             """
@@ -422,15 +422,15 @@ class Tags(commands.Cog):
                 AND server_id = $3
             RETURNING *;
             """,
-            tag_ID,
+            tag_id,
             ctx.author.id,
             ctx.guild.id,
         )
         await self.handle_tag_cleanup(ctx, record)
 
-    @tag_id.command(name="mod-delete", aliases=["mdel", "moddelete"])
+    @tag_ID.command(name="mod-delete", aliases=["mdel", "moddelete"])
     @commands.has_guild_permissions(manage_messages=True)
-    async def mod_delete_tag_by_id(self, ctx, tag_ID: int):
+    async def mod_delete_tag_by_id(self, ctx, tag_id: int):
         """Deletes one of anyone's tags (or aliases) and all aliases it may have"""
         record = await self.bot.db.fetchrow(
             """
@@ -439,13 +439,13 @@ class Tags(commands.Cog):
                 AND server_id = $2
             RETURNING *;
             """,
-            tag_ID,
+            tag_id,
             ctx.guild.id,
         )
         await self.handle_tag_cleanup(ctx, record)
 
-    @tag_id.command(name="claim", aliases=["cl"])
-    async def claim_tag_by_id(self, ctx, tag_ID: int):
+    @tag_ID.command(name="claim", aliases=["cl"])
+    async def claim_tag_by_id(self, ctx, tag_id: int):
         """Gives you ownership of a tag if its owner left the server"""
         await self.check_tag_ownership_permission(ctx, ctx.author)
         record = await self.bot.db.fetchrow(
@@ -455,7 +455,7 @@ class Tags(commands.Cog):
             WHERE id = $1
                 AND server_id = $2;
             """,
-            tag_ID,
+            tag_id,
             ctx.guild.id,
         )
         if record is None:
@@ -467,8 +467,8 @@ class Tags(commands.Cog):
             raise commands.BadArgument("The tag's owner is still in this server.")
         await self.handle_tag_transfer(ctx, record, ctx.author)
 
-    @tag_id.command(name="transfer", aliases=["t"])
-    async def transfer_tag_by_id(self, ctx, member: discord.Member, tag_ID: int):
+    @tag_ID.command(name="transfer", aliases=["t"])
+    async def transfer_tag_by_id(self, ctx, member: discord.Member, tag_id: int):
         """Gives a server member ownership of one of your tags"""
         await self.check_tag_ownership_permission(ctx, member)
         record = await self.bot.db.fetchrow(
@@ -478,7 +478,7 @@ class Tags(commands.Cog):
             WHERE id = $1
                 AND server_id = $2;
             """,
-            tag_ID,
+            tag_id,
             ctx.guild.id,
         )
         if record is None:
@@ -487,8 +487,8 @@ class Tags(commands.Cog):
             raise commands.BadArgument("This tag does not belong to you.")
         await self.handle_tag_transfer(ctx, record, member)
 
-    @tag_id.command(name="raw", aliases=["r"])
-    async def get_raw_tag_by_id(self, ctx, tag_ID: int):
+    @tag_ID.command(name="raw", aliases=["r"])
+    async def get_raw_tag_by_id(self, ctx, tag_id: int):
         """Shows the unrendered text content of a tag"""
         record = await self.bot.db.fetchrow(
             """
@@ -498,13 +498,13 @@ class Tags(commands.Cog):
                 AND server_id = $2
             RETURNING *;
             """,
-            tag_ID,
+            tag_id,
             ctx.guild.id,
         )
         await self.send_tag_contents(ctx, record, send_raw=True)
 
-    @tag_id.command(name="alias")
-    async def create_tag_alias_by_id(self, ctx, tag_ID: int, *, new_alias: str):
+    @tag_ID.command(name="alias")
+    async def create_tag_alias_by_id(self, ctx, tag_id: int, *, new_alias: str):
         """Creates another name for an existing tag"""
         await self.check_tag_ownership_permission(ctx, ctx.author)
         await self.validate_new_tag_info(new_alias, server_id=ctx.guild.id)
@@ -515,13 +515,13 @@ class Tags(commands.Cog):
             WHERE id = $1
                 AND server_id = $2;
             """,
-            tag_ID,
+            tag_id,
             ctx.guild.id,
         )
         await self.handle_tag_alias_creation(ctx, record, new_alias)
 
-    @tag_id.command(name="stats", hidden=True)
-    async def tag_stats_by_id(self, ctx, tag_ID: int):
+    @tag_ID.command(name="stats", hidden=True)
+    async def tag_stats_by_id(self, ctx, tag_id: int):
         """Shows tag statistics about a member or the server"""
         # TODO
         await ctx.send("This command is under construction.")
@@ -746,7 +746,7 @@ class Tags(commands.Cog):
             else:
                 await ctx.send(f'Successfully deleted tag "{tag_name}".')
 
-    async def delete_tag_aliases(self, ctx, tag_name: str, tag_ID: int) -> int:
+    async def delete_tag_aliases(self, ctx, tag_name: str, tag_id: int) -> int:
         """Deletes any aliases if and only if tag_name is not an alias
 
         Returns the number of aliases deleted.
@@ -756,7 +756,7 @@ class Tags(commands.Cog):
             DELETE FROM tags
             WHERE parent_tag_id = $1;
             """,
-            tag_ID,
+            tag_id,
         )
         n_deleted = int(ret.replace("DELETE ", ""))
         return n_deleted
