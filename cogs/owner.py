@@ -47,10 +47,10 @@ class Owner(commands.Cog):
         if cmds_without_docs:
             cmds_without_docs = "\n".join(cmds_without_docs)
             await ctx.send(
-                f"Commands without a docstring:\n{cmds_without_docs}", emphemeral=True
+                f"Commands without a docstring:\n{cmds_without_docs}", ephemeral=True
             )
         else:
-            await ctx.send("All commands have a docstring.", emphemeral=True)
+            await ctx.send("All commands have a docstring.", ephemeral=True)
 
     @commands.hybrid_command()
     async def leave(self, ctx, *, server_name: str = None):
@@ -88,7 +88,7 @@ class Owner(commands.Cog):
     async def reset_error_reporting(self, ctx):
         """Allows dev mail about the next unexpected error"""
         self.bot.error_is_reported = False
-        await ctx.send("`self.bot.error_is_reported` has been reset", emphemeral=True)
+        await ctx.send("`self.bot.error_is_reported` has been reset", ephemeral=True)
 
     @commands.hybrid_command(
         name="list-servers",
@@ -106,7 +106,7 @@ class Owner(commands.Cog):
         """Lists the names of all servers the bot is in"""
         servers = [server.name for server in self.bot.guilds]
         servers = "\n".join(servers)
-        await ctx.send(f"I am in the following servers:\n{servers}", emphemeral=True)
+        await ctx.send(f"I am in the following servers:\n{servers}", ephemeral=True)
 
     @commands.hybrid_command(name="server-id", aliases=["sid", "serverid"])
     async def get_server_id(self, ctx, *, server_name: str):
@@ -120,10 +120,10 @@ class Owner(commands.Cog):
         sent = False
         for server in servers:
             if server_name == server.name:
-                await ctx.send(server.id, emphemeral=True)
+                await ctx.send(server.id, ephemeral=True)
                 sent = True
         if not sent:
-            await ctx.send("No servers found with that name.", emphemeral=True)
+            await ctx.send("No servers found with that name.", ephemeral=True)
 
     @commands.hybrid_command()
     async def memory(self, ctx):
@@ -220,11 +220,11 @@ class Owner(commands.Cog):
                 ret = await self.bot.db.fetch(statement)
             else:
                 ret = await self.bot.db.execute(statement)
-            await ctx.send(ret, emphemeral=True)
+            await ctx.send(ret, ephemeral=True)
             await ctx.message.add_reaction("✅")
         except Exception as e:
             await ctx.message.add_reaction("❗")
-            await ctx.reply(f"PostgreSQL error: {e}", emphemeral=True)
+            await ctx.reply(f"PostgreSQL error: {e}", ephemeral=True)
 
     #####################
     # log command group #
@@ -250,13 +250,13 @@ class Owner(commands.Cog):
         else:
             await ctx.reply(
                 f"❌ The bot's current log level is {self.bot.logger.level}",
-                emphemeral=True,
+                ephemeral=True,
             )
 
     @log.command()
     async def level(self, ctx):
         """Shows the logger's current log level"""
-        await ctx.reply(self.bot.logger.level, emphemeral=True)
+        await ctx.reply(self.bot.logger.level, ephemeral=True)
 
     @log.command()
     async def send(self, ctx):
@@ -265,7 +265,7 @@ class Owner(commands.Cog):
             file_bytes = file.read()
             with io.BytesIO(file_bytes) as binary_stream:
                 discord_file = discord.File(binary_stream, "log")
-                await ctx.send(file=discord_file, emphemeral=True)
+                await ctx.send(file=discord_file, ephemeral=True)
 
     @log.command()
     async def clear(self, ctx):
@@ -289,7 +289,9 @@ class Owner(commands.Cog):
         Without a subcommand, this command syncs all global commands globally.
 
         Sync when a slash command changes, unless the change made was only to its
-        function's body or a library-side check.
+        function's body or a library-side check. When syncing a bot's slash commands for
+        the first time, use ``jishaku sync .`` first because it can give more feedback
+        if something is wrong.
         """
         synced = await ctx.bot.tree.sync()
         await ctx.send(f"Synced {len(synced)} global slash commands globally.")

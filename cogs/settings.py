@@ -375,7 +375,7 @@ class Settings(commands.Cog):
         )
         if timezone is not None:
             await ctx.send(
-                f"Your current timezone setting is `{timezone}`", emphemeral=True
+                f"Your current timezone setting is `{timezone}`", ephemeral=True
             )
         else:
             await ctx.send_help("timezone")
@@ -410,7 +410,7 @@ class Settings(commands.Cog):
         """
         timezone = await self.parse_timezone(timezone)
         await self.save_timezone(ctx, timezone)
-        await ctx.send(f"Your timezone has been set to `{timezone}`", emphemeral=True)
+        await ctx.send(f"Your timezone has been set to `{timezone}`", ephemeral=True)
 
     async def parse_timezone(self, timezone: str) -> str:
         """Validates and formats a timezone input"""
@@ -465,10 +465,10 @@ class Settings(commands.Cog):
                     "Your timezone setting has been deleted. Commands that need your"
                     " input about time will expect you to use the UTC timezone now."
                 ),
-                emphemeral=True,
+                ephemeral=True,
             )
         else:
-            await ctx.send("You do not have a timezone setting.", emphemeral=True)
+            await ctx.send("You do not have a timezone setting.", ephemeral=True)
 
     ########################
     # prefix command group #
@@ -849,7 +849,7 @@ class Settings(commands.Cog):
             else:
                 await ctx.send(
                     "No servers found with non-default settings for the bot.",
-                    emphemeral=True,
+                    ephemeral=True,
                 )
 
     @setting.command(name="rename")
@@ -876,10 +876,10 @@ class Settings(commands.Cog):
             )
             await ctx.send(
                 "Command renamed in the command settings table and dictionary.",
-                emphemeral=True,
+                ephemeral=True,
             )
         except KeyError:
-            await ctx.send("Command not found.", emphemeral=True)
+            await ctx.send("Command not found.", ephemeral=True)
 
     @setting.command(name="global", aliases=["g"])
     @commands.is_owner()

@@ -187,9 +187,9 @@ class Other(commands.Cog):
         low = int(low)
         high = int(high)
         if low <= high:
-            await ctx.send(str(random.randint(low, high)), emphemeral=True)
+            await ctx.send(f"`{str(random.randint(low, high))}` (range: {low}–{high})")
         else:
-            await ctx.send(str(random.randint(high, low)), emphemeral=True)
+            await ctx.send(f"`{str(random.randint(high, low))}` (range: {high}–{low})")
 
     @commands.hybrid_command(
         name="flip-coin", aliases=["flip", "flipcoin"], hidden=True
@@ -212,7 +212,7 @@ class Other(commands.Cog):
         choices_made = []
         for _ in range(0, choice_count):
             choices_made.append(random.choice(choices_))
-        await ctx.send("".join(choices_made), emphemeral=True)
+        await ctx.send("".join(choices_made), ephemeral=True)
 
     @choose.error
     async def choose_error(self, ctx, error):
