@@ -14,15 +14,15 @@ async def get_bot_invite_link(bot) -> str:
     # Permissions docs:
     # https://discordpy.readthedocs.io/en/latest/api.html?#discord.Permissions
     perms = discord.Permissions.none()
-    # Text channel permissions.
+    perms.add_reactions = True
+    perms.attach_files = True
+    perms.embed_links = True
+    perms.manage_messages = True
+    perms.mention_everyone = True
+    perms.read_message_history = True
     perms.read_messages = True
     perms.send_messages = True
-    perms.embed_links = True
-    perms.attach_files = True
-    perms.add_reactions = True
-    perms.mention_everyone = True
-    perms.manage_messages = True
-    perms.read_message_history = True
+    perms.use_application_commands = True
     bot_invite_link = discord.utils.oauth_url(bot.user.id, permissions=perms)
     return bot_invite_link
 
