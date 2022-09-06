@@ -410,10 +410,15 @@ class Owner(commands.Cog):
 
     @sync.command(name="clear", aliases=["reset"])
     async def clear_(self, ctx):
-        """Clears the current server's slash commands"""
+        """Clears all global slash commands globally"""
         async with ctx.typing():
-            ctx.bot.tree.clear_commands(guild=ctx.guild)
-        await ctx.send("Cleared this server's slash commands.")
+            ctx.bot.tree.clear_commands(guild=None)
+            try:
+                await ctx.bot.tree.sync()
+            except Exception as e:
+                await send_traceback(ctx, e)
+            else:
+                await ctx.send("Cleared all global slash commands globally.")
 
     @sync.command(name="resync-server", aliases=["rs"])
     @commands.guild_only()
