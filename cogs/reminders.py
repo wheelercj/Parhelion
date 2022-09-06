@@ -105,10 +105,14 @@ class Reminders(commands.Cog):
     async def remind(self, ctx, *, time_and_message: str):
         """Sends you a reminder
 
-        Enter a time (or duration) in front of your reminder message. You can use
-        natural language for this, such as `remind friday at noon buy oranges` or
-        `remind in 2 days 3 hours continue the project` or many more options. If you
-        have not chosen a timezone with the `timezone set` command, UTC will be assumed.
+        If you have not chosen a timezone with the `timezone set` command, UTC will be
+        assumed.
+
+        Parameters
+        ----------
+        time_and_message: str
+            A description of when you want to receive the reminder followed by what you
+            want to be reminded of.
         """
         await block_nsfw_channels(ctx.channel)
         await self.check_reminder_ownership_permission(ctx.author.id)
@@ -133,7 +137,14 @@ class Reminders(commands.Cog):
 
     @remind.command(name="create", aliases=["c"])
     async def create_reminder(self, ctx, *, time_and_message: str):
-        """Sends you a reminder; this command is an alias for `remind`"""
+        """Sends you a reminder
+
+        Parameters
+        ----------
+        time_and_message: str
+            A description of when you want to receive the reminder followed by what you
+            want to be reminded of.
+        """
         remind_command = self.bot.get_command("remind")
         await ctx.invoke(remind_command, time_and_message=time_and_message)
 
@@ -166,7 +177,14 @@ class Reminders(commands.Cog):
 
     @remind.command(name="delete", aliases=["del"])
     async def delete_reminder(self, ctx, id: int):
-        """Deletes a reminder by its ID shown with the `remind list` command"""
+        """Deletes a reminder by its ID shown with the `remind list` command
+
+        Parameters
+        ----------
+        id: int
+            The ID of the reminder to delete. Reminder IDs can be seen with the `remind
+            list` command.
+        """
         try:
             record = await self.bot.db.fetchrow(
                 """
@@ -235,7 +253,13 @@ class Reminders(commands.Cog):
     @remind.command(name="mod-delete", aliases=["mdel", "moddelete"])
     @commands.has_guild_permissions(manage_messages=True)
     async def mod_delete_reminder(self, ctx, reminder_id: int):
-        """Delete's one of anyone's reminders made on this server"""
+        """Delete's one of anyone's reminders made on this server
+
+        Parameters
+        ----------
+        reminder_id: int
+            The ID of the reminder to delete.
+        """
         try:
             record = await self.bot.db.fetch(
                 """

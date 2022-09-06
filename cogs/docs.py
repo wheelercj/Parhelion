@@ -52,6 +52,11 @@ class Docs(commands.Cog):
         """A group of commands for searching documentation
 
         Without a subcommand, this command searches this server's chosen documentation.
+
+        Parameters
+        ----------
+        query: Optional[str]
+            A search term to filter by.
         """
         doc_search_command = self.bot.get_command("doc search")
         await ctx.invoke(doc_search_command, query=query)
@@ -59,7 +64,13 @@ class Docs(commands.Cog):
     @doc.command(name="search")
     @commands.guild_only()
     async def search_doc(self, ctx, *, query: str = None):
-        """An alias for `doc`; searches this server's chosen documentation"""
+        """Searches this server's chosen documentation
+
+        Parameters
+        ----------
+        query: Optional[str]
+            A search term to filter by.
+        """
         try:
             url = self.docs_urls[ctx.guild.id]
         except KeyError:
@@ -103,6 +114,11 @@ class Docs(commands.Cog):
 
         Currently, each server can only have one documentation URL.
         Here's an example of a valid URL: `https://discordpy.readthedocs.io/en/latest`
+
+        Parameters
+        ----------
+        url: str
+            A ReadTheDocs URL.
         """
         if "readthedocs" not in url:
             raise commands.BadArgument(

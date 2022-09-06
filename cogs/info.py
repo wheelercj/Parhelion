@@ -16,6 +16,7 @@ from cogs.utils.common import get_bot_invite_link
 from cogs.utils.common import get_prefixes_list
 from cogs.utils.common import get_prefixes_message
 from cogs.utils.paginator import Paginator
+from cogs.utils.time import create_long_datetime_stamp
 from cogs.utils.time import create_relative_timestamp
 from cogs.utils.time import format_datetime
 from cogs.utils.time import format_timedelta
@@ -159,11 +160,11 @@ class Info(commands.Cog):
     def cog_unload(self):
         self.bot.help_command = self.old_help_command
 
-    @commands.hybrid_command(name="time", aliases=["clock", "UTC", "utc"])
+    @commands.hybrid_command(name="time", aliases=["clock", "utc"])
     async def _time(self, ctx):
         """Shows the current time in UTC"""
         current_time = await format_datetime(datetime.now(tz.utc))
-        now_timestamp = await create_relative_timestamp(datetime.now(tz.utc))
+        now_timestamp = await create_long_datetime_stamp(datetime.now(tz.utc))
         message = (
             f"The current time in UTC is {current_time}\n"
             f"The current time in your device's timezone is {now_timestamp}"
@@ -178,6 +179,11 @@ class Info(commands.Cog):
         paste a raw timestamp into your discord messages. If you have not chosen a
         timezone with the `timezone set` command, UTC will be assumed. The unusual
         number that appears in the raw timestamps is the Unix time.
+
+        Parameters
+        ----------
+        time: str
+            A description of the date and/or time for the timestamp.
         """
         dt, _ = await parse_time_message(ctx, time)
         unix_time = int(dt.timestamp())
@@ -236,7 +242,11 @@ class Info(commands.Cog):
             bot_loc = self.count_bot_loc()
         except UnicodeDecodeError:
             bot_loc = -1
-        author_cmd_count = await self.count_available_cmds(ctx)
+        if ctx.interaction:
+            author_cmd_count = ""
+        else:
+            n = await self.count_available_cmds(ctx)
+            author_cmd_count = f"commands {ctx.author} can use here: {n}\n"
         embed.add_field(
             name="stats",
             value=dedent(
@@ -247,8 +257,7 @@ class Info(commands.Cog):
                 users: {len(self.bot.users)}
                 commands: {len(self.bot.commands)}
                 commands used since last restart: {self.bot.command_use_count}
-                commands {ctx.author} can use here: {author_cmd_count}
-                lines of code: {bot_loc}
+                {author_cmd_count}lines of code: {bot_loc}
                 Python files: {self.count_bot_files()}
                 """
             ),
@@ -431,7 +440,13 @@ class Info(commands.Cog):
     @commands.hybrid_command()
     @commands.guild_only()
     async def avatar(self, ctx, *, member: discord.Member):
-        """Shows a member's avatar"""
+        """Shows a member's avatar
+
+        Parameters
+        ----------
+        member: discord.Member
+            The member to view the avatar of.
+        """
         if member.avatar is None:
             await ctx.send(f"{member.nick} does not have an avatar.")
         else:
@@ -506,6 +521,11 @@ class Info(commands.Cog):
         """Shows info about a member of the current server
 
         To see member permissions, use the `info perms` command.
+
+        Parameters
+        ----------
+        member: discord.Member
+            The member to view info about.
         """
         creation_timestamp = await create_relative_timestamp(member.created_at)
         join_timestamp = await create_relative_timestamp(member.joined_at)
@@ -573,6 +593,11 @@ class Info(commands.Cog):
         """Shows info about a role on the current server
 
         To see role permissions, use the `info perms` command.
+
+        Parameters
+        ----------
+        role: discord.Role
+            The role to view info about.
         """
         managing_bot = None
         creation_timestamp = await create_relative_timestamp(role.created_at)
@@ -608,6 +633,11 @@ class Info(commands.Cog):
         If a user and role have the same ID and/or name, the permissions for the user
         will be shown. User permissions include the permissions for all roles that user
         has.
+
+        Parameters
+        ----------
+        member_or_role: Optional[Union[discord.Member, discord.Role]]
+            The member or role to view permissions of.
         """
         if member_or_role is None:
             member_or_role = ctx.author

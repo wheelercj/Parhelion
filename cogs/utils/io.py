@@ -167,7 +167,7 @@ async def safe_send(
     await ctx.send(message, ephemeral=ephemeral)
 
 
-async def send_traceback(ctx, error: BaseException, ephemeral: bool = False) -> None:
+async def send_traceback(ctx, error: BaseException, ephemeral: bool = True) -> None:
     """Sends the traceback of an exception to ctx"""
     etype = type(error)
     trace = error.__traceback__

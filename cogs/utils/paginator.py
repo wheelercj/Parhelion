@@ -7,8 +7,8 @@ from discord.ext import commands  # https://pypi.org/project/discord.py/
 class Paginator(discord.ui.View):
     """A paginator with interactive buttons.
 
-    This paginator uses embeds. Currently, it cannot be ephemeral and may or
-    may not fully support persistence.
+    This paginator uses embeds. Currently, it may or may not fully support
+    persistence.
     """
 
     def __init__(

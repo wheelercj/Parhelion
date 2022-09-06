@@ -14,10 +14,13 @@ class Mod(commands.Cog):
     async def clean_up(self, ctx, amount: int):
         """Deletes some of this bot's previous messages in the current channel
 
-        The amount argument specifies how many messages to
-        search through, not necessarily how many to delete.
-        This cannot be undone or stopped once it begins. You may
-        not be able to delete messages more than 14 days old.
+        This cannot be undone or stopped once it begins. You may not be able to delete
+        messages more than 14 days old.
+
+        Parameters
+        ----------
+        amount: int
+            The number of messages in this channel to delete this bot's messages within.
         """
         deleted = await ctx.channel.purge(
             limit=amount,
@@ -26,17 +29,23 @@ class Mod(commands.Cog):
         )
         await ctx.send(f":thumbsup: Deleted {len(deleted)} messages.", delete_after=8)
 
-    @commands.hybrid_command(name="bulk-delete", aliases=["bulkdelete"])
+    @commands.hybrid_command(name="bulk-delete")
     @commands.has_guild_permissions(manage_guild=True)
     @commands.bot_has_guild_permissions(read_message_history=True, manage_messages=True)
     async def bulk_delete(self, ctx, amount: int, member: discord.Member = None):
         """Deletes some of the previous messages in the current channel
 
-        If a user is specified, only their messages will be
-        deleted. The amount argument specifies how many messages
-        to search through, not necessarily how many to delete.
-        This cannot be undone or stopped once it begins. You may
-        not be able to delete messages more than 14 days old.
+        This cannot be undone or stopped once it begins. You may not be able to delete
+        messages more than 14 days old. If a member is chosen, only their messages will
+        be deleted and only if they are within the last chosen amount of anyone's
+        messages in the channel.
+
+        Parameters
+        ----------
+        amount: int
+            The maximum number of previous messages in the current channel to delete.
+        member: Optional[discord.Member]
+            The member to delete messages of.
         """
         if member is None:
             deleted = await ctx.channel.purge(limit=amount)

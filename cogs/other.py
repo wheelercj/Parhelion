@@ -120,6 +120,11 @@ class Other(commands.Cog):
         Text is posted publicly on Mystb.in and cannot be edited or deleted once posted.
         Attachments stay on Discord's servers until deleted. For text, you can use a
         code block. Not all file types work for attachments.
+
+        Parameters
+        ----------
+        text: Optional[str]
+            The message to permanently and publicly post on Mystb.in.
         """
         await block_nsfw_channels(ctx.channel)
         async with ctx.typing():
@@ -146,6 +151,11 @@ class Other(commands.Cog):
         Evaluates multiple expressions if they're on separate lines, and
         allows you to use a code block. Uses the math.js API:
         https://mathjs.org/docs/expressions/syntax.html
+
+        Parameters
+        ----------
+        expression: str
+            The math expression to evaluate.
         """
         # The math.js API has a 10 second duration limit per evaluation and
         # allows a maximum of 10,000 requests per day (or 25 requests per 216
@@ -183,7 +193,15 @@ class Other(commands.Cog):
 
     @commands.hybrid_command(name="random", aliases=["rand"], hidden=True)
     async def rand(self, ctx, low: int = 1, high: int = 6):
-        """Gives a random number"""
+        """Gives a random number
+
+        Parameters
+        ----------
+        low: int
+            The lowest possible number.
+        high: int
+            The highest possible number.
+        """
         low = int(low)
         high = int(high)
         if low <= high:
@@ -206,13 +224,18 @@ class Other(commands.Cog):
     async def choose(self, ctx, choice_count: int, choices: str):
         """Chooses randomly from multiple choices
 
-        Separate the choices with spaces.
+        Parameters
+        ----------
+        choice_count: int
+            The number of choices to make.
+        choices: str
+            The space-separated choices to choose from.
         """
         choices_: list[str] = choices.split(" ")
         choices_made = []
         for _ in range(0, choice_count):
             choices_made.append(random.choice(choices_))
-        await ctx.send("".join(choices_made), ephemeral=True)
+        await ctx.send(" ".join(choices_made), ephemeral=True)
 
     @choose.error
     async def choose_error(self, ctx, error):
@@ -230,7 +253,15 @@ class Other(commands.Cog):
 
     @commands.hybrid_command(aliases=["rotate", "rot", "shift"], hidden=True)
     async def cipher(self, ctx, n: int, *, message: str):
-        """Rotates each letter n letters through the alphabet"""
+        """Rotates each letter n letters through the alphabet
+
+        Parameters
+        ----------
+        n: int
+            The number of letters of the alphabet to rotate through.
+        message: str
+            The message to encipher.
+        """
         message = message.lower()
         new_string = ""
         alphabet = "abcdefghijklmnopqrstuvwxyz"
@@ -254,9 +285,24 @@ class Other(commands.Cog):
         """A group of commands for running code in almost any language
 
         Without a subcommand, this command runs code in almost any language.
-        You can use a markdown-style code block and specify a language.
+
+        Parameters
+        ----------
+        code_block: str
+            The markdown-style block of code to run.
         """
-        # https://pypi.org/project/async-tio/
+        cmd = self.bot.get_command("run code")
+        await ctx.invoke(cmd, code_block=code_block)
+
+    @_run.command(aliases=["c"])
+    async def code(self, ctx, *, code_block: str):
+        """Runs code in almost any language
+
+        Parameters
+        ----------
+        code_block: str
+            The markdown-style block of code to run.
+        """
         async with ctx.typing():
             if "```" in code_block:
                 language, expression, inputs = await unwrap_code_block(code_block)
@@ -276,6 +322,89 @@ class Other(commands.Cog):
                     expression, language=language, inputs=inputs
                 )
             await ctx.send(f"`{language}` output:\n{response.stdout}")
+
+    @_run.command(name="guide", aliases=["g", "i", "h", "info", "help"])
+    async def exec_guide(self, ctx):
+        """Explains some of the nuances of the `run` command"""
+        text = dedent(
+            """
+            With the `run` command, you can use a triple-backtick code block
+            and specify a language on its first line. Any input after the
+            closing triple backticks will be used as inputs for the program
+            (you can hold shift while pressing enter to go to the next line if
+            necessary). Many languages can automatically wrap your code with a
+            main function and commonly used imports if you do not include them.
+            You can use the `run jargon <language>` command to see what code
+            may be automatically added in front of your input if you omit the
+            main function header.
+
+            Some language names will be changed before the code is executed:
+            c → c-clang
+            c++ or cpp → cpp-clang
+            c# or cs → cs-csc
+            f# or fs → fs-core
+            java → java-openjdk
+            js or javascript → javascript-node
+            objective-c → objective-c-clang
+            py or python → python3
+            swift → swift4
+
+            After this processing, the `run` command sends your code to
+            https://tio.run and receives any outputs specified in your code. If
+            you would like similar functionality in your terminal, check out
+            https://github.com/wheelercj/tias
+            """
+        )
+        paginator = Paginator("`run` guide", text.split("\n\n"), length=1)
+        await paginator.run(ctx)
+
+    @_run.command(name="languages", aliases=["l", "s", "langs", "list", "search"])
+    async def list_programming_languages(self, ctx, *, query: str = None):
+        """Lists languages the `run` command supports, optionally filtered
+
+        For example, `run languages py` will only show languages that contain `py`. You
+        can also see a full list of supported languages here: https://tio.run/#
+
+        Parameters
+        ----------
+        query: Optional[str]
+            A search term to filter by.
+        """
+        if query is None:
+            await ctx.send(
+                "You can optionally choose a search term, e.g. "
+                '`run languages py` will only show languages that contain "py"'
+            )
+            title = "languages supported by the `run` command"
+        else:
+            title = f"supported languages that contain `{query}`"
+        async with MyTio(session=self.bot.session) as tio:
+            valid_languages: list[str] = [x.tio_name for x in await tio.get_languages()]
+            valid_languages.extend((await self.get_aliases()).keys())
+            valid_languages = sorted(valid_languages)
+            paginator = Paginator(
+                title=title, entries=valid_languages, filter_query=query
+            )
+            await paginator.run(ctx)
+
+    @_run.command(name="jargon", aliases=["j"])
+    async def send_jargon(self, ctx, language: str):
+        """Shows the jargon the `run` command uses for a language
+
+        Parameters
+        ----------
+        language: str
+            The programming language to view commonly reused code of.
+        """
+        jargon: dict[str, tuple[str, str]] = await self.get_jargon()
+        if language not in jargon:
+            raise commands.BadArgument(
+                f"No jargon wrapping has been set for the `{language}` language"
+            )
+        await ctx.send(
+            f"`jargon:`\n{jargon[language][0]}"
+            f"\n`jargon key:`\n{jargon[language][1]}"
+        )
 
     async def parse_exec_language(
         self, language: str, expression: str
@@ -452,78 +581,6 @@ class Other(commands.Cog):
         jargon["objective-c-gcc"] = jargon["objective-c"]
         return jargon
 
-    @_run.command(name="guide", aliases=["g", "i", "h", "info", "help"])
-    async def exec_guide(self, ctx):
-        """Explains some of the nuances of the `run` command"""
-        text = dedent(
-            """
-            With the `run` command, you can use a triple-backtick code block
-            and specify a language on its first line. Any input after the
-            closing triple backticks will be used as inputs for the program
-            (you can hold shift while pressing enter to go to the next line if
-            necessary). Many languages can automatically wrap your code with a
-            main function and commonly used imports if you do not include them.
-            You can use the `run jargon <language>` command to see what code
-            may be automatically added in front of your input if you omit the
-            main function header.
-
-            Some language names will be changed before the code is executed:
-            c → c-clang
-            c++ or cpp → cpp-clang
-            c# or cs → cs-csc
-            f# or fs → fs-core
-            java → java-openjdk
-            js or javascript → javascript-node
-            objective-c → objective-c-clang
-            py or python → python3
-            swift → swift4
-
-            After this processing, the `run` command sends your code to
-            https://tio.run and receives any outputs specified in your code. If
-            you would like similar functionality in your terminal, check out
-            https://github.com/wheelercj/tias
-            """
-        )
-        paginator = Paginator("`run` guide", text.split("\n\n"), length=1)
-        await paginator.run(ctx)
-
-    @_run.command(name="languages", aliases=["l", "s", "langs", "list", "search"])
-    async def list_programming_languages(self, ctx, *, query: str = None):
-        """Lists languages the `run` command supports, optionally filtered
-
-        For example, `run languages py` will only show languages that contain `py`. You
-        can also see a full list of supported languages here: https://tio.run/#
-        """
-        if query is None:
-            await ctx.send(
-                "You can optionally choose a search term, e.g. "
-                '`run languages py` will only show languages that contain "py"'
-            )
-            title = "languages supported by the `run` command"
-        else:
-            title = f"supported languages that contain `{query}`"
-        async with MyTio(session=self.bot.session) as tio:
-            valid_languages: list[str] = [x.tio_name for x in await tio.get_languages()]
-            valid_languages.extend((await self.get_aliases()).keys())
-            valid_languages = sorted(valid_languages)
-            paginator = Paginator(
-                title=title, entries=valid_languages, filter_query=query
-            )
-            await paginator.run(ctx)
-
-    @_run.command(name="jargon", aliases=["j"])
-    async def send_jargon(self, ctx, language: str):
-        """Shows the jargon the `run` command uses for a language"""
-        jargon: dict[str, tuple[str, str]] = await self.get_jargon()
-        if language not in jargon:
-            raise commands.BadArgument(
-                f"No jargon wrapping has been set for the `{language}` language"
-            )
-        await ctx.send(
-            f"`jargon:`\n{jargon[language][0]}"
-            f"\n`jargon key:`\n{jargon[language][1]}"
-        )
-
     ###########################
     # translate command group #
     ###########################
@@ -536,6 +593,11 @@ class Other(commands.Cog):
 
         Without a subcommand, this command translates words from any language (auto-
         detected) to English.
+
+        Parameters
+        ----------
+        words: str
+            The message to translate.
         """
         translated = await self._translate("auto", "en", words)
         embed = discord.Embed(title="English translation", description=translated)
@@ -543,7 +605,15 @@ class Other(commands.Cog):
 
     @translate.command(name="to")
     async def translate_to(self, ctx, to_language: str, *, words: str):
-        """Translates words from any language (auto-detected) to a chosen language"""
+        """Translates words from any language (auto-detected) to a chosen language
+
+        Parameters
+        ----------
+        to_language: str
+            The language to translate to.
+        words: str
+            The message to translate.
+        """
         translated = await self._translate("auto", to_language, words)
         embed = discord.Embed(
             title=f"{to_language} translation", description=translated
@@ -554,7 +624,17 @@ class Other(commands.Cog):
     async def translate_from(
         self, ctx, from_language: str, to_language: str, *, words: str
     ):
-        """Translates words from a chosen language to a chosen language"""
+        """Translates words from a chosen language to a chosen language
+
+        Parameters
+        ----------
+        from_language: str
+            The language to translate from.
+        to_language: str
+            The language to translate to.
+        words: str
+            The message to translate.
+        """
         translated = await self._translate(from_language, to_language, words)
         embed = discord.Embed(
             title=f"{to_language} translation", description=translated
@@ -580,7 +660,13 @@ class Other(commands.Cog):
 
     @translate.command(name="languages", aliases=["l", "s", "langs", "list", "search"])
     async def list_translation_languages(self, ctx, *, query: str = None):
-        """Lists the languages supported by the translate commands"""
+        """Lists the languages supported by the translate commands
+
+        Parameters
+        ----------
+        query: Optional[str]
+            A search term to filter by.
+        """
         languages = GoogleTranslator.get_supported_languages()
         if query:
             title = f"languages that contain `{query}`"
@@ -595,7 +681,13 @@ class Other(commands.Cog):
 
     @commands.hybrid_command(aliases=["def", "definition", "definitions"])
     async def define(self, ctx, word: str):
-        """Lists definitions of a given word"""
+        """Lists definitions of a given word
+
+        Parameters
+        ----------
+        word: str
+            The word to see a definition of.
+        """
         # https://github.com/johnbumgarner/wordhoard
         definition = Definitions(word)
         try:
@@ -607,7 +699,13 @@ class Other(commands.Cog):
 
     @commands.hybrid_command(aliases=["syno", "synonym"])
     async def synonyms(self, ctx, word: str):
-        """Lists words with the same or similar meaning to a given word"""
+        """Lists words with the same or similar meaning to a given word
+
+        Parameters
+        ----------
+        word: str
+            The word to see synonyms of.
+        """
         synonym = Synonyms(word)
         try:
             results = synonym.find_synonyms()
@@ -618,7 +716,13 @@ class Other(commands.Cog):
 
     @commands.hybrid_command(aliases=["anto", "antonym"])
     async def antonyms(self, ctx, word: str):
-        """Lists words with the opposite meaning as a given word"""
+        """Lists words with the opposite meaning as a given word
+
+        Parameters
+        ----------
+        word: str
+            The word to see antonyms of.
+        """
         antonym = Antonyms(word)
         try:
             results = antonym.find_antonyms()
@@ -629,7 +733,13 @@ class Other(commands.Cog):
 
     @commands.hybrid_command(aliases=["hyper", "hypernym"], hidden=True)
     async def hypernyms(self, ctx, word: str):
-        """Lists words of more general meaning than a given word"""
+        """Lists words of more general meaning than a given word
+
+        Parameters
+        ----------
+        word: str
+            The word to see hypernyms of.
+        """
         hypernym = Hypernyms(word)
         try:
             results = hypernym.find_hypernyms()
@@ -640,7 +750,13 @@ class Other(commands.Cog):
 
     @commands.hybrid_command(aliases=["hypo", "hyponym"], hidden=True)
     async def hyponyms(self, ctx, word: str):
-        """Lists words of more specific meaning than a given word"""
+        """Lists words of more specific meaning than a given word
+
+        Parameters
+        ----------
+        word: str
+            The word to see hyponyms of.
+        """
         hyponym = Hyponyms(word)
         try:
             results = hyponym.find_hyponyms()
@@ -651,7 +767,13 @@ class Other(commands.Cog):
 
     @commands.hybrid_command(aliases=["homo", "homophone"], hidden=True)
     async def homophones(self, ctx, word: str):
-        """Lists words that sound the same as a given word"""
+        """Lists words that sound the same as a given word
+
+        Parameters
+        ----------
+        word: str
+            The word to see homophones of.
+        """
         homophone = Homophones(word)
         try:
             results = homophone.find_homophones()
@@ -676,7 +798,13 @@ class Other(commands.Cog):
 
     @commands.hybrid_command(name="auto-incorrect", aliases=["ai", "autoincorrect"])
     async def auto_incorrect(self, ctx, *, words: str):
-        """Replaces as many words as possible with other words that sound the same"""
+        """Replaces as many words as possible with other words that sound the same
+
+        Parameters
+        ----------
+        words: str
+            The message to replace words in.
+        """
         results = []
         for word in words.split():
             homophone = Homophones(word)
@@ -701,6 +829,27 @@ class Other(commands.Cog):
         If a time is provided in hh:mm format, a quote will be sent each day at that
         time. You can cancel daily quotes with `quote stop`. If you have not chosen a
         timezone with the `timezone set` command, UTC will be assumed.
+
+        Parameters
+        ----------
+        time: Optional[str]
+            The time at which to receive a random quote each day.
+        """
+        cmd = self.bot.get_command("quote get")
+        await ctx.invoke(cmd, time=time)
+
+    @quote.command()
+    async def get(self, ctx, *, time: str = None):
+        """Shows a random famous quote
+
+        If a time is provided in hh:mm format, a quote will be sent each day at that
+        time. You can cancel daily quotes with `quote stop`. If you have not chosen a
+        timezone with the `timezone set` command, UTC will be assumed.
+
+        Parameters
+        ----------
+        time: Optional[str]
+            The time at which to receive a random quote each day.
         """
         if time is None:
             await self.send_quote(ctx, ctx.author.id)
@@ -763,7 +912,13 @@ class Other(commands.Cog):
     @quote.command(name="mod-delete", aliases=["mdel", "moddelete"])
     @commands.has_guild_permissions(manage_messages=True)
     async def mod_delete_daily_quote(self, ctx, *, member: discord.Member):
-        """Stops the daily quotes of anyone on this server"""
+        """Stops the daily quotes of anyone on this server
+
+        Parameters
+        ----------
+        member: discord.Member
+            The member to delete a running daily quote of.
+        """
         try:
             await self.bot.db.execute(
                 """

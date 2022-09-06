@@ -364,7 +364,11 @@ class Settings(commands.Cog):
         or by clicking here:
         <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>
         """
-        # https://github.com/stub42/pytz/blob/master/src/README.rst
+        await ctx.invoke(self.bot.get_command("timezone view"))
+
+    @_timezone.command(aliases=["v"])
+    async def view(self, ctx):
+        """Shows your current timezone setting if you have one"""
         timezone = await self.bot.db.fetchval(
             """
             SELECT timezone
@@ -388,6 +392,11 @@ class Settings(commands.Cog):
         <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>.
         If the valid timezones change, the update to the GitHub gist may be delayed
         unlike this search command.
+
+        Parameters
+        ----------
+        query: Optional[str]
+            A search term to filter by.
         """
         if query is None:
             title = "timezones supported by the `timezone set` command"
@@ -395,7 +404,7 @@ class Settings(commands.Cog):
             query = query.replace(" ", "_")
             title = f"supported timezones that contain `{query}`"
         paginator = Paginator(
-            title=title, entries=pytz.all_timezones, filter_query=query
+            title=title, entries=pytz.all_timezones, filter_query=query, ephemeral=True
         )
         await paginator.run(ctx)
 
@@ -407,6 +416,12 @@ class Settings(commands.Cog):
         timezone. See the valid timezone options with the `timezone search` command, or
         by clicking here:
         <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>
+
+        Parameters
+        ----------
+        timezone: str
+            Your timezone from the list of timezones shown with the `timezone search`
+            command.
         """
         timezone = await self.parse_timezone(timezone)
         await self.save_timezone(ctx, timezone)
@@ -486,7 +501,7 @@ class Settings(commands.Cog):
 
     @prefix.command(name="list", aliases=["l"])
     async def list_prefixes(self, ctx):
-        """An alias for `prefix`; lists the current prefixes"""
+        """Lists the current prefixes"""
         prefixes = await get_prefixes_message(self.bot, ctx.message)
         await ctx.send(
             f'My current {prefixes}. If you have the "manage server" permission, you'
@@ -499,7 +514,10 @@ class Settings(commands.Cog):
     async def add_prefix(self, ctx, *, new_prefix: str):
         """Adds a command prefix to the bot for this server
 
-        If the prefix contains any spaces, surround it with double quotes.
+        Parameters
+        ----------
+        new_prefix: str
+            The new message command prefix for this bot.
         """
         new_prefix = await self.strip_quotes(new_prefix)
         if new_prefix.startswith(" "):
@@ -566,6 +584,11 @@ class Settings(commands.Cog):
 
         If the prefix contains any spaces, surround it with double quotes.
         You cannot delete the bot mention prefix.
+
+        Parameters
+        ----------
+        old_prefix: str
+            The existing message command prefix to delete.
         """
         default_prefixes: list[str] = DevSettings.default_bot_prefixes
         try:
@@ -683,7 +706,7 @@ class Settings(commands.Cog):
     # setting command group #
     #########################
 
-    @commands.hybrid_group(name="set", aliases=["setting"], invoke_without_command=True)
+    @commands.group(name="set", aliases=["setting"], invoke_without_command=True)
     @commands.has_guild_permissions(manage_guild=True)
     async def setting(self, ctx, command_name: CommandName = None):
         """A group of commands for managing the bot's settings for this server
@@ -691,6 +714,11 @@ class Settings(commands.Cog):
         Without a subcommand, this command shows all the settings for a command and/or
         the entire bot. Only settings that are relevant to this server are shown. Use
         the `set guide` command for more help with settings.
+
+        Parameters
+        ----------
+        command_name: Optional[CommandName]
+            The name of the command to view settings of.
         """
         view_setting_command = self.bot.get_command("setting view")
         await ctx.invoke(view_setting_command, command_name=command_name)
@@ -782,9 +810,14 @@ class Settings(commands.Cog):
     @setting.command(name="view", aliases=["v"])
     @commands.has_guild_permissions(manage_guild=True)
     async def view_settings(self, ctx, command_name: CommandName = None):
-        """An alias for `set`; shows the settings for a command and/or the entire bot
+        """Shows the settings for a command and/or the entire bot
 
         Only settings that are relevant to this server are shown.
+
+        Parameters
+        ----------
+        command_name: Optional[CommandName]
+            The name of the command to view settings of.
         """
         cmd_settings = None
         bot_settings = self.all_bot_settings
@@ -816,6 +849,11 @@ class Settings(commands.Cog):
         If a command_name is given, only servers with non-default server settings for
         that command will be shown. If a command_name is not given, only servers with
         non-default server bot settings will be shown.
+
+        Parameters
+        ----------
+        command_name: Optional[CommandName]
+            The name of the command to view which servers have non-default settings of.
         """
         if command_name:
             nds = self.all_cmd_settings[command_name][
@@ -860,6 +898,13 @@ class Settings(commands.Cog):
         """Changes a command's name in the command settings table and dictionary
 
         Use this command each time a command is renamed in the code.
+
+        Parameters
+        ----------
+        old_command_name: str
+            The previous command name.
+        current_command_name: CommandName
+            The new command name.
         """
         await self.bot.db.execute(
             """
@@ -886,7 +931,13 @@ class Settings(commands.Cog):
     async def global_setting(
         self, ctx, on_or_off: bool, command_name: CommandName = None
     ):
-        """Manages absolute bot or commands access globally"""
+        """Manages absolute bot or commands access globally
+
+        Parameters
+        ----------
+        command_name: Optional[CommandName]
+            The name of the command to change the settings of.
+        """
         setting_json = json.dumps(on_or_off)
         if command_name:
             await self.set_default_settings(None, command_name)
@@ -923,7 +974,17 @@ class Settings(commands.Cog):
         on_or_off: bool,
         command_name: CommandName = None,
     ):
-        """Manages absolute bot or commands access for a server"""
+        """Manages absolute bot or commands access for a server
+
+        Parameters
+        ----------
+        server: discord.Guild
+            The server to change the settings of.
+        on_or_off: bool
+            Whether to allow or revoke use of the command.
+        command_name: Optional[CommandName]
+            The name of the command to change the settings of.
+        """
         setting_json = json.dumps(on_or_off)
         if command_name:
             await self.set_default_settings(None, command_name)
@@ -975,7 +1036,17 @@ class Settings(commands.Cog):
     async def global_user_setting(
         self, ctx, user: discord.User, on_or_off: bool, command_name: CommandName = None
     ):
-        """Manages absolute bot or commands access for a user"""
+        """Manages absolute bot or commands access for a user
+
+        Parameters
+        ----------
+        user: discord.User
+            The user to change the settings of.
+        on_or_off: bool
+            Whether to allow or revoke use of the command.
+        command_name: Optional[CommandName]
+            The name of the command to change the settings of.
+        """
         await self.set_default_settings(None, command_name)
         setting_json = json.dumps(on_or_off)
         if command_name:
@@ -1028,7 +1099,15 @@ class Settings(commands.Cog):
     async def server_setting(
         self, ctx, on_or_off: bool, command_name: CommandName = None
     ):
-        """Manages bot or commands access for this server"""
+        """Manages bot or commands access for this server
+
+        Parameters
+        ----------
+        on_or_off: bool
+            Whether to allow or revoke use of the command.
+        command_name: Optional[CommandName]
+            The name of the command to change the settings of.
+        """
         await self.set_default_settings(ctx.guild.id, command_name)
         setting_json = json.dumps(on_or_off)
         if command_name:
@@ -1083,7 +1162,17 @@ class Settings(commands.Cog):
         on_or_off: bool,
         command_name: CommandName = None,
     ):
-        """Manages bot or commands access for a text channel in this server"""
+        """Manages bot or commands access for a text channel in this server
+
+        Parameters
+        ----------
+        channel: discord.TextChannel
+            The channel to change the settings of.
+        on_or_off: bool
+            Whether to allow or revoke use of the command.
+        command_name: Optional[CommandName]
+            The name of the command to change the settings of.
+        """
         await self.set_default_settings(ctx.guild.id, command_name)
         setting_json = json.dumps(on_or_off)
         if command_name:
@@ -1139,7 +1228,17 @@ class Settings(commands.Cog):
     async def role_setting(
         self, ctx, role: discord.Role, on_or_off: bool, command_name: CommandName = None
     ):
-        """Manages bot or commands access for a role in this server"""
+        """Manages bot or commands access for a role in this server
+
+        Parameters
+        ----------
+        role: discord.Role
+            The role to change the settings of.
+        on_or_off: bool
+            Whether to allow or revoke use of the command.
+        command_name: Optional[CommandName]
+            The name of the command to change the settings of.
+        """
         await self.set_default_settings(ctx.guild.id, command_name)
         setting_json = json.dumps(on_or_off)
         if command_name:
@@ -1198,7 +1297,17 @@ class Settings(commands.Cog):
         on_or_off: bool,
         command_name: CommandName = None,
     ):
-        """Manages bot or commands access for a member of this server"""
+        """Manages bot or commands access for a member of this server
+
+        Parameters
+        ----------
+        member: discord.Member
+            The member to change the settings of.
+        on_or_off: bool
+            Whether to allow or revoke use of the command.
+        command_name: Optional[CommandName]
+            The name of the command to change the settings of.
+        """
         await self.set_default_settings(ctx.guild.id, command_name)
         setting_json = json.dumps(on_or_off)
         if command_name:
@@ -1453,7 +1562,13 @@ class Settings(commands.Cog):
     @delete_setting.command(name="global-all", aliases=["globalall"])
     @commands.is_owner()
     async def delete_all_global_settings(self, ctx, command_name: CommandName = None):
-        """Deletes settings for a command, or settings for the bot but not commands"""
+        """Deletes settings for a command, or settings for the bot but not commands
+
+        Parameters
+        ----------
+        command_name: Optional[CommandName]
+            The name of the command to delete the settings of.
+        """
         if command_name:
             try:
                 del self.all_cmd_settings[command_name]
@@ -1484,7 +1599,13 @@ class Settings(commands.Cog):
     @delete_setting.command(name="all")
     @commands.has_guild_permissions(manage_guild=True)
     async def delete_all_server_settings(self, ctx, command_name: CommandName = None):
-        """Deletes server settings for a command or non-command bot settings"""
+        """Deletes server settings for a command or non-command bot settings
+
+        Parameters
+        ----------
+        command_name: Optional[CommandName]
+            The name of the command to delete the settings of.
+        """
         if command_name:
             try:
                 del self.all_cmd_settings[command_name]["servers"][str(ctx.guild.id)]
@@ -1522,7 +1643,13 @@ class Settings(commands.Cog):
     @delete_setting.command(name="global", aliases=["g"])
     @commands.is_owner()
     async def delete_global_setting(self, ctx, command_name: CommandName = None):
-        """Deletes a global command setting or the global bot setting"""
+        """Deletes a global command setting or the global bot setting
+
+        Parameters
+        ----------
+        command_name: Optional[CommandName]
+            The name of the command to delete the settings of.
+        """
         if command_name:
             self.all_cmd_settings[command_name]["global"] = None
             await self.bot.db.execute(
@@ -1552,7 +1679,15 @@ class Settings(commands.Cog):
     async def delete_global_server_setting(
         self, ctx, server: discord.Guild, command_name: CommandName = None
     ):
-        """Deletes global setting for a server's access to a command or to the bot"""
+        """Deletes global setting for a server's access to a command or to the bot
+
+        Parameters
+        ----------
+        server: discord.Guild
+            The server to change the settings of.
+        command_name: Optional[CommandName]
+            The name of the command to delete the settings of.
+        """
         if command_name:
             try:
                 del self.all_cmd_settings[command_name]["global_servers"][
@@ -1597,7 +1732,15 @@ class Settings(commands.Cog):
     async def delete_global_user_setting(
         self, ctx, user: discord.User, command_name: CommandName = None
     ):
-        """Deletes the global setting for a user's access to a command or to the bot"""
+        """Deletes the global setting for a user's access to a command or to the bot
+
+        Parameters
+        ----------
+        user: discord.User
+            The user to change the settings of.
+        command_name: Optional[CommandName]
+            The name of the command to delete the settings of.
+        """
         if command_name:
             try:
                 del self.all_cmd_settings[command_name]["global_users"][str(user.id)]
@@ -1639,7 +1782,13 @@ class Settings(commands.Cog):
     @delete_setting.command(name="server", aliases=["s"])
     @commands.has_guild_permissions(manage_guild=True)
     async def delete_server_setting(self, ctx, command_name: CommandName = None):
-        """Deletes this server's overall setting for a command or to the bot"""
+        """Deletes this server's overall setting for a command or to the bot
+
+        Parameters
+        ----------
+        command_name: Optional[CommandName]
+            The name of the command to delete the settings of.
+        """
         if command_name:
             self.all_cmd_settings[command_name]["servers"][str(ctx.guild.id)][
                 "server"
@@ -1687,7 +1836,15 @@ class Settings(commands.Cog):
     async def delete_channel_setting(
         self, ctx, channel: discord.TextChannel, command_name: CommandName = None
     ):
-        """Deletes the setting for a channel's access to a command or to the bot"""
+        """Deletes the setting for a channel's access to a command or to the bot
+
+        Parameters
+        ----------
+        channel: discord.TextChannel
+            The channel to change the settings of.
+        command_name: Optional[CommandName]
+            The name of the command to delete the settings of.
+        """
         if command_name:
             try:
                 del self.all_cmd_settings[command_name]["servers"][str(ctx.guild.id)][
@@ -1738,7 +1895,15 @@ class Settings(commands.Cog):
     async def delete_role_setting(
         self, ctx, role: discord.Role, command_name: CommandName = None
     ):
-        """Deletes the setting for a role's access to a command or to the bot"""
+        """Deletes the setting for a role's access to a command or to the bot
+
+        Parameters
+        ----------
+        role: discord.Role
+            The role to change the settings of.
+        command_name: Optional[CommandName]
+            The name of the command to delete the settings of.
+        """
         if command_name:
             try:
                 del self.all_cmd_settings[command_name]["servers"][str(ctx.guild.id)][
@@ -1787,7 +1952,15 @@ class Settings(commands.Cog):
     async def delete_member_setting(
         self, ctx, member: discord.Member, command_name: CommandName = None
     ):
-        """Deletes the setting for a member's access to a command or to the bot"""
+        """Deletes the setting for a member's access to a command or to the bot
+
+        Parameters
+        ----------
+        member: discord.Member
+            The member to change the settings of.
+        command_name: Optional[CommandName]
+            The name of the command to delete the settings of.
+        """
         if command_name:
             try:
                 del self.all_cmd_settings[command_name]["servers"][str(ctx.guild.id)][
@@ -1957,7 +2130,13 @@ class Settings(commands.Cog):
     @list_settings.command(name="global-server", aliases=["gs", "globalserver"])
     @commands.has_guild_permissions(manage_guild=True)
     async def list_global_server_settings(self, ctx, server: discord.Guild = None):
-        """Shows the global-server command settings that apply to a server"""
+        """Shows the global-server command settings that apply to a server
+
+        Parameters
+        ----------
+        server: Optional[discord.Guild]
+            The server to view the settings of.
+        """
         if server is None:
             server = ctx.guild
         entries = await self.get_cmd_setting_entries(["global_servers", str(server.id)])
@@ -1971,7 +2150,13 @@ class Settings(commands.Cog):
     @list_settings.command(name="global-user", aliases=["gu", "globaluser"])
     @commands.has_guild_permissions(manage_guild=True)
     async def list_global_user_settings(self, ctx, user: discord.User = None):
-        """Shows the global-user command settings that apply to a user"""
+        """Shows the global-user command settings that apply to a user
+
+        Parameters
+        ----------
+        user: Optional[discord.User]
+            The user to view the settings of.
+        """
         if user is None:
             user = ctx.author
         entries = await self.get_cmd_setting_entries(["global_users", str(user.id)])
@@ -1997,7 +2182,13 @@ class Settings(commands.Cog):
     @list_settings.command(name="channel", aliases=["c"])
     @commands.has_guild_permissions(manage_guild=True)
     async def list_channel_settings(self, ctx, channel: discord.TextChannel):
-        """Shows the command settings that apply to a text channel"""
+        """Shows the command settings that apply to a text channel
+
+        Parameters
+        ----------
+        channel: Optional[discord.TextChannel]
+            The channel to view the settings of.
+        """
         entries = await self.get_cmd_setting_entries(
             ["servers", str(ctx.guild.id), "channels", str(channel.id)]
         )
@@ -2009,7 +2200,13 @@ class Settings(commands.Cog):
     @list_settings.command(name="role", aliases=["r"])
     @commands.has_guild_permissions(manage_guild=True)
     async def list_role_settings(self, ctx, role: discord.Role):
-        """Shows the command settings that apply to a role"""
+        """Shows the command settings that apply to a role
+
+        Parameters
+        ----------
+        role: Optional[discord.Role]
+            The role to view the settings of.
+        """
         entries = await self.get_cmd_setting_entries(
             ["servers", str(ctx.guild.id), "roles", str(role.id)]
         )
@@ -2021,7 +2218,13 @@ class Settings(commands.Cog):
     @list_settings.command(name="member", aliases=["m"])
     @commands.has_guild_permissions(manage_guild=True)
     async def list_member_settings(self, ctx, member: discord.Member):
-        """Shows the command settings that apply to a member of this server"""
+        """Shows the command settings that apply to a member of this server
+
+        Parameters
+        ----------
+        member: Optional[discord.Member]
+            The member to view the settings of.
+        """
         entries = await self.get_cmd_setting_entries(
             ["servers", str(ctx.guild.id), "members", str(member.id)]
         )

@@ -8,9 +8,12 @@ from copy import copy
 from datetime import datetime
 from datetime import timezone
 from logging.handlers import RotatingFileHandler
+from typing import Callable
+from typing import Union
 
 import aiohttp  # https://pypi.org/project/aiohttp/
 import discord  # https://pypi.org/project/discord.py/
+from discord import app_commands  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 from cogs.settings import DevSettings
@@ -30,6 +33,7 @@ class Bot(commands.Bot):
         self.global_cd = commands.CooldownMapping.from_cooldown(
             1, 5, commands.BucketType.user
         )
+        self.tree.on_error = self.on_app_command_error
         self.app_info: commands.Bot.AppInfo = None
         self.owner_id: int = None
         self.launch_time = datetime.now(timezone.utc)
@@ -188,8 +192,26 @@ class Bot(commands.Bot):
                     self.previous_command_ctxs = self.previous_command_ctxs[1:]
 
     async def on_command_error(self, ctx, error: commands.CommandError):
+        """Handles errors from commands that are NOT app commands"""
         if hasattr(ctx.command, "on_error"):
             return
+        await self.on_any_command_error(ctx.send, ctx.command.name, error)
+
+    async def on_app_command_error(
+        self, interaction: discord.Interaction, error: app_commands.AppCommandError
+    ):
+        """Handles errors from app commands"""
+        await self.on_any_command_error(
+            interaction.response.send_message, interaction.command.name, error
+        )
+
+    async def on_any_command_error(
+        self,
+        send: Callable,
+        cmd_name: str,
+        error: Union[app_commands.AppCommandError, commands.CommandError],
+    ):
+        """Handles errors from both app commands and other commands"""
         if isinstance(error, commands.CommandInvokeError):
             # All errors from command invocations are
             # temporarily wrapped in commands.CommandInvokeError
@@ -199,13 +221,19 @@ class Bot(commands.Bot):
         if isinstance(error, commands.CommandNotFound):
             pass
         elif isinstance(error, commands.DisabledCommand):
-            await ctx.send("This command has been disabled.", ephemeral=True)
+            await send("This command has been disabled.", ephemeral=True)
         elif isinstance(error, commands.UserInputError):
-            await ctx.send(error, ephemeral=True)
+            await send(error, ephemeral=True)
+        elif isinstance(error, commands.CommandOnCooldown):
+            await send(
+                f"Commands on cooldown. Please try again in {error.retry_after:.2f}"
+                " seconds.",
+                ephemeral=True,
+            )
         elif isinstance(error, commands.NotOwner):
-            await ctx.send("Only the owner can use this command.", ephemeral=True)
+            await send("Only the owner can use this command.", ephemeral=True)
         elif isinstance(error, commands.MissingRole):
-            await ctx.send(
+            await send(
                 "You do not have the necessary role to use this command:"
                 f" {error.missing_role}",
                 ephemeral=True,
@@ -216,10 +244,10 @@ class Bot(commands.Bot):
                 message += ": " + error.missing_permissions
             except Exception:
                 pass
-            await ctx.send(message, ephemeral=True)
+            await send(message, ephemeral=True)
         elif isinstance(error, commands.BotMissingPermissions):
             perms_needed = ", ".join(error.missing_permissions).replace("_", " ")
-            await ctx.send(
+            await send(
                 "I have not been granted some permission(s) needed for this command to"
                 f" work: {perms_needed}. Permissions can be managed in the server's"
                 " settings."
@@ -230,17 +258,17 @@ class Bot(commands.Bot):
                 f" {perms_needed}",
             )
         elif isinstance(error, commands.NoPrivateMessage):
-            await ctx.send("This command cannot be used in private messages.")
+            await send("This command cannot be used in private messages.")
         elif isinstance(error, commands.CheckFailure):
-            await ctx.send("You do not have access to this command.", ephemeral=True)
+            await send("You do not have access to this command.", ephemeral=True)
         elif isinstance(error, commands.BadUnionArgument):
-            await ctx.send(
+            await send(
                 "Error: one or more inputs could not be understood.", ephemeral=True
             )
         else:
             tb = traceback.format_exception(type(error), error, error.__traceback__)
             log_message = (
-                f"[command {ctx.message.content}][type(error)"
+                f"[command {cmd_name}][type(error)"
                 f' {type(error)}][error {error}]\n{"".join(tb)}'
             )
             error_log_channel = None
@@ -251,11 +279,20 @@ class Bot(commands.Bot):
                 if not self.error_is_reported:
                     await dev_mail(self, "I encountered and logged an error")
                     self.error_is_reported = True
-                await ctx.send(
-                    "I encountered an error and notified my developer.", ephemeral=True
-                )
+                if not DevSettings.support_server_link:
+                    await send(
+                        "I encountered an error and notified my developer.",
+                        ephemeral=True,
+                    )
+                else:
+                    await send(
+                        "I encountered an error and notified my developer. If you"
+                        " would like to join the support server, here's the link:"
+                        f" {DevSettings.support_server_link}",
+                        ephemeral=True,
+                    )
             else:
-                await ctx.send("Unknown error.", ephemeral=True)
+                await send("Unknown error.", ephemeral=True)
                 if DevSettings.error_log_channel_id:
                     await dev_mail(
                         self,
@@ -265,15 +302,7 @@ class Bot(commands.Bot):
                             f" log message: {log_message}"
                         ),
                     )
-            if DevSettings.support_server_link:
-                await ctx.send(
-                    (
-                        "If you would like to join the support server, here's"
-                        f" the link: {DevSettings.support_server_link}"
-                    ),
-                    ephemeral=True,
-                )
-            print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)
+            print(f"Ignoring exception in command {cmd_name}:", file=sys.stderr)
             traceback.print_exception(
                 type(error), error, error.__traceback__, file=sys.stderr
             )
@@ -297,11 +326,9 @@ class Bot(commands.Bot):
         bucket = self.global_cd.get_bucket(ctx.message)
         retry_after = bucket.update_rate_limit()
         if retry_after:
-            await ctx.send(
-                f"Commands on cooldown. Please try again in {retry_after:.2f} seconds.",
-                ephemeral=True,
+            raise commands.CommandOnCooldown(
+                bucket, retry_after, commands.BucketType.user
             )
-            raise commands.CommandOnCooldown(bucket, retry_after)
         return True
 
     async def set_up_logger(self, name: str, level: int) -> logging.Logger:

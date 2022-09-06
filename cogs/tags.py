@@ -63,7 +63,7 @@ class Tags(commands.Cog):
 
     @tag.command(name="view", aliases=["v"])
     async def view_tag(self, ctx, *, tag_name: str):
-        """An alias for `tag`; finds and shows a tag's contents"""
+        """Finds and shows a tag's contents"""
         record = await self.bot.db.fetchrow(
             """
             UPDATE tags
@@ -79,12 +79,7 @@ class Tags(commands.Cog):
 
     @tag.command(name="create", aliases=["c"])
     async def create_tag(self, ctx, *, name_and_content: str):
-        """Creates a new tag
-
-        If the tag name has spaces, surround it with double quotes. If the tag has an
-        attachment, the message in which the tag was created must not be deleted, or the
-        attachment will be lost.
-        """
+        """Creates a new tag"""
         await self.check_tag_ownership_permission(ctx, ctx.author)
         name, content = await split_input(name_and_content)
         await self.validate_new_tag_info(name, content, ctx.guild.id)
@@ -132,7 +127,7 @@ class Tags(commands.Cog):
 
     @commands.hybrid_command(hidden=True)
     async def tags(self, ctx, member: discord.Member = None):
-        """Lists names of someone's tags on this server; an alias for `tag list`"""
+        """Lists the names of yours or someone else's tags on this server"""
         tag_list_command = self.bot.get_command("tag list")
         await ctx.invoke(tag_list_command, member=member)
 
@@ -153,11 +148,7 @@ class Tags(commands.Cog):
 
     @tag.command(name="edit", aliases=["e"])
     async def edit_tag(self, ctx, *, name_and_content: str):
-        """Rewrites one of your tags
-
-        If the tag has an attachment, the message in which the tag was edited must not
-        be deleted, or the attachment will be lost.
-        """
+        """Rewrites one of your tags"""
         tag_name, content = await split_input(name_and_content)
         await self.validate_new_tag_info(tag_name, content, ctx.guild.id)
         record = await self.bot.db.fetchrow(
@@ -342,8 +333,8 @@ class Tags(commands.Cog):
     # tag_id command group #
     ########################
 
-    @tag.group(name="id")
-    async def tag_ID(self, ctx, tag_id: int = None):
+    @tag.group(name="id", invoke_without_command=True)
+    async def tag_ID(self, ctx, tag_id: int):
         """A group of commands using tag IDs instead of tag names
 
         Without a subcommand, this command finds and shows a tag's contents.
@@ -352,11 +343,8 @@ class Tags(commands.Cog):
         await ctx.invoke(view_tag_by_id_command, tag_id=tag_id)
 
     @tag_ID.command(name="view", aliases=["v"])
-    async def view_tag_by_id(self, ctx, tag_id: int = None):
-        """An alias for `tag id`; finds and shows a tag's contents"""
-        if tag_id is None:
-            await ctx.send_help("tag id")
-            return
+    async def view_tag_by_id(self, ctx, tag_id: int):
+        """Finds and shows a tag's contents"""
         record = await self.bot.db.fetchrow(
             """
             UPDATE tags
@@ -387,11 +375,7 @@ class Tags(commands.Cog):
 
     @tag_ID.command(name="edit", aliases=["e"])
     async def edit_tag_by_id(self, ctx, tag_id: int, *, new_content: str):
-        """Rewrites one of your tags
-
-        If the tag has an attachment, the message in which the tag was edited must not
-        be deleted, or the attachment will be lost.
-        """
+        """Rewrites one of your tags"""
         await self.validate_new_tag_info(content=new_content)
         record = await self.bot.db.fetchrow(
             """

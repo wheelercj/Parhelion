@@ -68,6 +68,11 @@ class Notes(commands.Cog):
         """Creates a new note
 
         Use `help Notes` to learn more about the Notes commands.
+
+        Parameters
+        ----------
+        text: str
+            The content of the new note.
         """
         await block_nsfw_channels(ctx.channel)
         await self.check_note_ownership_permission(ctx.author.id)
@@ -88,7 +93,15 @@ class Notes(commands.Cog):
 
     @commands.hybrid_command(name="edit-note", aliases=["en", "editnote"])
     async def edit_note(self, ctx, index: int, *, text: str):
-        """Overwrites one of your existing notes"""
+        """Overwrites one of your existing notes
+
+        Parameters
+        ----------
+        index: int
+            The index of the note to edit.
+        text: str
+            The new content of the existing note.
+        """
         await block_nsfw_channels(ctx.channel)
         i = index - 1
         if len(text) > 500:
@@ -108,7 +121,13 @@ class Notes(commands.Cog):
         aliases=["del-n", "deln", "del-note", "delnote", "deletenote"],
     )
     async def delete_note(self, ctx, index: int):
-        """Deletes one of your notes"""
+        """Deletes one of your notes
+
+        Parameters
+        ----------
+        index: int
+            The index of the note to delete.
+        """
         i = index - 1
         _notes, jump_urls = await self.fetch_notes(ctx)
         await self.validate_note_indexes(_notes, i)
@@ -142,7 +161,15 @@ class Notes(commands.Cog):
 
     @commands.hybrid_command(name="swap-notes", aliases=["sn", "swapnotes"])
     async def swap_notes(self, ctx, index_1: int, index_2: int):
-        """Swaps the order of two of your notes"""
+        """Swaps the order of two of your notes
+
+        Parameters
+        ----------
+        index_1: int
+            The index of one of the notes to swap.
+        index_2: int
+            The index of another note to swap.
+        """
         i = index_1 - 1
         j = index_2 - 1
         n, urls = await self.fetch_notes(ctx)
@@ -155,7 +182,13 @@ class Notes(commands.Cog):
         name="up-note", aliases=["un", "nu", "upnote", "note-up", "noteup"]
     )
     async def move_note_up(self, ctx, index: int):
-        """Moves one of your notes up"""
+        """Moves one of your notes up
+
+        Parameters
+        ----------
+        index: int
+            The index of one of your notes to move up in the list of notes.
+        """
         swap_command = self.bot.get_command("swap-notes")
         await ctx.invoke(swap_command, index_1=index - 1, index_2=index)
 
@@ -163,7 +196,13 @@ class Notes(commands.Cog):
         name="down-note", aliases=["dn", "nd", "downnote", "note-down", "notedown"]
     )
     async def move_note_down(self, ctx, index: int):
-        """Moves one of your notes down"""
+        """Moves one of your notes down
+
+        Parameters
+        ----------
+        index: int
+            The index of one of your notes to move down in the list of notes.
+        """
         swap_command = self.bot.get_command("swap-notes")
         await ctx.invoke(swap_command, index_1=index, index_2=index + 1)
 
@@ -171,7 +210,13 @@ class Notes(commands.Cog):
         name="top-note", aliases=["tn", "nt", "topnote", "note-top", "notetop"]
     )
     async def move_note_to_top(self, ctx, index: int):
-        """Moves one of your notes to the top"""
+        """Moves one of your notes to the top
+
+        Parameters
+        ----------
+        index: int
+            The index of one of your notes to the top of the list of notes.
+        """
         swap_command = self.bot.get_command("swap-notes")
         await ctx.invoke(swap_command, index_1=1, index_2=index)
 
@@ -180,7 +225,13 @@ class Notes(commands.Cog):
         aliases=["bn", "nb", "bottomnote", "note-bottom", "notebottom"],
     )
     async def move_note_to_bottom(self, ctx, index: int):
-        """Moves one of your notes to the bottom"""
+        """Moves one of your notes to the bottom
+
+        Parameters
+        ----------
+        index: int
+            The index of one of your notes to move to the bottom of the list of notes.
+        """
         n, _ = await self.fetch_notes(ctx)
         swap_command = self.bot.get_command("swap-notes")
         await ctx.invoke(swap_command, index_1=index, index_2=len(n))
