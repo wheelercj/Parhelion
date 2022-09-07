@@ -167,11 +167,16 @@ class Bot(commands.Bot):
 
     async def answer_mention(self, message: discord.Message) -> None:
         """Shows a list of the bot's command prefixes"""
-        prefixes = await get_prefixes_list(self, message)
+        prefixes: list[str] = await get_prefixes_list(self, message)
+        shortest_nonslash_prefix = None
+        for p in prefixes:
+            if p != "/":
+                shortest_nonslash_prefix = p
+                break
         prefixes_message = await get_prefixes_message(self, message, prefixes)
         await message.channel.send(
             f"Hello {message.author.display_name}! My command {prefixes_message}. Use"
-            f" `{prefixes[0]}help` to get help with commands."
+            f" `{shortest_nonslash_prefix}help` to get help with commands."
         )
 
     async def on_command(self, ctx):
