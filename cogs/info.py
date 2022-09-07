@@ -142,7 +142,8 @@ class MyHelp(commands.HelpCommand):
         if command.aliases:
             aliases = "**Aliases:** " + ", ".join(command.aliases)
             message += "\n" + aliases
-        message += "\n\n" + command.help
+        if command.help:
+            message += "\n\n" + command.help
         embed = discord.Embed(description=message)
         destination = self.get_destination()
         await destination.send(embed=embed)
