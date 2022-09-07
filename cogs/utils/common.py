@@ -93,7 +93,7 @@ async def get_prefixes_list(bot, message: discord.Message) -> list[str]:
     # than when a user types it in Discord, so remove both
     # unrendered mention prefixes, and add one with the
     # "correct" appearance.
-    display_prefixes = [f"@{bot.user.name} "]
+    display_prefixes = ["/", f"@{bot.user.name} "]
     mention_regex = re.compile(rf"<@!?{bot.user.id}>")
     for prefix in raw_prefixes:
         if mention_regex.match(prefix) is None:
