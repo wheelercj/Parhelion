@@ -304,6 +304,7 @@ class Other(commands.Cog):
             The markdown-style block of code to run.
         """
         async with ctx.typing():
+            code_block = code_block.replace("“", '"').replace("”", '"')
             if "```" in code_block:
                 language, expression, inputs = await unwrap_code_block(code_block)
             else:
