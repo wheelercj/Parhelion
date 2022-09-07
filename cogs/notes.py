@@ -37,32 +37,6 @@ class Notes(commands.Cog):
         # The paginator in the notes command allows 7 notes in each embed.
         # 7 * 500 = 3500, so there's some extra space for indexes, URLs, etc.
 
-    @commands.hybrid_command(
-        aliases=[
-            "ns",
-            "ln",
-            "nl",
-            "list-notes",
-            "note-list",
-            "notes-list",
-            "listnotes",
-            "notelist",
-            "noteslist",
-        ]
-    )
-    async def notes(self, ctx):
-        """Shows your current notes"""
-        _notes, jump_urls = await self.fetch_notes(ctx)
-        for i, n in enumerate(_notes):
-            _notes[i] = f"[**{i+1}**.]({jump_urls[i]}) {n}"
-        paginator = Paginator(
-            title=f"{ctx.author.display_name}'s notes",
-            entries=_notes,
-            length=7,
-            ephemeral=True,
-        )
-        await paginator.run(ctx)
-
     @commands.hybrid_command(aliases=["n", "todo"])
     async def note(self, ctx, *, text: str):
         """Creates a new note
@@ -89,7 +63,38 @@ class Notes(commands.Cog):
         _notes.append(text)
         jump_urls.append(ctx.message.jump_url)
         await self.save_notes(ctx, _notes, jump_urls)
-        await ctx.send(f"New note saved with an index of {len(_notes)}", ephemeral=True)
+        if ctx.interaction:
+            await ctx.send(
+                f"New note saved with an index of {len(_notes)}: {text}", ephemeral=True
+            )
+        else:
+            await ctx.send(f"New note saved with an index of {len(_notes)}")
+
+    @commands.hybrid_command(
+        aliases=[
+            "ns",
+            "ln",
+            "nl",
+            "list-notes",
+            "note-list",
+            "notes-list",
+            "listnotes",
+            "notelist",
+            "noteslist",
+        ]
+    )
+    async def notes(self, ctx):
+        """Shows your current notes"""
+        _notes, jump_urls = await self.fetch_notes(ctx)
+        for i, n in enumerate(_notes):
+            _notes[i] = f"[**{i+1}**.]({jump_urls[i]}) {n}"
+        paginator = Paginator(
+            title=f"{ctx.author.display_name}'s notes",
+            entries=_notes,
+            length=7,
+            ephemeral=True,
+        )
+        await paginator.run(ctx)
 
     @commands.hybrid_command(name="edit-note", aliases=["en", "editnote"])
     async def edit_note(self, ctx, index: int, *, text: str):
