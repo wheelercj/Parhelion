@@ -61,7 +61,10 @@ class Notes(commands.Cog):
             _notes = []
             jump_urls = []
         _notes.append(text)
-        jump_urls.append(ctx.message.jump_url)
+        if not ctx.interaction:
+            jump_urls.append(ctx.message.jump_url)
+        else:
+            jump_urls.append(None)
         await self.save_notes(ctx, _notes, jump_urls)
         if ctx.interaction:
             await ctx.send(
@@ -87,7 +90,10 @@ class Notes(commands.Cog):
         """Shows your current notes"""
         _notes, jump_urls = await self.fetch_notes(ctx)
         for i, n in enumerate(_notes):
-            _notes[i] = f"[**{i+1}**.]({jump_urls[i]}) {n}"
+            if jump_urls[i]:
+                _notes[i] = f"[**{i+1}**.]({jump_urls[i]}) {n}"
+            else:
+                _notes[i] = f"**{i+1}**. {n}"
         paginator = Paginator(
             title=f"{ctx.author.display_name}'s notes",
             entries=_notes,
@@ -117,7 +123,8 @@ class Notes(commands.Cog):
         _notes, jump_urls = await self.fetch_notes(ctx)
         await self.validate_note_indexes(_notes, i)
         _notes[i] = text
-        jump_urls[i] = ctx.message.jump_url
+        if not ctx.interaction:
+            jump_urls[i] = ctx.message.jump_url
         await self.save_notes(ctx, _notes, jump_urls)
         await ctx.send(f"Note {index} edited", ephemeral=True)
 
