@@ -87,7 +87,7 @@ class Other(commands.Cog):
             while not self.bot.is_closed():
                 target_time, author_id, destination = await self.get_next_quote_info()
                 if target_time is None:
-                    self.bot.logger.info("quote task's target_time is None")
+                    self.bot.logger.debug("quote task's target_time is None")
                     self.running_quote_info = None
                     self.quotes_task.cancel()
                     return
@@ -97,7 +97,7 @@ class Other(commands.Cog):
                     await self.send_quote(destination, author_id)
                     await self.update_quote_target_time(target_time, author_id)
                 except (ContentTypeError, json.decoder.JSONDecodeError) as error:
-                    self.bot.logger.info(f"quote task caught an error:\n{error}")
+                    self.bot.logger.error(f"quote task caught an error:\n{error}")
                     await asyncio.sleep(30)
         except (
             OSError,
@@ -105,7 +105,7 @@ class Other(commands.Cog):
             asyncpg.PostgresConnectionError,
             Exception,
         ) as error:
-            self.bot.logger.info(f"quote task caught an error:\n{error}")
+            self.bot.logger.error(f"quote task caught an error:\n{error}")
             self.quotes_task.cancel()
             await asyncio.sleep(30)
             self.quotes_task = self.bot.loop.create_task(self.run_daily_quotes())

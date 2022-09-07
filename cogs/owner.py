@@ -16,6 +16,7 @@ from discord import app_commands  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 from cogs.utils.common import escape_json
+from cogs.utils.io import dev_mail
 from cogs.utils.io import send_traceback
 from cogs.utils.io import unwrap_code_block
 from cogs.utils.paginator import Paginator
@@ -314,24 +315,30 @@ class Owner(commands.Cog):
             self.bot.logger.log(log_level, f"(`log` command)[{message}]")
             await ctx.message.add_reaction("✅")
         else:
-            await ctx.reply(
-                f"❌ The bot's current log level is {self.bot.logger.level}",
-                ephemeral=True,
-            )
+            log_level_message = await self.humanize_log_level(self.bot.logger.level)
+            await ctx.reply(f"The bot's current log level is {log_level_message}")
+            await ctx.message.add_reaction("❌")
 
     @log.command()
-    async def level(self, ctx):
-        """Shows the logger's current log level"""
-        await ctx.reply(self.bot.logger.level, ephemeral=True)
+    async def level(self, ctx, new_level: int = None):
+        """Sets or shows the logger's current log level"""
+        if new_level is None:
+            log_level_message = await self.humanize_log_level(self.bot.logger.level)
+            await ctx.reply(log_level_message)
+        else:
+            self.bot.logger.setLevel(new_level)
+            log_level_message = await self.humanize_log_level(self.bot.logger.level)
+            await ctx.reply(f"Logging level set to {log_level_message}")
 
     @log.command()
     async def send(self, ctx):
-        """Sends a copy of the log file to Discord"""
+        """DMs a copy of the log file to the bot's owner"""
         with open(self.log_file_path, "rb") as file:
             file_bytes = file.read()
             with io.BytesIO(file_bytes) as binary_stream:
                 discord_file = discord.File(binary_stream, "log")
-                await ctx.send(file=discord_file, ephemeral=True)
+                await dev_mail(self.bot, file=discord_file)
+                await ctx.message.add_reaction("✅")
 
     @log.command()
     async def clear(self, ctx):
@@ -343,6 +350,34 @@ class Owner(commands.Cog):
         with open(self.log_file_path, "w") as _:
             pass
         await ctx.message.add_reaction("✅")
+
+    async def humanize_log_level(self, log_level: int) -> str:
+        """Changes the log level into a message with a description"""
+        if log_level > 50:
+            return f"{log_level} (critical < log level)"
+        if log_level == 50:
+            return f"{log_level} (critical)"
+        if log_level > 40:
+            return f"{log_level} (error < log level < critical)"
+        if log_level == 40:
+            return f"{log_level} (error)"
+        if log_level > 30:
+            return f"{log_level} (warning < log level < error)"
+        if log_level == 30:
+            return f"{log_level} (warning)"
+        if log_level > 20:
+            return f"{log_level} (info < log level < warning)"
+        if log_level == 20:
+            return f"{log_level} (info)"
+        if log_level > 10:
+            return f"{log_level} (debug < log level < info)"
+        if log_level == 10:
+            return f"{log_level} (debug)"
+        if log_level > 0:
+            return f"{log_level} (nonset < log level < debug)"
+        if log_level == 0:
+            return f"{log_level} (nonset)"
+        return f"{log_level} (unknown log level)"
 
     ######################
     # sync command group #

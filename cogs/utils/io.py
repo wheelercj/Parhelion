@@ -31,12 +31,17 @@ class LinkButton(discord.ui.View):
         query: str
             Text to append to the URL that may have characters that need to be escaped.
         """
+        self.bot.logger.debug("(LinkButton init)")
         super().__init__()
         if "://" not in url:
             url = f"https://{url}"
         if query:
             url = f"{url}{quote_plus(query)}"
-        self.add_item(discord.ui.Button(label=label, url=url))
+        self.bot.logger.debug(f"(LinkButton init) {url = }")
+        button = discord.ui.Button(label=label, url=url)
+        self.bot.logger.debug(f"(LinkButton init) {button = }")
+        self.add_item(button)
+        self.bot.logger.debug("(LinkButton init) added Button item to View")
 
 
 async def unwrap_code_block(statement: str) -> tuple[str, str, str]:
@@ -177,12 +182,17 @@ async def send_traceback(ctx, error: BaseException, ephemeral: bool = True) -> N
 
 
 async def dev_mail(
-    bot, message: str, use_embed: bool = True, embed_title: str = "dev mail"
+    bot,
+    content: str = None,
+    *,
+    file: discord.File = None,
+    use_embed: bool = True,
+    embed_title: str = "dev mail",
 ) -> None:
     """Sends a private message to the bot owner"""
     user = await bot.fetch_user(bot.owner_id)
-    if use_embed:
-        embed = discord.Embed(title=embed_title, description=message)
-        await user.send(embed=embed)
+    if content and use_embed:
+        embed = discord.Embed(title=embed_title, description=content)
+        await user.send(embed=embed, file=file)
     else:
-        await user.send(message)
+        await user.send(content, file=file)

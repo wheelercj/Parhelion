@@ -94,6 +94,7 @@ class Bot(commands.Bot):
         return commands.when_mentioned_or(*prefixes)(bot, message)
 
     async def close(self):
+        self.logger.info("Shutting down . . .")
         await self.db.close()
         await self.session.close()
         await super().close()
@@ -104,6 +105,7 @@ class Bot(commands.Bot):
         self.app_info = await self.application_info()
         self.owner_id = self.app_info.owner.id
         self.logger = await self.set_up_logger(__name__, logging.INFO)
+        self.logger.info("Loading . . .")
 
     async def on_resumed(self):
         print("Resumed . . . ")
@@ -346,7 +348,7 @@ class Bot(commands.Bot):
         # https://docs.python.org/3/library/logging.handlers.html?#logging.handlers.RotatingFileHandler  # noqa: E501
         logger = logging.getLogger(name)
         logger.setLevel(level)
-        max_bytes = 1024 * 1024  # 1 MiB
+        max_bytes = 50000  # 50 KB, which might be Discord's max file preview size.
         handler = RotatingFileHandler(
             filename="bot.log",
             encoding="utf-8",

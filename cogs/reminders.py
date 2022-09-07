@@ -82,12 +82,18 @@ class Reminders(commands.Cog):
                     self._task.cancel()
                     return
                 self.running_reminder_info = RunningReminderInfo(target_time, id)
+                self.bot.logger.debug("(reminder task) about to sleep")
                 await discord.utils.sleep_until(target_time)
+                self.bot.logger.debug("(reminder task) finished sleep")
                 relative_start = await create_relative_timestamp(start_time)
+                self.bot.logger.debug(
+                    "(reminder task) about to create button & send reminder"
+                )
                 await destination.send(
                     f"<@!{author_id}> {relative_start}: {message}",
                     view=LinkButton("see original message", jump_url),
                 )
+                self.bot.logger.debug("(reminder task) sent reminder")
                 jump_url = None
                 await self.delete_reminder_from_db(id)
         except (
