@@ -182,7 +182,7 @@ class Bot(commands.Bot):
     async def on_command(self, ctx):
         log_message = (
             f"[author {ctx.author.display_name}][guild {ctx.guild}][command"
-            f" {ctx.message.content}]"
+            f" {ctx.clean_prefix}{ctx.command.qualified_name}"
         )
         self.logger.info(log_message)
         self.command_use_count += 1
