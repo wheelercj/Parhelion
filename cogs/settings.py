@@ -16,7 +16,7 @@ from cogs.utils.paginator import Paginator
 
 
 class DevSettings:
-    default_bot_prefixes: list[str] = [";", "par ", "Par "]
+    default_bot_prefixes: list[str] = [";", "par ", "Par "]  # `/` and `@` are hardcoded
     support_server_link: Optional[str] = "https://discord.gg/mCqGhPJVcN"
     privacy_policy_link: str = (
         "https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853"
@@ -530,6 +530,8 @@ class Settings(commands.Cog):
             raise commands.BadArgument(
                 "The maximum length of each command prefix is 15 characters."
             )
+        if new_prefix == "/":
+            raise commands.BadArgument("`/` is already a prefix.")
         # Remove the new prefix from the removed default prefixes, if it is there.
         try:
             self.bot.removed_default_prefixes[ctx.guild.id].remove(new_prefix)
@@ -713,7 +715,8 @@ class Settings(commands.Cog):
 
         Without a subcommand, this command shows all the settings for a command and/or
         the entire bot. Only settings that are relevant to this server are shown. Use
-        the `set guide` command for more help with settings.
+        the `set guide` command for more help with settings. The `set` commands are not
+        available to be used as slash commands because of Discord's limits.
 
         Parameters
         ----------
