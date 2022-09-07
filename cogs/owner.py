@@ -7,12 +7,13 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from textwrap import dedent
+from typing import NamedTuple
 
 import aiohttp  # https://pypi.org/project/aiohttp/
 import discord  # https://pypi.org/project/discord.py/
+import psutil  # https://pypi.org/project/psutil/
 from discord import app_commands  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
-from psutil import Process  # https://pypi.org/project/psutil/
 
 from cogs.utils.common import escape_json
 from cogs.utils.io import send_traceback
@@ -141,11 +142,28 @@ class Owner(commands.Cog):
         if not sent:
             await ctx.send("No servers found with that name.", ephemeral=True)
 
-    @commands.hybrid_command()
-    async def memory(self, ctx):
-        """Shows how much RAM the bot is using"""
-        mb = Process().memory_info().rss / 1024 / 1024
-        await ctx.send(f"{round(mb, 2)} MB")
+    @commands.hybrid_command(aliases=["utilization"])
+    async def usage(self, ctx):
+        """Shows the bot's resource utilization"""
+        virtual_memory_: NamedTuple = psutil.virtual_memory()
+        ram_percent = (
+            (virtual_memory_.total - virtual_memory_.available)
+            / virtual_memory_.total  # noqa: W503
+            * 100  # noqa: W503
+        )
+        process = psutil.Process()
+        memory_info_: NamedTuple = process.memory_info()
+        ram_mb = memory_info_.rss / 1024 / 1024  # rss is short for "resident set size"
+        await ctx.send(
+            dedent(
+                f"""\
+                process RAM: {round(ram_mb, 2)} MB
+                virtual RAM: {round(ram_percent, 2)}%
+                CPU: {psutil.cpu_percent(interval=1)}%
+                disk: {psutil.disk_usage('/').percent}%
+                """
+            )
+        )
 
     @commands.hybrid_command()
     async def src(self, ctx, command_name: str):
