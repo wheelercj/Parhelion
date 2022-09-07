@@ -329,15 +329,14 @@ class Other(commands.Cog):
         """Explains some of the nuances of the `run` command"""
         text = dedent(
             """
-            With the `run` command, you can use a triple-backtick code block
-            and specify a language on its first line. Any input after the
-            closing triple backticks will be used as inputs for the program
-            (you can hold shift while pressing enter to go to the next line if
-            necessary). Many languages can automatically wrap your code with a
-            main function and commonly used imports if you do not include them.
-            You can use the `run jargon <language>` command to see what code
-            may be automatically added in front of your input if you omit the
-            main function header.
+            With the `run` command, you can use a triple-backtick code block and specify
+            a language on its first line. Any input after the closing triple backticks
+            will be used as inputs for the program (you can hold shift while pressing
+            enter to go to the next line if necessary). Many languages can automatically
+            wrap your code with a main function and commonly used imports if you do not
+            include them. You can use the `run jargon <language>` command to see what
+            code may be automatically added in front of your input if you omit the main
+            function header.
 
             Some language names will be changed before the code is executed:
             c → c-clang
@@ -350,10 +349,9 @@ class Other(commands.Cog):
             py or python → python3
             swift → swift4
 
-            After this processing, the `run` command sends your code to
-            https://tio.run and receives any outputs specified in your code. If
-            you would like similar functionality in your terminal, check out
-            https://github.com/wheelercj/tias
+            After this processing, the `run` command sends your code to https://tio.run
+            and receives any outputs specified in your code. If you would like similar
+            functionality in your terminal, check out https://github.com/wheelercj/tias
             """
         )
         paginator = Paginator("`run` guide", text.split("\n\n"), length=1)
