@@ -377,7 +377,12 @@ class Info(commands.Cog):
         """Shows general info about this bot"""
         embed = discord.Embed()
         owner = self.bot.get_user(self.bot.owner_id)
-        prefixes = await get_prefixes_list(self.bot, ctx.message)
+        prefixes: list[str] = await get_prefixes_list(self.bot, ctx.message)
+        shortest_nonslash_prefix = None
+        for p in prefixes:
+            if p != "/":
+                shortest_nonslash_prefix = p
+                break
         py_info = f"Python v{platform.python_version()}"
         discord_link = "[discord.py](https://discordpy.readthedocs.io/en/latest/)"
         discord_info = f"{discord_link} v{discord.__version__}"
@@ -397,7 +402,7 @@ class Info(commands.Cog):
             value=dedent(
                 f"""
                 \u200b
-                Use `{prefixes[0]}help` for help with commands.
+                Use `{shortest_nonslash_prefix}help` for help with commands.
 
                 {links_s}
 
