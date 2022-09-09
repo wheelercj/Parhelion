@@ -8,6 +8,7 @@ from copy import copy
 from datetime import datetime
 from datetime import timezone
 from logging.handlers import RotatingFileHandler
+from typing import Any
 from typing import Callable
 from typing import Union
 
@@ -93,24 +94,24 @@ class Bot(commands.Bot):
             prefixes.remove("")
         return commands.when_mentioned_or(*prefixes)(bot, message)
 
-    async def close(self):
+    async def close(self) -> None:
         self.logger.info("Shutting down . . .")
         await self.db.close()
         await self.session.close()
         await super().close()
 
-    async def on_connect(self):
+    async def on_connect(self) -> None:
         print("Loading . . . ")
         await self.wait_until_ready()
         self.app_info = await self.application_info()
         self.owner_id = self.app_info.owner.id
-        self.logger = await self.set_up_logger(__name__, logging.INFO)
+        self.logger = await self.set_up_logger()
         self.logger.info("Loading . . .")
 
-    async def on_resumed(self):
+    async def on_resumed(self) -> None:
         print("Resumed . . . ")
 
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         # This function may be called many times while the
         # bot is running, so it should not do much.
         print("------------------------------------")
@@ -119,7 +120,7 @@ class Bot(commands.Bot):
         print(f"{self.user.name}#{self.user.discriminator} ready!")
         print("------------------------------------")
 
-    async def on_message(self, message: discord.Message):
+    async def on_message(self, message: discord.Message) -> None:
         await self.detect_token(message)
         if message.author.bot:
             return
@@ -183,8 +184,9 @@ class Bot(commands.Bot):
 
     async def on_command(self, ctx):
         log_message = (
-            f"[author {ctx.author.display_name}][guild {ctx.guild}][command"
-            f" {ctx.clean_prefix}{ctx.command.qualified_name}"
+            f"[author {ctx.author.name}#{ctx.author.discriminator}]"
+            f"[guild {ctx.guild}]"
+            f"[command {ctx.clean_prefix}{ctx.command.qualified_name}]"
         )
         self.logger.info(log_message)
         self.command_use_count += 1
@@ -198,7 +200,11 @@ class Bot(commands.Bot):
                 if len(self.previous_command_ctxs) > 5:
                     self.previous_command_ctxs = self.previous_command_ctxs[1:]
 
-    async def on_command_error(self, ctx, error: commands.CommandError):
+    async def on_error(self, event_method: str, /, *args: Any, **kwargs: Any) -> None:
+        print(f"Ignoring exception in {event_method}")
+        self.logger.error(f"Ignoring exception in {event_method}")
+
+    async def on_command_error(self, ctx, error: commands.CommandError) -> None:
         """Handles errors from commands that are NOT app commands"""
         if hasattr(ctx.command, "on_error"):
             return
@@ -206,7 +212,7 @@ class Bot(commands.Bot):
 
     async def on_app_command_error(
         self, interaction: discord.Interaction, error: app_commands.AppCommandError
-    ):
+    ) -> None:
         """Handles errors from app commands"""
         await self.on_any_command_error(
             interaction.response.send_message, interaction.command.name, error
@@ -217,7 +223,7 @@ class Bot(commands.Bot):
         send: Callable,
         cmd_name: str,
         error: Union[app_commands.AppCommandError, commands.CommandError],
-    ):
+    ) -> None:
         """Handles errors from both app commands and other commands"""
         if isinstance(error, commands.CommandInvokeError):
             # All errors from command invocations are
@@ -314,7 +320,7 @@ class Bot(commands.Bot):
                 type(error), error, error.__traceback__, file=sys.stderr
             )
 
-    async def on_guild_join(self, guild: discord.Guild):
+    async def on_guild_join(self, guild: discord.Guild) -> None:
         message = (
             f"I've joined a new server called `{guild.name}`!\nI am now in "
             f"{len(self.guilds)} servers."
@@ -338,25 +344,26 @@ class Bot(commands.Bot):
             )
         return True
 
-    async def set_up_logger(self, name: str, level: int) -> logging.Logger:
-        """Sets up a logger for this module"""
+    async def set_up_logger(self) -> logging.Logger:
+        """Sets up a logger for the bot"""
         # Discord logging guide:
-        # https://discordpy.readthedocs.io/en/latest/logging.html#logging-setup
+        # https://discordpy.readthedocs.io/en/stable/logging.html
         # Python's intro to logging:
         # https://docs.python.org/3/howto/logging.html#logging-basic-tutorial
         # Documentation for RotatingFileHandler:
         # https://docs.python.org/3/library/logging.handlers.html?#logging.handlers.RotatingFileHandler  # noqa: E501
-        logger = logging.getLogger(name)
-        logger.setLevel(level)
-        max_bytes = 50000  # 50 KB, which might be Discord's max file preview size.
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.INFO)
         handler = RotatingFileHandler(
             filename="bot.log",
             encoding="utf-8",
             mode="a",
-            maxBytes=max_bytes,
-            backupCount=1,
+            maxBytes=50000,  # 50 kB, which might be Discord's max file preview size.
+            backupCount=10,
         )
-        formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(name)s%(message)s")
+        formatter = logging.Formatter(
+            "{asctime}[{levelname}]{message}", datefmt="%Y-%m-%d %H:%M:%S", style="{"
+        )
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         return logger
