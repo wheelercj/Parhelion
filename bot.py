@@ -295,45 +295,32 @@ class Bot(commands.Bot):
             )
         else:
             tb = traceback.format_exception(type(error), error, error.__traceback__)
-            log_message = (
-                f"[command {cmd_name}][type(error)"
-                f' {type(error)}][error {error}]\n{"".join(tb)}'
+            message = (
+                f"[command {cmd_name}]"
+                f"[type(error) {type(error)}]"
+                f"[error {error}]"
+                f'\n{"".join(tb)}'
             )
-            error_log_channel = None
-            if DevSettings.error_log_channel_id:
-                error_log_channel = self.get_channel(DevSettings.error_log_channel_id)
-            if error_log_channel is not None:
-                await error_log_channel.send(log_message)
-                if not self.error_is_reported:
-                    await dev_mail(self, "I encountered and logged an error")
-                    self.error_is_reported = True
-                if not DevSettings.support_server_link:
-                    await send(
-                        "I encountered an error and notified my developer.",
-                        ephemeral=True,
-                    )
-                else:
-                    await send(
-                        "I encountered an error and notified my developer. If you"
-                        " would like to join the support server, here's the link:"
-                        f" {DevSettings.support_server_link}",
-                        ephemeral=True,
-                    )
-            else:
-                await send("Unknown error.", ephemeral=True)
-                if DevSettings.error_log_channel_id:
-                    await dev_mail(
-                        self,
-                        (
-                            "I do not have access to the channel chosen as the error"
-                            " log channel in the dev settings in settings.py.\n\nError"
-                            f" log message: {log_message}"
-                        ),
-                    )
+            self.logger.error(message)
             print(f"Ignoring exception in command {cmd_name}:", file=sys.stderr)
             traceback.print_exception(
                 type(error), error, error.__traceback__, file=sys.stderr
             )
+            if not self.error_is_reported and self.logger.level <= logging.ERROR:
+                await dev_mail(self, "I encountered and logged an error")
+                self.error_is_reported = True
+            if not DevSettings.support_server_link:
+                await send(
+                    "I encountered an error and notified my developer.",
+                    ephemeral=True,
+                )
+            else:
+                await send(
+                    "I encountered an error and notified my developer. If you would"
+                    " like to join the support server, here's the link:"
+                    f" {DevSettings.support_server_link}",
+                    ephemeral=True,
+                )
 
     async def on_guild_join(self, guild: discord.Guild) -> None:
         message = (

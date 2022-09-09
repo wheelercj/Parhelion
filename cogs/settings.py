@@ -22,7 +22,6 @@ class DevSettings:
         "https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853"
     )
     donations_link: Optional[str] = "https://buymeacoffee.com/Parhelion"
-    error_log_channel_id: Optional[int] = 881374348441694258
 
 
 class CommandName(commands.Converter):
