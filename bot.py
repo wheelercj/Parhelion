@@ -201,8 +201,23 @@ class Bot(commands.Bot):
                     self.previous_command_ctxs = self.previous_command_ctxs[1:]
 
     async def on_error(self, event_method: str, /, *args: Any, **kwargs: Any) -> None:
-        print(f"Ignoring exception in {event_method}")
-        self.logger.error(f"Ignoring exception in {event_method}")
+        messages = [
+            f"Ignoring exception in {event_method}, which was called",
+            "with args:",
+        ]
+        for arg in args:
+            messages.append(f"  {type(arg)}: {arg}")
+        if not args:
+            messages.append("  (none)")
+        messages.append("with kwargs:")
+        for k, v in kwargs.items():
+            messages.append(f"  {k} = {v}")
+        if not kwargs:
+            messages.append("  (none)")
+        messages.append(f"{traceback.format_exc()}")
+        message = "\n".join(messages)
+        print(message)
+        self.logger.error(message)
 
     async def on_command_error(self, ctx, error: commands.CommandError) -> None:
         """Handles errors from commands that are NOT app commands"""
