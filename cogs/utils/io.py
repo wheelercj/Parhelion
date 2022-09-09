@@ -31,17 +31,12 @@ class LinkButton(discord.ui.View):
         query: str
             Text to append to the URL that may have characters that need to be escaped.
         """
-        self.bot.logger.debug("(LinkButton init)")
         super().__init__()
         if "://" not in url:
             url = f"https://{url}"
         if query:
             url = f"{url}{quote_plus(query)}"
-        self.bot.logger.debug(f"(LinkButton init) {url = }")
-        button = discord.ui.Button(label=label, url=url)
-        self.bot.logger.debug(f"(LinkButton init) {button = }")
-        self.add_item(button)
-        self.bot.logger.debug("(LinkButton init) added Button item to View")
+        self.add_item(discord.ui.Button(label=label, url=url))
 
 
 async def unwrap_code_block(statement: str) -> tuple[str, str, str]:
