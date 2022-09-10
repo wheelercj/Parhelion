@@ -7,6 +7,8 @@ import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
+from cogs.utils.common import check_ownership_permission
+from cogs.utils.common import DevSettings
 from cogs.utils.common import plural
 from cogs.utils.io import get_attachment_url
 from cogs.utils.io import split_input
@@ -20,7 +22,7 @@ class Tags(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self._task = bot.loop.create_task(self.create_table_if_not_exists())
-        self.tag_ownership_limit = 20
+        self.tag_ownership_limit = 5
         self.tag_name_length_limit = 50
         self.tag_content_length_limit = 1500
 
@@ -80,7 +82,7 @@ class Tags(commands.Cog):
     @tag.command(name="create", aliases=["c"])
     async def create_tag(self, ctx, *, name_and_content: str):
         """Creates a new tag"""
-        await self.check_tag_ownership_permission(ctx, ctx.author)
+        await self.check_tag_ownership_permission(ctx.author)
         name, content = await split_input(name_and_content)
         await self.validate_new_tag_info(name, content, ctx.guild.id)
         now = datetime.now(timezone.utc)
@@ -205,7 +207,7 @@ class Tags(commands.Cog):
     @tag.command(name="claim", aliases=["cl"])
     async def claim_tag(self, ctx, *, tag_name: str):
         """Gives you ownership of a tag if its owner left the server"""
-        await self.check_tag_ownership_permission(ctx, ctx.author)
+        await self.check_tag_ownership_permission(ctx.author)
         record = await self.bot.db.fetchrow(
             """
             SELECT *
@@ -228,7 +230,7 @@ class Tags(commands.Cog):
     @tag.command(name="transfer", aliases=["t"])
     async def transfer_tag(self, ctx, member: discord.Member, *, tag_name: str):
         """Gives a server member ownership of one of your tags"""
-        await self.check_tag_ownership_permission(ctx, member)
+        await self.check_tag_ownership_permission(member)
         record = await self.bot.db.fetchrow(
             """
             SELECT *
@@ -303,7 +305,7 @@ class Tags(commands.Cog):
     @tag.command(name="alias")
     async def create_tag_alias(self, ctx, existing_tag_name: str, *, new_alias: str):
         """Creates another name for an existing tag"""
-        await self.check_tag_ownership_permission(ctx, ctx.author)
+        await self.check_tag_ownership_permission(ctx.author)
         await self.validate_new_tag_info(new_alias, server_id=ctx.guild.id)
         record = await self.bot.db.fetchrow(
             """
@@ -431,7 +433,7 @@ class Tags(commands.Cog):
     @tag_ID.command(name="claim", aliases=["cl"])
     async def claim_tag_by_id(self, ctx, tag_id: int):
         """Gives you ownership of a tag if its owner left the server"""
-        await self.check_tag_ownership_permission(ctx, ctx.author)
+        await self.check_tag_ownership_permission(ctx.author)
         record = await self.bot.db.fetchrow(
             """
             SELECT *
@@ -454,7 +456,7 @@ class Tags(commands.Cog):
     @tag_ID.command(name="transfer", aliases=["t"])
     async def transfer_tag_by_id(self, ctx, member: discord.Member, tag_id: int):
         """Gives a server member ownership of one of your tags"""
-        await self.check_tag_ownership_permission(ctx, member)
+        await self.check_tag_ownership_permission(member)
         record = await self.bot.db.fetchrow(
             """
             SELECT *
@@ -490,7 +492,7 @@ class Tags(commands.Cog):
     @tag_ID.command(name="alias")
     async def create_tag_alias_by_id(self, ctx, tag_id: int, *, new_alias: str):
         """Creates another name for an existing tag"""
-        await self.check_tag_ownership_permission(ctx, ctx.author)
+        await self.check_tag_ownership_permission(ctx.author)
         await self.validate_new_tag_info(new_alias, server_id=ctx.guild.id)
         record = await self.bot.db.fetchrow(
             """
@@ -616,26 +618,21 @@ class Tags(commands.Cog):
         paginator = Paginator(title=title, entries=entries)
         await paginator.run(ctx)
 
-    async def check_tag_ownership_permission(self, ctx, member: discord.Member) -> bool:
-        """Raises commands.UserInputError if the author has >= the max # of tags allowed
-
-        Does NOT check whether they own the tag.
-        """
+    async def check_tag_ownership_permission(self, member: discord.Member) -> None:
+        """Raises commands.UserInputError if author has >= max # of tags allowed"""
         if member.bot:
             raise commands.UserInputError("Bots cannot own tags.")
-        members_tag_count = await self.count_members_tags(ctx.author.id)
-        if (
-            members_tag_count >= self.tag_ownership_limit
-            and self.bot.owner_id != ctx.author.id  # noqa: W503
-        ):
-            raise commands.UserInputError(
-                "The current limit to how many tags each person can have is"
-                f" {self.tag_ownership_limit}."
-            )
-        return True
+        await check_ownership_permission(
+            self.bot,
+            member,
+            "tags",
+            DevSettings.membership_removes_tag_limit,
+            self.tag_ownership_limit,
+            self.count_users_tags,
+        )
 
-    async def count_members_tags(self, member_id: int) -> int:
-        """Counts how many tags a member has globally"""
+    async def count_users_tags(self, member_id: int) -> int:
+        """Counts how many tags a user has globally"""
         records = await self.bot.db.fetch(
             """
             SELECT *

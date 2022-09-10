@@ -11,7 +11,7 @@ from typing import Union
 import discord  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
-from cogs.settings import DevSettings
+from cogs.utils.common import DevSettings
 from cogs.utils.common import get_bot_invite_link
 from cogs.utils.common import get_prefixes_list
 from cogs.utils.common import get_prefixes_message
@@ -82,8 +82,8 @@ class MyHelp(commands.HelpCommand):
             f"[invite]({await get_bot_invite_link(self.context.bot)})"
             f" \u2800❂\u2800 [privacy policy]({DevSettings.privacy_policy_link})"
         )
-        if DevSettings.donations_link:
-            message += f" \u2800❂\u2800 [donate]({DevSettings.donations_link})"
+        if DevSettings.membership_link:
+            message += f" \u2800❂\u2800 [donate]({DevSettings.membership_link})"
         embed = discord.Embed(description=message)
         destination = self.get_destination()
         await destination.send(embed=embed)
@@ -362,10 +362,10 @@ class Info(commands.Cog):
     @commands.hybrid_command()
     async def donate(self, ctx):
         """Help keep the server running and support the bot's development"""
-        if DevSettings.donations_link:
+        if DevSettings.membership_link:
             await ctx.send(
                 "Thanks for your interest! You can support this project here:"
-                f" <{DevSettings.donations_link}>"
+                f" <{DevSettings.membership_link}>"
             )
         else:
             await ctx.send(
@@ -396,8 +396,8 @@ class Info(commands.Cog):
             f"[invite]({await get_bot_invite_link(self.bot)})"
             f" \u2800❂\u2800 [privacy policy]({DevSettings.privacy_policy_link})"
         )
-        if DevSettings.donations_link:
-            links_s += f" \u2800❂\u2800 [donate]({DevSettings.donations_link})"
+        if DevSettings.membership_link:
+            links_s += f" \u2800❂\u2800 [donate]({DevSettings.membership_link})"
         embed.add_field(
             name=f"{self.bot.user.name}#{self.bot.user.discriminator}",
             value=dedent(

@@ -1,5 +1,6 @@
 from datetime import datetime
 from datetime import timezone
+from typing import Union
 
 import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
@@ -7,6 +8,8 @@ from discord.abc import Messageable  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 from cogs.utils.common import block_nsfw_channels
+from cogs.utils.common import check_ownership_permission
+from cogs.utils.common import DevSettings
 from cogs.utils.common import plural
 from cogs.utils.io import LinkButton
 from cogs.utils.io import safe_send
@@ -29,7 +32,7 @@ class Reminders(commands.Cog):
         self.bot = bot
         self._task = self.bot.loop.create_task(self.run_reminders())
         self.running_reminder_info: RunningReminderInfo = None
-        self.reminder_ownership_limit = 20
+        self.reminder_ownership_limit = 5
 
     def cog_unload(self):
         self._task.cancel()
@@ -115,7 +118,7 @@ class Reminders(commands.Cog):
             want to be reminded of.
         """
         await block_nsfw_channels(ctx.channel)
-        await self.check_reminder_ownership_permission(ctx.author.id)
+        await self.check_reminder_ownership_permission(ctx.author)
         async with ctx.typing():
             start_time = datetime.now(timezone.utc)
             target_time, message = await parse_time_message(ctx, time_and_message)
@@ -293,19 +296,20 @@ class Reminders(commands.Cog):
                 f" {author}"
             )
 
-    async def check_reminder_ownership_permission(self, author_id: int) -> None:
-        """Raises commands.UserInputError if author has >= the max # of reminders"""
-        members_reminder_count = await self.count_authors_reminders(author_id)
-        if (
-            members_reminder_count >= self.reminder_ownership_limit
-            and self.bot.owner_id != author_id  # noqa: W503
-        ):
-            raise commands.UserInputError(
-                "The current limit to how many reminders each person can have is"
-                f" {self.reminder_ownership_limit}."
-            )
+    async def check_reminder_ownership_permission(
+        self, author: Union[discord.User, discord.Member]
+    ) -> None:
+        """Raises commands.UserInputError if author has >= max # of reminders allowed"""
+        await check_ownership_permission(
+            self.bot,
+            author,
+            "reminders",
+            DevSettings.membership_removes_reminder_limit,
+            self.reminder_ownership_limit,
+            self.count_users_reminders,
+        )
 
-    async def count_authors_reminders(self, author_id: int) -> int:
+    async def count_users_reminders(self, author_id: int) -> int:
         """Counts the author's total reminders"""
         records = await self.bot.db.fetch(
             """

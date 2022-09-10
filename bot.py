@@ -17,7 +17,7 @@ import discord  # https://pypi.org/project/discord.py/
 from discord import app_commands  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
-from cogs.settings import DevSettings
+from cogs.utils.common import DevSettings
 from cogs.utils.common import get_prefixes_list
 from cogs.utils.common import get_prefixes_message
 from cogs.utils.io import dev_mail

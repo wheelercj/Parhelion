@@ -10,18 +10,10 @@ import discord  # https://pypi.org/project/discord.py/
 import pytz  # https://pypi.org/project/pytz/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
+from cogs.utils.common import DevSettings
 from cogs.utils.common import get_prefixes_message
 from cogs.utils.common import get_prefixes_str
 from cogs.utils.paginator import Paginator
-
-
-class DevSettings:
-    default_bot_prefixes: list[str] = [";", "par ", "Par "]  # `/` and `@` are hardcoded
-    support_server_link: Optional[str] = "https://discord.gg/mCqGhPJVcN"
-    privacy_policy_link: str = (
-        "https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853"
-    )
-    donations_link: Optional[str] = "https://buymeacoffee.com/Parhelion"
 
 
 class CommandName(commands.Converter):

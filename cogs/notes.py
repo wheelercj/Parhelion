@@ -1,9 +1,13 @@
 from datetime import datetime
 from datetime import timezone
+from typing import Union
 
+import discord  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 from cogs.utils.common import block_nsfw_channels
+from cogs.utils.common import check_ownership_permission
+from cogs.utils.common import DevSettings
 from cogs.utils.paginator import Paginator
 
 
@@ -17,7 +21,7 @@ class Notes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self._task = bot.loop.create_task(self.create_table_if_not_exists())
-        self.note_ownership_limit = 20
+        self.note_ownership_limit = 5
 
     async def create_table_if_not_exists(self) -> None:
         await self.bot.wait_until_ready()
@@ -49,7 +53,7 @@ class Notes(commands.Cog):
             The content of the new note.
         """
         await block_nsfw_channels(ctx.channel)
-        await self.check_note_ownership_permission(ctx.author.id)
+        await self.check_note_ownership_permission(ctx.author)
         if len(text) > 500:
             raise commands.BadArgument(
                 "Error: each note has a 500 character limit. This text is"
@@ -306,17 +310,18 @@ class Notes(commands.Cog):
         _notes[index_2], _notes[index_1] = _notes[index_1], _notes[index_2]
         jump_urls[index_2], jump_urls[index_1] = jump_urls[index_1], jump_urls[index_2]
 
-    async def check_note_ownership_permission(self, author_id: int) -> None:
+    async def check_note_ownership_permission(
+        self, author: Union[discord.User, discord.Member]
+    ) -> None:
         """Raises commands.UserInputError if author has >= max # of notes allowed"""
-        members_note_count = await self.count_users_notes(author_id)
-        if (
-            members_note_count >= self.note_ownership_limit
-            and self.bot.owner_id != author_id  # noqa: W503
-        ):
-            raise commands.UserInputError(
-                "The current limit to how many notes each person can have is"
-                f" {self.note_ownership_limit}."
-            )
+        await check_ownership_permission(
+            self.bot,
+            author,
+            "notes",
+            DevSettings.membership_removes_note_limit,
+            self.note_ownership_limit,
+            self.count_users_notes,
+        )
 
     async def count_users_notes(self, author_id: int) -> int:
         """Counts a user's current notes in the database"""
@@ -328,7 +333,7 @@ class Notes(commands.Cog):
             """,
             author_id,
         )
-        return len(records) if records else 0
+        return len(records[0]["contents"]) if records else 0
 
 
 async def setup(bot):

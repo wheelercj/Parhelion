@@ -1,8 +1,8 @@
 # Parhelion
 
-A general-purpose Discord bot that can send reminders, help with answering FAQs, translate between many different languages, solve math questions, run code in just about any programming language, and more.
+A general-purpose Discord bot that can send reminders, help with answering FAQs, translate between many different languages, solve math questions, run code in just about any language, and more.
 
-You can try the bot in [the support server](https://discord.gg/mCqGhPJVcN), [invite](https://discord.com/oauth2/authorize?client_id=836071320328077332&scope=bot+applications.commands&permissions=2147740736) the bot into your own server, or run your own instance of the bot by following the instructions below.
+You can try the bot in [the support server](https://discord.gg/mCqGhPJVcN), [invite](https://discord.com/oauth2/authorize?client_id=836071320328077332&scope=bot+applications.commands&permissions=2147740736) the bot into your own server, or run your own instance of the bot by following one of the two sets of instructions below.
 
 Parhelion is tested with Python 3.10.
 
@@ -15,9 +15,9 @@ Parhelion is tested with Python 3.10.
 5. Create a `.env` file in the project's root with the environment variables described in the next steps.
 6.  Create a [Discord API Application](https://discord.com/developers/applications) and an environment variable for it called `discord_bot_secret_token`. Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
 7.  Create a PostgreSQL server and a `postgres_password` environment variable. If you will use postgres credentials different from the postgres defaults, also create other environment variables as necessary: `postgres_host`, `postgres_database`, `postgres_port`, `postgres_user`.
-8.  [Create a GitHub personal access token](https://gist.github.com/beep-boop-82197842/4255864be63966b8618e332d1df30619) for making gists and environment variables called `alternate_github_gists_token` and `alternate_github_account_name`. These are used to automatically create gists of any leaked bot tokens Parhelion detects to invalidate the tokens and protect Discord bots (including itself). You might want to create a separate GitHub account for this.
+8.  [Create a GitHub personal access token](https://gist.github.com/beep-boop-82197842/4255864be63966b8618e332d1df30619) for making gists, and environment variables called `alternate_github_gists_token` and `alternate_github_account_name`. These are used to automatically create gists of any leaked bot tokens Parhelion detects to invalidate the tokens and protect Discord bots (including itself). You might want to create a separate GitHub account for this.
 9.  If you will use the owner-only `gist` command, create a GitHub personal access token for making gists and an environment variable called `main_github_gists_token`.
-10. Change the bot's developer settings in the `DevSettings` class near the top of settings.py.
+10. Change the bot's developer settings in the `DevSettings` class near the top of common.py.
 11. Run main.py.
 
 ## remote hosting setup
@@ -45,9 +45,9 @@ This guide shows one of many possible ways to set up Parhelion on a remote serve
 19. Create a `.env` file in the project's root with the environment variables described in the next steps.
 20. Create a [Discord API Application](https://discord.com/developers/applications) and an environment variable for it called `discord_bot_secret_token`. Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
 21. [Create a PostgreSQL server](https://docs.fedoraproject.org/en-US/quick-docs/postgresql/) and a `postgres_password` environment variable. If you will use postgres credentials different from the postgres defaults, also create other environment variables as necessary: `postgres_host`, `postgres_database`, `postgres_port`, `postgres_user`.
-22. [Create a GitHub personal access token](https://gist.github.com/beep-boop-82197842/4255864be63966b8618e332d1df30619) for making gists and environment variables called `alternate_github_gists_token` and `alternate_github_account_name`. These are used to automatically create gists of any leaked bot tokens Parhelion detects to invalidate the tokens and protect Discord bots (including itself). You might want to create a separate GitHub account for this.
+22. [Create a GitHub personal access token](https://gist.github.com/beep-boop-82197842/4255864be63966b8618e332d1df30619) for making gists, and environment variables called `alternate_github_gists_token` and `alternate_github_account_name`. These are used to automatically create gists of any leaked bot tokens Parhelion detects to invalidate the tokens and protect Discord bots (including itself). You might want to create a separate GitHub account for this.
 23. If you will use the owner-only `gist` command, create a GitHub personal access token for making gists and an environment variable called `main_github_gists_token`.
-24. Change the bot's developer settings in the `DevSettings` class near the top of settings.py.
+24. Change the bot's developer settings in the `DevSettings` class near the top of common.py.
 25. Create a new systemd service unit file named mybot.service with `sudo systemctl edit --force --full mybot.service` with the contents shown below. The file should appear in `/etc/systemd/system/`.
 26. Reload systemd with `sudo systemctl daemon-reload`.
 27. Start the bot with `sudo systemctl start mybot`.

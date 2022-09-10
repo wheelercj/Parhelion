@@ -1,9 +1,29 @@
 import re
+from typing import Awaitable
+from typing import Optional
 from typing import Union
 
 import discord  # https://pypi.org/project/discord.py/
 from discord.abc import Messageable  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
+
+
+class DevSettings:
+    default_bot_prefixes: list[str] = [";", "par ", "Par "]  # `/` and `@` are hardcoded
+    privacy_policy_link: str = (
+        "https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853"
+    )
+    support_server_link: Optional[str] = "https://discord.gg/mCqGhPJVcN"
+    support_server_id: Optional[int] = 845465081582977044
+    membership_link: Optional[str] = "https://ko-fi.com/parhelion99369"
+    membership_removes_note_limit: bool = True
+    membership_removes_reminder_limit: bool = True
+    membership_removes_tag_limit: bool = True
+    membership_role_ids: list[int] = [
+        884564744722333697,
+        884565844221382668,
+        884565211632267285,
+    ]
 
 
 async def get_bot_invite_link(bot) -> str:
@@ -73,6 +93,53 @@ async def block_nsfw_channels(channel: Messageable) -> None:
         return  # DMChannels don't have an is_nsfw attribute.
     if channel.is_nsfw():
         raise commands.UserInputError("This command cannot be used in NSFW channels")
+
+
+async def check_ownership_permission(
+    bot,
+    author: Union[discord.User, discord.Member],
+    category: str,
+    membership_removes_limit: bool,
+    ownership_limit: int,
+    ownership_counter: Awaitable[int],
+) -> None:
+    """Raises commands.UserInputError if author has reached the ownership limit
+
+    Parameters
+    ----------
+    bot
+        The bot.
+    author : Union[discord.User, discord.Member]
+        The person requesting to create something.
+    category : str
+        The plural name of what is being requested.
+    membership_removes_limit : bool
+        Whether membership should remove the ownership limit.
+    ownership_limit : int
+        How many of the requested thing a person can have.
+    ownership_counter : Awaitable[int]
+        A coroutine that takes a Discord user ID and returns the number of a thing that
+        user currently owns.
+    """
+    if author.id == bot.owner_id:
+        return
+    if DevSettings.support_server_id and membership_removes_limit:
+        support_server = bot.get_guild(DevSettings.support_server_id)
+        member = support_server.get_member(author.id)
+        if member:
+            for role in member.roles:
+                if role.id in DevSettings.membership_role_ids:
+                    return
+    c = await ownership_counter(author.id)
+    if c < ownership_limit:
+        return
+    message = f"The current free {category} limit is {ownership_limit}."
+    if DevSettings.membership_link and membership_removes_limit:
+        message += (
+            f" Support development and unlock unlimited {category} here:"
+            f" <{DevSettings.membership_link}>"
+        )
+    raise commands.UserInputError(message)
 
 
 #####################
