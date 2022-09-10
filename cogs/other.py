@@ -598,9 +598,9 @@ class Other(commands.Cog):
         words: str
             The message to translate.
         """
-        translated = await self._translate("auto", "en", words)
-        embed = discord.Embed(title="English translation", description=translated)
-        await ctx.send(embed=embed)
+        translation = await self._translate("auto", "en", words)
+        result = f"`{words}`\n\nin English:\n\n`{translation}`"
+        await ctx.send(embed=discord.Embed(description=result))
 
     @translate.command(name="to")
     async def translate_to(self, ctx, to_language: str, *, words: str):
@@ -613,11 +613,10 @@ class Other(commands.Cog):
         words: str
             The message to translate.
         """
-        translated = await self._translate("auto", to_language, words)
-        embed = discord.Embed(
-            title=f"{to_language} translation", description=translated
-        )
-        await ctx.send(embed=embed)
+        translation = await self._translate("auto", to_language, words)
+        to_language = "".join([to_language[0].upper(), to_language[1:].lower()])
+        result = f"`{words}`\n\nin {to_language}:\n\n`{translation}`"
+        await ctx.send(embed=discord.Embed(description=result))
 
     @translate.command(name="from")
     async def translate_from(
@@ -634,11 +633,14 @@ class Other(commands.Cog):
         words: str
             The message to translate.
         """
-        translated = await self._translate(from_language, to_language, words)
-        embed = discord.Embed(
-            title=f"{to_language} translation", description=translated
+        translation = await self._translate(from_language, to_language, words)
+        to_language = "".join([to_language[0].upper(), to_language[1:].lower()])
+        from_language = "".join([from_language[0].upper(), from_language[1:].lower()])
+        result = (
+            f"`{words}`\n\nfrom {from_language}"
+            f" to {to_language}:\n\n`{translation}`"
         )
-        await ctx.send(embed=embed)
+        await ctx.send(embed=discord.Embed(description=result))
 
     async def _translate(self, from_language: str, to_language: str, words: str) -> str:
         """Translates words from one language to another
