@@ -35,7 +35,6 @@ from wordhoard import Synonyms  # https://pypi.org/project/wordhoard/
 from cogs.utils.common import block_nsfw_channels
 from cogs.utils.io import get_attachment_url
 from cogs.utils.io import safe_send
-from cogs.utils.io import send_traceback
 from cogs.utils.io import unwrap_code_block
 from cogs.utils.paginator import Paginator
 from cogs.utils.time import create_short_timestamp
@@ -160,36 +159,33 @@ class Other(commands.Cog):
         # The math.js API has a 10 second duration limit per evaluation and
         # allows a maximum of 10,000 requests per day (or 25 requests per 216
         # seconds).
-        try:
-            _, expression, _ = await unwrap_code_block(expression)
-            if "**" in expression:
-                raise ValueError("This command uses ^ rather than ** for exponents.")
-            raw_expressions = expression.split("\n")
-            expressions = json.dumps(raw_expressions)
-            expressions_json = '{\n"expr": ' + expressions + "\n}"
-            async with ctx.typing():
-                async with self.bot.session.post(
-                    "http://api.mathjs.org/v4/",
-                    data=expressions_json,
-                    headers={"content-type": "application/json"},
-                    timeout=10,
-                ) as response:
-                    if not response.ok and response.status != 400:
-                        raise ValueError(
-                            f"API request failed with status code {response.status}."
-                        )
-                    json_text = await response.json()
-                    if response.status == 400:
-                        raise ValueError(json_text["error"])
-            result = ""
-            for i, expr in enumerate(raw_expressions):
-                result += "\n`" + expr + "` = `" + json_text["result"][i] + "`"
-            embed = discord.Embed(description=result)
-            await ctx.send(embed=embed)
-        except Exception as e:
-            await ctx.send(e)
-            if await self.bot.is_owner(ctx.author):
-                await send_traceback(ctx, e)
+        _, expression, _ = await unwrap_code_block(expression)
+        if "**" in expression:
+            raise commands.BadArgument(
+                "This command uses `^` instead of `**` for exponents."
+            )
+        raw_expressions = expression.split("\n")
+        expressions = json.dumps(raw_expressions)
+        expressions_json = '{\n"expr": ' + expressions + "\n}"
+        async with ctx.typing():
+            async with self.bot.session.post(
+                "http://api.mathjs.org/v4/",
+                data=expressions_json,
+                headers={"content-type": "application/json"},
+                timeout=10,
+            ) as response:
+                if not response.ok and response.status != 400:
+                    raise ValueError(
+                        f"API request failed with status code {response.status}."
+                    )
+                json_text = await response.json()
+                if response.status == 400:
+                    raise commands.BadArgument(json_text["error"])
+        result = ""
+        for i, expr in enumerate(raw_expressions):
+            result += "\n`" + expr + "` = `" + json_text["result"][i] + "`"
+        embed = discord.Embed(description=result)
+        await ctx.send(embed=embed)
 
     @commands.hybrid_command(name="random", aliases=["rand"], hidden=True)
     async def rand(self, ctx, low: int = 1, high: int = 6):
