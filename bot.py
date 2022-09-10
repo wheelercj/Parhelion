@@ -95,7 +95,10 @@ class Bot(commands.Bot):
         return commands.when_mentioned_or(*prefixes)(bot, message)
 
     async def close(self) -> None:
-        self.logger.info("Shutting down . . .")
+        if self.logger:
+            self.logger.info("Shutting down . . .")
+        else:
+            print("Error: logger is None.")
         await self.db.close()
         await self.session.close()
         await super().close()
