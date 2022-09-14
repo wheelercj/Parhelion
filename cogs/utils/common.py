@@ -4,8 +4,8 @@ from typing import Optional
 from typing import Union
 
 import discord  # https://pypi.org/project/discord.py/
+from discord import PartialMessageable  # https://pypi.org/project/discord.py/
 from discord.abc import Messageable  # https://pypi.org/project/discord.py/
-from discord.abc import PartialMessageable  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
