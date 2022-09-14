@@ -5,6 +5,7 @@ from typing import Union
 
 import discord  # https://pypi.org/project/discord.py/
 from discord.abc import Messageable  # https://pypi.org/project/discord.py/
+from discord.abc import PartialMessageable  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
@@ -87,10 +88,10 @@ async def escape_json(text: str) -> str:
     return text
 
 
-async def block_nsfw_channels(channel: Messageable) -> None:
+async def block_nsfw_channels(channel: Union[Messageable, PartialMessageable]) -> None:
     """Raises commands.UserInputError if channel is a nsfw channel"""
-    if isinstance(channel, discord.DMChannel):
-        return  # DMChannels don't have an is_nsfw attribute.
+    if channel.guild is None:
+        return  # DM channels don't have an is_nsfw method.
     if channel.is_nsfw():
         raise commands.UserInputError("This command cannot be used in NSFW channels")
 
