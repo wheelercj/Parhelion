@@ -398,14 +398,17 @@ class Info(commands.Cog):
         )
         if DevSettings.membership_link:
             links_s += f" \u2800❂\u2800 [donate]({DevSettings.membership_link})"
+        help_instruction = ""
+        if ctx.bot_permissions.read_messages:
+            help_instruction = (
+                f"Use `{shortest_nonslash_prefix}help` for help with commands.\n\n"
+            )
         embed.add_field(
             name=f"{self.bot.user.name}#{self.bot.user.discriminator}",
             value=dedent(
                 f"""
                 \u200b
-                Use `{shortest_nonslash_prefix}help` for help with commands.
-
-                {links_s}
+                {help_instruction}{links_s}
 
                 **owner**
                 {owner.name}#{owner.discriminator}
