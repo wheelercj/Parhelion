@@ -258,14 +258,21 @@ class Other(commands.Cog):
         message: str
             The message to encipher.
         """
-        message = message.lower()
         new_string = ""
         alphabet = "abcdefghijklmnopqrstuvwxyz"
+        ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         for char in message:
+            uppercase = False
             index = alphabet.find(char)
+            if index == -1:
+                index = ALPHABET.find(char)
+                uppercase = True
             if index != -1:
                 new_index = (index + n) % 26
-                new_string += alphabet[new_index]
+                if uppercase:
+                    new_string += ALPHABET[new_index]
+                else:
+                    new_string += alphabet[new_index]
             else:
                 new_string += char
         await ctx.send(new_string)
