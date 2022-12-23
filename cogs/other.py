@@ -187,7 +187,7 @@ class Other(commands.Cog):
         embed = discord.Embed(description=result)
         await ctx.send(embed=embed)
 
-    @commands.hybrid_command(name="random", aliases=["rand"], hidden=True)
+    @commands.hybrid_command(name="random", aliases=["rand"])
     async def rand(self, ctx, low: int = 1, high: int = 6):
         """Gives a random number
 
@@ -205,9 +205,7 @@ class Other(commands.Cog):
         else:
             await ctx.send(f"`{str(random.randint(high, low))}` (range: {high}–{low})")
 
-    @commands.hybrid_command(
-        name="flip-coin", aliases=["flip", "flipcoin"], hidden=True
-    )
+    @commands.hybrid_command(name="flip-coin", aliases=["flip", "flipcoin"])
     async def flip_coin(self, ctx):
         """Flips a coin"""
         n = random.randint(1, 2)
@@ -216,7 +214,7 @@ class Other(commands.Cog):
         else:
             await ctx.send("tails")
 
-    @commands.hybrid_command(hidden=True)
+    @commands.hybrid_command()
     async def choose(self, ctx, choice_count: int, choices: str):
         """Chooses randomly from multiple choices
 
@@ -247,18 +245,41 @@ class Other(commands.Cog):
         else:
             await ctx.send(error)
 
-    @commands.hybrid_command(aliases=["rotate", "rot", "shift"], hidden=True)
-    async def cipher(self, ctx, n: int, *, message: str):
-        """Rotates each letter n letters through the alphabet
+    @commands.hybrid_command(name="shuffle")
+    async def shuffle_(self, ctx, *, to_shuffle: str):
+        """Shuffles the order of things
+
+        Parameters
+        ----------
+        to_shuffle: str
+            The things to shuffle. If there are spaces, the words will be shuffled.
+            Otherwise, the characters will be shuffled. If you want to shuffle the
+            alphabet, use `alphabet` as the argument.
+        """
+        if to_shuffle == "alphabet":
+            to_shuffle = "abcdefghijklmnopqrstuvwxyz"
+        if " " in to_shuffle:
+            choices_ = to_shuffle.split(" ")
+        else:
+            choices_ = [c for c in to_shuffle]
+        random.shuffle(choices_)
+        if " " in to_shuffle:
+            await ctx.send(" ".join(choices_))
+        else:
+            await ctx.send("".join(choices_))
+
+    @commands.hybrid_command(aliases=["rot", "shift"])
+    async def rotate(self, ctx, n: int, *, message: str):
+        """Rotates each letter n letters through the alphabet (Caesar cipher)
 
         Parameters
         ----------
         n: int
             The number of letters of the alphabet to rotate through.
         message: str
-            The message to encipher.
+            The message to encipher/decipher.
         """
-        new_string = ""
+        result = []
         alphabet = "abcdefghijklmnopqrstuvwxyz"
         ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         for char in message:
@@ -267,19 +288,71 @@ class Other(commands.Cog):
             if index == -1:
                 index = ALPHABET.find(char)
                 uppercase = True
-            if index != -1:
+            if index == -1:
+                result.append(char)
+            else:
                 new_index = (index + n) % 26
                 if uppercase:
-                    new_string += ALPHABET[new_index]
+                    result.append(ALPHABET[new_index])
                 else:
-                    new_string += alphabet[new_index]
-            else:
-                new_string += char
-        await ctx.send(new_string)
+                    result.append(alphabet[new_index])
+        await ctx.reply("".join(result))
 
-    #######################
+    @commands.hybrid_command()
+    async def encipher(self, ctx, key: str, *, message: str):
+        """Enciphers a message using a monoalphabetic substitution cipher
+
+        Parameters
+        ----------
+        key: str
+            The key to use for the cipher. Must be 26 characters long. You can use
+            the `shuffle alphabet` command to generate a random key.
+        message: str
+            The message to encipher.
+        """
+        if len(key) != 26:
+            raise commands.BadArgument("Key must be 26 characters long.")
+        alphabet = "abcdefghijklmnopqrstuvwxyz"
+        ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        ciphertext: list[str] = []
+        for char in message:
+            if char in alphabet:
+                ciphertext.append(key[alphabet.find(char)].lower())
+            elif char in ALPHABET:
+                ciphertext.append(key[ALPHABET.find(char)].upper())
+            else:
+                ciphertext.append(char)
+        await ctx.reply("".join(ciphertext))
+
+    @commands.hybrid_command()
+    async def decipher(self, ctx, key: str, *, message: str):
+        """Deciphers a message using a monoalphabetic substitution cipher
+
+        Parameters
+        ----------
+        key: str
+            The key to use for the cipher. Must be 26 characters long. You can use
+            the `shuffle alphabet` command to generate a random key.
+        message: str
+            The message to decipher.
+        """
+        if len(key) != 26:
+            raise commands.BadArgument("Key must be 26 characters long.")
+        key = key.lower()
+        alphabet = "abcdefghijklmnopqrstuvwxyz"
+        plaintext: list[str] = []
+        for char in message:
+            if char in key:
+                plaintext.append(alphabet[key.find(char)])
+            elif char in key.upper():
+                plaintext.append(alphabet[key.upper().find(char)].upper())
+            else:
+                plaintext.append(char)
+        await ctx.reply("".join(plaintext))
+
+    ######################
     # _run command group #
-    #######################
+    ######################
 
     @commands.hybrid_group(
         name="run", aliases=["exec", "execute"], invoke_without_command=True
