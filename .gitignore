@@ -1,5 +1,6 @@
 .ssh
 wordhoard_error.yaml
+venv311
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
