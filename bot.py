@@ -224,7 +224,8 @@ class Bot(commands.Bot):
 
     async def on_command_error(self, ctx, error: commands.CommandError) -> None:
         """Handles errors from commands that are NOT app commands"""
-        if hasattr(ctx.command, "on_error"):
+        # if isinstance(error, commands.CommandNotFound), then ctx.command is None
+        if ctx.command is None or hasattr(ctx.command, "on_error"):
             return
         await self.on_any_command_error(ctx.send, ctx.command.name, error)
 
@@ -249,9 +250,7 @@ class Bot(commands.Bot):
             error = error.original
         # Exception hierarchy:
         # https://discordpy.readthedocs.io/en/latest/ext/commands/api.html?highlight=permissions#exception-hierarchy  # noqa: E501
-        if isinstance(error, commands.CommandNotFound):
-            pass
-        elif isinstance(error, commands.DisabledCommand):
+        if isinstance(error, commands.DisabledCommand):
             await send("This command has been disabled.", ephemeral=True)
         elif isinstance(error, commands.UserInputError):
             await send(error, ephemeral=True)
