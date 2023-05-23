@@ -4,7 +4,7 @@ A general-purpose Discord bot that can send reminders, help with answering FAQs,
 
 ![demo gif](https://media.giphy.com/media/ydzwjHvEZEc2kmi049/giphy.gif)
 
-You can try the bot in [the support server](https://discord.gg/mCqGhPJVcN), [invite](https://discord.com/oauth2/authorize?client_id=836071320328077332&scope=bot+applications.commands&permissions=2147740736) the bot into your own server, or run your own instance of the bot by following one of the two sets of instructions below.
+You can try the bot in [the support server](https://discord.gg/mCqGhPJVcN), or [invite](https://discord.com/oauth2/authorize?client_id=836071320328077332&scope=bot+applications.commands&permissions=2147740736) the bot into your own server, or run your own instance of the bot by following one of the two sets of instructions below.
 
 Parhelion is tested with Python 3.10 and Python 3.11.
 
