@@ -1065,7 +1065,7 @@ class Settings(commands.Cog):
             on_or_off = "enabled" if on_or_off else "disabled"
             await ctx.send(
                 f"New global setting: `{command_name}` {on_or_off} for user:"
-                f" {user.name}#{user.discriminator}."
+                f" {user.name}."
             )
         else:
             self.all_bot_settings["global_users"][str(user.id)] = on_or_off
@@ -1084,8 +1084,7 @@ class Settings(commands.Cog):
             )
             on_or_off = "enabled" if on_or_off else "disabled"
             await ctx.send(
-                f"New global setting: bot {on_or_off} for user:"
-                f" {user.name}#{user.discriminator}."
+                f"New global setting: bot {on_or_off} for user:" f" {user.name}."
             )
 
     @setting.command(name="server", aliases=["s"])
@@ -1750,7 +1749,7 @@ class Settings(commands.Cog):
                 )
                 await ctx.send(
                     f"Deleted global setting for command `{command_name}` for user:"
-                    f" {user.name}#{user.discriminator}."
+                    f" {user.name}."
                 )
             except KeyError:
                 raise commands.BadArgument("No settings found.")
@@ -1766,8 +1765,7 @@ class Settings(commands.Cog):
                     str(user.id),
                 )
                 await ctx.send(
-                    "Deleted global setting for the bot for user:"
-                    f" {user.name}#{user.discriminator}."
+                    "Deleted global setting for the bot for user:" f" {user.name}."
                 )
             except KeyError:
                 raise commands.BadArgument("No settings found.")
@@ -2155,9 +2153,7 @@ class Settings(commands.Cog):
             user = ctx.author
         entries = await self.get_cmd_setting_entries(["global_users", str(user.id)])
         if len(entries):
-            await self.paginate_settings(
-                ctx, f"for global-user: {user.name}#{user.discriminator}", entries
-            )
+            await self.paginate_settings(ctx, f"for global-user: {user.name}", entries)
         else:
             raise commands.BadArgument("No settings found.")
 
@@ -2223,9 +2219,7 @@ class Settings(commands.Cog):
             ["servers", str(ctx.guild.id), "members", str(member.id)]
         )
         if len(entries):
-            await self.paginate_settings(
-                ctx, f"for member: {member.name}#{member.discriminator}", entries
-            )
+            await self.paginate_settings(ctx, f"for member: {member.name}", entries)
         else:
             raise commands.BadArgument("No settings found.")
 

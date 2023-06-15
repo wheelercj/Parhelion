@@ -404,14 +404,14 @@ class Info(commands.Cog):
                 f"Use `{shortest_nonslash_prefix}help` for help with commands.\n\n"
             )
         embed.add_field(
-            name=f"{self.bot.user.name}#{self.bot.user.discriminator}",
+            name=self.bot.user.name,
             value=dedent(
                 f"""
                 \u200b
                 {help_instruction}{links_s}
 
                 **owner**
-                {owner.name}#{owner.discriminator}
+                {owner.name}
 
                 **made with**
                 {py_info} and {discord_info}
@@ -481,7 +481,7 @@ class Info(commands.Cog):
             value=dedent(
                 f"""\
                 name: {server.name}
-                owner: {server.owner.name}#{server.owner.discriminator}
+                owner: {server.owner.name}
                 description: {server.description}
                 created: {created}
                 preferred locale: {server.preferred_locale}
@@ -540,7 +540,7 @@ class Info(commands.Cog):
         join_timestamp = await create_relative_timestamp(member.joined_at)
         embed = discord.Embed()
         embed.add_field(
-            name=f"{member.name}#{member.discriminator}\n\u2800",
+            name=f"{member.name}\n\u2800",
             value=(
                 f"**display name:** {member.display_name}\n"
                 f"{await self.get_whether_bot(member)}"
@@ -691,7 +691,7 @@ class Info(commands.Cog):
             member = member_or_role
             server_perms = await self.format_perms(member.guild_permissions)
             overwrites = await self.get_perm_overwrites(ctx, member)
-            title = f"{member.name}#{member.discriminator}'s permissions"
+            title = f"{member.name}'s permissions"
             return server_perms, overwrites, title
         elif isinstance(member_or_role, discord.Role):
             role = member_or_role

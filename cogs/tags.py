@@ -121,10 +121,8 @@ class Tags(commands.Cog):
             ctx.guild.id,
         )
         if not records or not len(records):
-            raise commands.BadArgument(
-                f"{member.name}#{member.discriminator} has no tags on this server."
-            )
-        title = f"{member.name}#{member.discriminator}'s tags"
+            raise commands.BadArgument(f"{member.name} has no tags on this server.")
+        title = f"{member.name}'s tags"
         await self.paginate_tag_list(ctx, title, records)
 
     @commands.hybrid_command(hidden=True)
@@ -585,9 +583,9 @@ class Tags(commands.Cog):
             raise commands.BadArgument("Tag not found.")
         owner = ctx.guild.get_member(record["owner_id"])
         if owner is not None:
-            owner = owner.name + "#" + owner.discriminator
+            owner_name = owner.name
         else:
-            owner = record["owner_id"]
+            owner_name = f"ID {record['owner_id']}"
         if record["parent_tag_id"]:
             parent_tag = (
                 f'This tag is an alias to\nthe tag with ID {record["parent_tag_id"]}.\n'
@@ -597,7 +595,7 @@ class Tags(commands.Cog):
         embed.add_field(
             name=record["name"],
             value=(
-                f"owner: {owner}\n"
+                f"owner: {owner_name}\n"
                 f"created: {timestamp}\n"
                 f'views: {record["views"]}\n'
                 f'ID: {record["id"]}\n'
@@ -755,15 +753,14 @@ class Tags(commands.Cog):
         if record is None:
             raise commands.BadArgument("Tag not found.")
         tag_name = record["name"]
-        owner_name = f"{new_owner.name}#{new_owner.discriminator}"
         n_transferred = await self.transfer_tag_ownership(ctx, record, new_owner)
         if n_transferred:
             await ctx.reply(
                 f'Tag "{tag_name}" and its {n_transferred-1} aliases now belong to'
-                f" {owner_name}!"
+                f" {new_owner.name}!"
             )
         else:
-            await ctx.reply(f'Tag "{tag_name}" now belongs to {owner_name}!')
+            await ctx.reply(f'Tag "{tag_name}" now belongs to {new_owner.name}!')
 
     async def transfer_tag_ownership(
         self, ctx, record: asyncpg.Record, new_owner: discord.Member

@@ -1038,7 +1038,7 @@ class Other(commands.Cog):
         for r in records:
             member = ctx.guild.get_member(r["author_id"])
             if member:
-                name = f"{member.name}#{member.discriminator}"
+                name = member.name
             else:
                 name = r["author_id"]
             message += "\n" + name
@@ -1125,11 +1125,11 @@ class Other(commands.Cog):
         May raise ContentTypeError or json.decoder.JSONDecodeError.
         """
         quote, author = await self.get_quote()
-        requester = self.bot.get_user(requester_id)
+        requester: discord.User | None = self.bot.get_user(requester_id)
         if requester:
-            requester_name = requester.name + "#" + requester.discriminator
+            requester_name: str = requester.name
         else:
-            requester_name = requester_id
+            requester_name = f"user with ID {requester_id}"
         embed = discord.Embed(description=f'"{quote.strip()}"\n — {author}')
         embed.set_footer(text=f"Requested by {requester_name}")
         await destination.send(embed=embed)

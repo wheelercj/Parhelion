@@ -120,7 +120,7 @@ class Bot(commands.Bot):
         print("------------------------------------")
         print(f"Python v{platform.python_version()}")
         print(f"discord.py v{discord.__version__}")
-        print(f"{self.user.name}#{self.user.discriminator} ready!")
+        print(f"{self.user.name} ready!")
         print("------------------------------------")
 
     async def on_message(self, message: discord.Message) -> None:
@@ -187,7 +187,7 @@ class Bot(commands.Bot):
 
     async def on_command(self, ctx):
         log_message = (
-            f"[author {ctx.author.name}#{ctx.author.discriminator}]"
+            f"[author {ctx.author.name}]"
             f"[guild {ctx.guild}]"
             f"[command {ctx.clean_prefix}{ctx.command.qualified_name}]"
         )
