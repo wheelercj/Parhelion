@@ -98,7 +98,7 @@ class Bot(commands.Bot):
         if self.logger:
             self.logger.info("Shutting down . . .")
         else:
-            print("Error: logger is None.")
+            print("`Bot.logger` is `None` in `Bot.close`")
         await self.db.close()
         await self.session.close()
         await super().close()
