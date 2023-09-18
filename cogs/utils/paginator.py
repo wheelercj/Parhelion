@@ -1,5 +1,3 @@
-from typing import Optional
-
 import discord  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
@@ -19,8 +17,8 @@ class Paginator(discord.ui.View):
         length: int = 20,
         prefix: str = "",
         suffix: str = "",
-        timeout: Optional[float] = 180.0,
-        filter_query: Optional[str] = None,
+        timeout: float = 180.0,
+        filter_query: str | None = None,
         ephemeral: bool = False,
     ) -> None:
         """Creates a Paginator object.
@@ -37,10 +35,10 @@ class Paginator(discord.ui.View):
             A string to prepend to each entry.
         suffix : str
             A string to append to each entry.
-        timeout : Optional[float]
+        timeout : float
             The number of seconds that the paginator's buttons should continue
             running for after the last interaction.
-        filter_query : Optional[str]
+        filter_query : str | None
             A string for filtering entries. If the string is not present in an
             entry, that entry will not be shown. If no entries contain the
             filter query, commands.BadArgument will be raised with an

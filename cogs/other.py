@@ -5,7 +5,6 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
 from textwrap import dedent
-from typing import Optional
 
 import async_tio  # https://pypi.org/project/async-tio/
 import asyncpg  # https://pypi.org/project/asyncpg/
@@ -113,7 +112,7 @@ class Other(commands.Cog):
     @commands.hybrid_command(
         aliases=["link", "url", "publish", "post", "paste", "mystbin"]
     )
-    async def share(self, ctx, *, text: str = None):
+    async def share(self, ctx, *, text: str | None = None):
         """Gives you a shareable URL to your text or attachment
 
         Text is posted publicly on Mystb.in and cannot be edited or deleted once posted.
@@ -122,7 +121,7 @@ class Other(commands.Cog):
 
         Parameters
         ----------
-        text: Optional[str]
+        text: str | None
             The message to permanently and publicly post on Mystb.in.
         """
         await block_nsfw_channels(ctx.channel)
@@ -434,7 +433,7 @@ class Other(commands.Cog):
         await paginator.run(ctx)
 
     @_run.command(name="languages", aliases=["l", "s", "langs", "list", "search"])
-    async def list_programming_languages(self, ctx, *, query: str = None):
+    async def list_programming_languages(self, ctx, *, query: str | None = None):
         """Lists languages the `run` command supports, optionally filtered
 
         For example, `run languages py` will only show languages that contain `py`. You
@@ -442,7 +441,7 @@ class Other(commands.Cog):
 
         Parameters
         ----------
-        query: Optional[str]
+        query: str | None
             A search term to filter by.
         """
         if query is None:
@@ -736,12 +735,12 @@ class Other(commands.Cog):
         return translated
 
     @translate.command(name="languages", aliases=["l", "s", "langs", "list", "search"])
-    async def list_translation_languages(self, ctx, *, query: str = None):
+    async def list_translation_languages(self, ctx, *, query: str | None = None):
         """Lists the languages supported by the translate commands
 
         Parameters
         ----------
-        query: Optional[str]
+        query: str | None
             A search term to filter by.
         """
         languages = GoogleTranslator.get_supported_languages()
@@ -900,7 +899,7 @@ class Other(commands.Cog):
     #######################
 
     @commands.hybrid_group(invoke_without_command=True)
-    async def quote(self, ctx, *, time: str = None):
+    async def quote(self, ctx, *, time: str | None = None):
         """Shows a random famous quote
 
         If a time is provided in hh:mm format, a quote will be sent each day at that
@@ -909,14 +908,14 @@ class Other(commands.Cog):
 
         Parameters
         ----------
-        time: Optional[str]
+        time: str | None
             The time at which to receive a random quote each day.
         """
         cmd = self.bot.get_command("quote get")
         await ctx.invoke(cmd, time=time)
 
     @quote.command()
-    async def get(self, ctx, *, time: str = None):
+    async def get(self, ctx, *, time: str | None = None):
         """Shows a random famous quote
 
         If a time is provided in hh:mm format, a quote will be sent each day at that
@@ -925,7 +924,7 @@ class Other(commands.Cog):
 
         Parameters
         ----------
-        time: Optional[str]
+        time: str | None
             The time at which to receive a random quote each day.
         """
         if time is None:
@@ -1079,7 +1078,7 @@ class Other(commands.Cog):
 
     async def get_next_quote_info(
         self,
-    ) -> tuple[Optional[datetime], Optional[int], Optional[Messageable]]:
+    ) -> tuple[datetime | None, int | None, Messageable | None]:
         """Gets from the database the info for the nearest (in time) daily quote task
 
         Returns (target_time, author_id, destination).

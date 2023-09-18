@@ -32,7 +32,7 @@ class Mod(commands.Cog):
     @commands.hybrid_command(name="bulk-delete")
     @commands.has_guild_permissions(manage_guild=True)
     @commands.bot_has_guild_permissions(read_message_history=True, manage_messages=True)
-    async def bulk_delete(self, ctx, amount: int, member: discord.Member = None):
+    async def bulk_delete(self, ctx, amount: int, member: discord.Member | None = None):
         """Deletes some of the previous messages in the current channel
 
         This cannot be undone or stopped once it begins. You may not be able to delete
@@ -44,7 +44,7 @@ class Mod(commands.Cog):
         ----------
         amount: int
             The maximum number of previous messages in the current channel to delete.
-        member: Optional[discord.Member]
+        member: discord.Member | None
             The member to delete messages of.
         """
         if member is None:

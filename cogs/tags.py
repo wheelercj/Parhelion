@@ -1,7 +1,6 @@
 import io
 from datetime import datetime
 from datetime import timezone
-from typing import Optional
 
 import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
@@ -558,9 +557,7 @@ class Tags(commands.Cog):
             )
             await ctx.send(record["content"])
 
-    async def get_attachment_bytes(
-        self, ctx, record: asyncpg.Record
-    ) -> Optional[bytes]:
+    async def get_attachment_bytes(self, ctx, record: asyncpg.Record) -> bytes | None:
         """Gets the bytes of the tag's attachment with an async GET request
 
         Assumes record['file_url'] is not None. Sends ctx an error message and returns

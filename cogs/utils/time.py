@@ -1,6 +1,5 @@
 from datetime import datetime
 from datetime import timedelta
-from typing import Optional
 
 import asyncpg  # https://pypi.org/project/asyncpg/
 import dateparser  # https://pypi.org/project/dateparser/
@@ -131,7 +130,7 @@ async def parse_time_message(
     return date_time, message
 
 
-async def get_timezone(db: asyncpg.Pool, user_id: int) -> Optional[str]:
+async def get_timezone(db: asyncpg.Pool, user_id: int) -> str | None:
     """Gets a user's chosen timezone from the database"""
     return await db.fetchval(
         """

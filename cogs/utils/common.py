@@ -1,6 +1,5 @@
 import re
 from typing import Awaitable
-from typing import Optional
 from typing import Union
 
 import discord  # https://pypi.org/project/discord.py/
@@ -14,9 +13,9 @@ class DevSettings:
     privacy_policy_link: str = (
         "https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853"
     )
-    support_server_link: Optional[str] = "https://discord.gg/mCqGhPJVcN"
-    support_server_id: Optional[int] = 845465081582977044
-    membership_link: Optional[str] = "https://ko-fi.com/parhelion99369"
+    support_server_link: str | None = "https://discord.gg/mCqGhPJVcN"
+    support_server_id: int | None = 845465081582977044
+    membership_link: str | None = "https://ko-fi.com/parhelion99369"
     membership_removes_note_limit: bool = True
     membership_removes_reminder_limit: bool = True
     membership_removes_tag_limit: bool = True

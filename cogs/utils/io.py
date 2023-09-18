@@ -1,6 +1,5 @@
 import os
 import traceback
-from typing import Optional
 from urllib.parse import quote_plus
 
 import discord  # https://pypi.org/project/discord.py/
@@ -100,7 +99,7 @@ async def split_input(message: str) -> tuple[str, str]:
     return name, content
 
 
-async def get_attachment_url(ctx) -> Optional[str]:
+async def get_attachment_url(ctx) -> str | None:
     """Gets the proxy URL of an attachment if there is one
 
     Attempts to filter out invalid URLs.

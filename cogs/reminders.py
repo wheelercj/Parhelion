@@ -55,12 +55,12 @@ class Reminders(commands.Cog):
             """
         )
 
-    async def run_reminders(self, jump_url: str = None) -> None:
+    async def run_reminders(self, jump_url: str | None = None) -> None:
         """A task that finds the next reminder time, waits for that time, and sends
 
         Parameters
         ----------
-        jump_url: Optional[str]
+        jump_url: str | None
             The jump URL to the reminder that should be run first. This may be required
             to avoid race conditions if the reminder that should run first was just
             created.

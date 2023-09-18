@@ -48,14 +48,14 @@ class Docs(commands.Cog):
 
     @commands.hybrid_group(invoke_without_command=True)
     @commands.guild_only()
-    async def doc(self, ctx, *, query: str = None):
+    async def doc(self, ctx, *, query: str | None = None):
         """A group of commands for searching documentation
 
         Without a subcommand, this command searches this server's chosen documentation.
 
         Parameters
         ----------
-        query: Optional[str]
+        query: str | None
             A search term to filter by.
         """
         doc_search_command = self.bot.get_command("doc search")
@@ -63,12 +63,12 @@ class Docs(commands.Cog):
 
     @doc.command(name="search")
     @commands.guild_only()
-    async def search_doc(self, ctx, *, query: str = None):
+    async def search_doc(self, ctx, *, query: str | None = None):
         """Searches this server's chosen documentation
 
         Parameters
         ----------
-        query: Optional[str]
+        query: str | None
             A search term to filter by.
         """
         try:

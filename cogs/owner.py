@@ -61,14 +61,14 @@ class Owner(commands.Cog):
         await ctx.send(message)
 
     @commands.hybrid_command()
-    async def leave(self, ctx, *, server_name: str = None):
+    async def leave(self, ctx, *, server_name: str | None = None):
         """Makes the bot leave a server
 
         If no server name is given, the bot will leave the current server.
 
         Parameters
         ----------
-        server_name: Optional[str]
+        server_name: str | None
             The name of the server to leave.
         """
         if server_name is None:

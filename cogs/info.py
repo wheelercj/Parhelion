@@ -5,7 +5,6 @@ from datetime import timezone as tz
 from functools import lru_cache
 from textwrap import dedent
 from typing import Mapping
-from typing import Optional
 from typing import Union
 
 import discord  # https://pypi.org/project/discord.py/
@@ -56,7 +55,7 @@ class MyHelp(commands.HelpCommand):
         return f"{prefix}{command.qualified_name} {command.signature}"
 
     async def send_bot_help(
-        self, mapping: Mapping[Optional[commands.Cog], list[commands.Command]]
+        self, mapping: Mapping[commands.Cog | None, list[commands.Command]]
     ) -> None:
         """Gets called with `<prefix>help`"""
         prefix: str = await self.get_clean_prefix()
@@ -635,7 +634,7 @@ class Info(commands.Cog):
     @commands.hybrid_command(name="permissions", aliases=["perms"])
     @commands.guild_only()
     async def server_permissions(
-        self, ctx, *, member_or_role: Union[discord.Member, discord.Role] = None
+        self, ctx, *, member_or_role: Union[discord.Member, discord.Role] | None = None
     ):
         """Shows the server and channel permissions of a member or role
 
@@ -645,7 +644,7 @@ class Info(commands.Cog):
 
         Parameters
         ----------
-        member_or_role: Optional[Union[discord.Member, discord.Role]]
+        member_or_role: Union[discord.Member, discord.Role] | None
             The member or role to view permissions of.
         """
         if member_or_role is None:
