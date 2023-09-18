@@ -1,9 +1,8 @@
 import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
 from bs4 import BeautifulSoup  # https://pypi.org/project/beautifulsoup4/
-from discord.ext import commands  # https://pypi.org/project/discord.py/
-
 from cogs.utils.paginator import Paginator
+from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
 class Docs(commands.Cog):

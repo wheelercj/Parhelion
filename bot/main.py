@@ -8,7 +8,9 @@ from bot import Bot
 
 
 async def main():
-    load_dotenv()
+    dotenv_path: str = "../.env"
+    abs_dotenv_path: str = os.path.join(os.path.dirname(__file__), dotenv_path)
+    load_dotenv(abs_dotenv_path)
     try:
         db: asyncpg.Pool = await get_db_connection()
     except Exception:

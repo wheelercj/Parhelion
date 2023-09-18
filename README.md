@@ -12,13 +12,13 @@ coming soon
 
 ## local hosting setup
 
-1. `git clone https://github.com/wheelercj/Parhelion.git`.
+1. `git clone https://github.com/wheelercj/Parhelion.git && cd Parhelion`.
 2. Optionally, create a virtual environment such as with `py -3.11 -m venv venv` or `python3.11 -m venv venv`, and [activate the virtual environment](https://python.land/virtual-environments/virtualenv).
-3. `pip install -r requirements.txt` to install the dependencies.
-4.  Create a [Discord API Application](https://discord.com/developers/applications). Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
+3. `cd bot && pip install -r requirements.txt` to install the dependencies.
+4.  Create a [Discord API Application](https://discord.com/developers/applications). Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [bot/cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/bot/cogs/utils/common.py).
 5.  Create a PostgreSQL server.
 6.  Create a file named `.env` in the project's root. See the sample .env file below for what to put in the file.
-7.  Run main.py.
+7.  Run the bot with `py bot/main.py` or `python3 bot/main.py`.
 
 ## remote hosting setup
 
@@ -39,9 +39,9 @@ This guide shows one of many possible ways to set up Parhelion on a remote serve
 13. `python3.10 --version` to confirm that Python has installed correctly.
 14. `python3.10 -m pip install --upgrade pip`.
 15. Navigate to where you want a folder of Parhelion's code to appear.
-16. `git clone https://github.com/wheelercj/Parhelion.git`.
+16. `git clone https://github.com/wheelercj/Parhelion.git && cd Parhelion/bot`.
 17. `pip install -r requirements.txt` to install the dependencies. It's probably best to not use a virtual environment because they don't work well with systemd.
-18. Create a [Discord API Application](https://discord.com/developers/applications). Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
+18. Create a [Discord API Application](https://discord.com/developers/applications). Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [bot/cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/bot/cogs/utils/common.py).
 19. [Create a PostgreSQL server](https://docs.fedoraproject.org/en-US/quick-docs/postgresql/).
 20. Create a file named `.env` in the project's root. See the sample .env file below for what to put in the file.
 21. Create a new systemd service unit file named mybot.service with `sudo systemctl edit --force --full mybot.service` with the contents shown below. The file should appear in `/etc/systemd/system/`.
@@ -59,8 +59,8 @@ After=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/opc/Parhelion
-ExecStart=python3.10 /home/opc/Parhelion/main.py
+WorkingDirectory=/home/opc/Parhelion/bot
+ExecStart=python3.10 /home/opc/Parhelion/bot/main.py
 User=opc
 Restart=on-failure
 StartLimitInterval=30
@@ -87,11 +87,13 @@ PRIVACY_POLICY_LINK="https://gist.github.com/wheelercj/033bbaf78b08ff0335943d511
 
 # The Postgres variables, if removed, default to the Postgres defaults (except password;
 # there is no default password).
-POSTGRES_HOST="localhost"
-POSTGRES_PORT=5432
 POSTGRES_DB="bot"
 POSTGRES_USER="dev"
 POSTGRES_PASSWORD="dkByXjCEQJ7UPYgyZu1W167LhldOVcSgEV7EXmhs7iYbzf4yv73tmIzYlmqvSQHYZrLo7se8lbOR3FYIFBzJv6NgDwg5GBj4FZIc"
+
+# These two are used by the bot, but not by db/docker-compose.yml which always uses localhost and port 5432.
+POSTGRES_HOST="localhost"
+POSTGRES_PORT="5432"
 
 # This is a string of a comma-separated list of command prefixes. If you want a comma as
 # part of a command prefix, use `COMMA` to say where. The command prefixes `/` and `@`
@@ -109,11 +111,11 @@ ALTERNATE_GITHUB_GISTS_TOKEN="ghp_aPyJbZJYCXN9wS0ZGsnHPMvc40A63DUnIScH"
 ALTERNATE_GITHUB_ACCOUNT_NAME="beep-boop-82197842"
 
 SUPPORT_SERVER_LINK="https://discord.gg/mCqGhPJVcN"
-SUPPORT_SERVER_ID=845465081582977044
+SUPPORT_SERVER_ID="845465081582977044"
 
 MEMBERSHIP_LINK="https://ko-fi.com/parhelion99369"
-MEMBERSHIP_REMOVES_NOTE_LIMIT=true
-MEMBERSHIP_REMOVES_REMINDER_LIMIT=true
-MEMBERSHIP_REMOVES_TAG_LIMIT=true
+MEMBERSHIP_REMOVES_NOTE_LIMIT="true"
+MEMBERSHIP_REMOVES_REMINDER_LIMIT="true"
+MEMBERSHIP_REMOVES_TAG_LIMIT="true"
 MEMBERSHIP_ROLE_IDS="884564744722333697,884565844221382668,884565211632267285"
 ```

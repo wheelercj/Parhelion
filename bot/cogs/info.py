@@ -8,8 +8,6 @@ from typing import Mapping
 from typing import Union
 
 import discord  # https://pypi.org/project/discord.py/
-from discord.ext import commands  # https://pypi.org/project/discord.py/
-
 from cogs.utils.common import get_bot_invite_link
 from cogs.utils.common import get_prefixes_list
 from cogs.utils.common import get_prefixes_message
@@ -19,6 +17,7 @@ from cogs.utils.time import create_relative_timestamp
 from cogs.utils.time import format_datetime
 from cogs.utils.time import format_timedelta
 from cogs.utils.time import parse_time_message
+from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
 def yes_or_no(boolean: bool) -> str:

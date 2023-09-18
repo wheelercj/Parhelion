@@ -13,6 +13,14 @@ import mystbin  # https://pypi.org/project/mystbin.py/
 from aiohttp.client_exceptions import (
     ContentTypeError,
 )  # https://pypi.org/project/aiohttp/
+from cogs.utils.common import block_nsfw_channels
+from cogs.utils.io import get_attachment_url
+from cogs.utils.io import safe_send
+from cogs.utils.io import unwrap_code_block
+from cogs.utils.paginator import Paginator
+from cogs.utils.time import create_short_timestamp
+from cogs.utils.time import get_14_digit_datetime
+from cogs.utils.time import parse_time_message
 from deep_translator import (
     GoogleTranslator,
 )  # https://pypi.org/project/deep-translator/
@@ -30,15 +38,6 @@ from wordhoard import Homophones  # https://pypi.org/project/wordhoard/
 from wordhoard import Hypernyms  # https://pypi.org/project/wordhoard/
 from wordhoard import Hyponyms  # https://pypi.org/project/wordhoard/
 from wordhoard import Synonyms  # https://pypi.org/project/wordhoard/
-
-from cogs.utils.common import block_nsfw_channels
-from cogs.utils.io import get_attachment_url
-from cogs.utils.io import safe_send
-from cogs.utils.io import unwrap_code_block
-from cogs.utils.paginator import Paginator
-from cogs.utils.time import create_short_timestamp
-from cogs.utils.time import get_14_digit_datetime
-from cogs.utils.time import parse_time_message
 
 
 class RunningQuoteInfo:

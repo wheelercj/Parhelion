@@ -7,11 +7,10 @@ from typing import Union
 import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
 import pytz  # https://pypi.org/project/pytz/
-from discord.ext import commands  # https://pypi.org/project/discord.py/
-
 from cogs.utils.common import get_prefixes_message
 from cogs.utils.common import get_prefixes_str
 from cogs.utils.paginator import Paginator
+from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
 class CommandName(commands.Converter):

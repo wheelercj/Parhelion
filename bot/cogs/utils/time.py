@@ -3,9 +3,8 @@ from datetime import timedelta
 
 import asyncpg  # https://pypi.org/project/asyncpg/
 import dateparser  # https://pypi.org/project/dateparser/
-from discord.ext import commands  # https://pypi.org/project/discord.py/
-
 from cogs.utils.common import plural
+from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
 async def create_relative_timestamp(dt: datetime) -> str:

@@ -4,14 +4,13 @@ from datetime import timezone
 
 import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
-from discord.ext import commands  # https://pypi.org/project/discord.py/
-
 from cogs.utils.common import check_ownership_permission
 from cogs.utils.common import plural
 from cogs.utils.io import get_attachment_url
 from cogs.utils.io import split_input
 from cogs.utils.paginator import Paginator
 from cogs.utils.time import create_relative_timestamp
+from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
 class Tags(commands.Cog):
