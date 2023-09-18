@@ -7,7 +7,6 @@ import discord  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 from cogs.utils.common import check_ownership_permission
-from cogs.utils.common import DevSettings
 from cogs.utils.common import plural
 from cogs.utils.io import get_attachment_url
 from cogs.utils.io import split_input
@@ -621,7 +620,7 @@ class Tags(commands.Cog):
             self.bot,
             member,
             "tags",
-            DevSettings.membership_removes_tag_limit,
+            self.bot.dev_settings.membership_removes_tag_limit,
             self.tag_ownership_limit,
             self.count_users_tags,
         )

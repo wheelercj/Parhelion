@@ -9,7 +9,6 @@ from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 from cogs.utils.common import block_nsfw_channels
 from cogs.utils.common import check_ownership_permission
-from cogs.utils.common import DevSettings
 from cogs.utils.common import plural
 from cogs.utils.io import LinkButton
 from cogs.utils.io import safe_send
@@ -304,7 +303,7 @@ class Reminders(commands.Cog):
             self.bot,
             author,
             "reminders",
-            DevSettings.membership_removes_reminder_limit,
+            self.bot.dev_settings.membership_removes_reminder_limit,
             self.reminder_ownership_limit,
             self.count_users_reminders,
         )

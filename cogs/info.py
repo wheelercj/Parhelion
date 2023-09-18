@@ -10,7 +10,6 @@ from typing import Union
 import discord  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
-from cogs.utils.common import DevSettings
 from cogs.utils.common import get_bot_invite_link
 from cogs.utils.common import get_prefixes_list
 from cogs.utils.common import get_prefixes_message
@@ -73,16 +72,17 @@ class MyHelp(commands.HelpCommand):
                 cog_short_doc = cog.description.split("\n")[0]
                 message += f"\n**__{cog_name}__**: {cog_short_doc}"
         message += "\u200b\n\n"
-        if DevSettings.support_server_link:
-            message += (
-                f"[support server]({DevSettings.support_server_link}) \u2800❂\u2800 "
-            )
+        support_link: str = self.context.bot.dev_settings.support_server_link
+        if support_link:
+            message += f"[support server]({support_link}) \u2800❂\u2800 "
+        privacy_link: str = self.context.bot.dev_settings.privacy_policy_link
         message += (
             f"[invite]({await get_bot_invite_link(self.context.bot)})"
-            f" \u2800❂\u2800 [privacy policy]({DevSettings.privacy_policy_link})"
+            f" \u2800❂\u2800 [privacy policy]({privacy_link})"
         )
-        if DevSettings.membership_link:
-            message += f" \u2800❂\u2800 [donate]({DevSettings.membership_link})"
+        membership_link: str = self.context.bot.dev_settings.membership_link
+        if membership_link:
+            message += f" \u2800❂\u2800 [donate]({membership_link})"
         embed = discord.Embed(description=message)
         destination = self.get_destination()
         await destination.send(embed=embed)
@@ -345,10 +345,10 @@ class Info(commands.Cog):
     @commands.hybrid_command(aliases=["contact", "server"], hidden=True)
     async def support(self, ctx):
         """Shows the link to this bot's support server"""
-        if DevSettings.support_server_link:
+        if self.bot.dev_settings.support_server_link:
             await ctx.send(
                 "Here's the link to my support server:"
-                f" <{DevSettings.support_server_link}>"
+                f" <{self.bot.dev_settings.support_server_link}>"
             )
         else:
             await ctx.send("A support server has not been set by the developer.")
@@ -356,15 +356,17 @@ class Info(commands.Cog):
     @commands.hybrid_command(aliases=["privacy-policy", "privacypolicy"], hidden=True)
     async def privacy(self, ctx):
         """Shows the link to this bot's privacy policy"""
-        await ctx.send(f"Here's my privacy policy: <{DevSettings.privacy_policy_link}>")
+        await ctx.send(
+            f"Here's my privacy policy: <{self.bot.dev_settings.privacy_policy_link}>"
+        )
 
     @commands.hybrid_command()
     async def donate(self, ctx):
         """Help keep the server running and support the bot's development"""
-        if DevSettings.membership_link:
+        if self.bot.dev_settings.membership_link:
             await ctx.send(
                 "Thanks for your interest! You can support this project here:"
-                f" <{DevSettings.membership_link}>"
+                f" <{self.bot.dev_settings.membership_link}>"
             )
         else:
             await ctx.send(
@@ -387,16 +389,18 @@ class Info(commands.Cog):
         discord_link = "[discord.py](https://discordpy.readthedocs.io/en/latest/)"
         discord_info = f"{discord_link} v{discord.__version__}"
         links_s = ""
-        if DevSettings.support_server_link:
-            links_s += (
-                f"[support server]({DevSettings.support_server_link}) \u2800❂\u2800 "
-            )
+        support_link: str = self.bot.dev_settings.support_server_link
+        if support_link:
+            links_s += f"[support server]({support_link}) \u2800❂\u2800 "
+        privacy_link: str = self.bot.dev_settings.privacy_policy_link
         links_s += (
             f"[invite]({await get_bot_invite_link(self.bot)})"
-            f" \u2800❂\u2800 [privacy policy]({DevSettings.privacy_policy_link})"
+            f" \u2800❂\u2800 [privacy policy]({privacy_link})"
         )
-        if DevSettings.membership_link:
-            links_s += f" \u2800❂\u2800 [donate]({DevSettings.membership_link})"
+        if self.bot.dev_settings.membership_link:
+            links_s += (
+                f" \u2800❂\u2800 [donate]({self.bot.dev_settings.membership_link})"
+            )
         help_instruction = ""
         if ctx.bot_permissions.read_messages:
             help_instruction = (

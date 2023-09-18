@@ -4,23 +4,21 @@ A general-purpose Discord bot that can send reminders, help with answering FAQs,
 
 ![demo gif](https://media.giphy.com/media/ydzwjHvEZEc2kmi049/giphy.gif)
 
-You can try the bot in [the support server](https://discord.gg/mCqGhPJVcN), or [invite](https://discord.com/oauth2/authorize?client_id=836071320328077332&scope=bot+applications.commands&permissions=2147740736) the bot into your own server, or run your own instance of the bot by following one of the two sets of instructions below.
+You can try the bot in [the support server](https://discord.gg/mCqGhPJVcN), or [invite](https://discord.com/oauth2/authorize?client_id=836071320328077332&scope=bot+applications.commands&permissions=2147740736) the bot into your own server, or run your own instance of the bot by following the instructions below.
 
-Parhelion is tested with Python 3.11.
+## setup instructions using docker
+
+coming soon
 
 ## local hosting setup
 
 1. `git clone https://github.com/wheelercj/Parhelion.git`.
-2. Optionally create a virtual environment.
-3. `pip install -r requirements.txt`.
-4. Optionally, `pip install -r requirements-dev.txt` and `pre-commit install`.
-5. Create a `.env` file in the project's root with the environment variables described in the next steps.
-6.  Create a [Discord API Application](https://discord.com/developers/applications) and an environment variable for it called `discord_bot_secret_token`. Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
-7.  Create a PostgreSQL server and a `postgres_password` environment variable. If you will use postgres credentials different from the postgres defaults, also create other environment variables as necessary: `postgres_host`, `postgres_database`, `postgres_port`, `postgres_user`.
-8.  [Create a GitHub personal access token](https://gist.github.com/beep-boop-82197842/4255864be63966b8618e332d1df30619) for making gists, and environment variables called `alternate_github_gists_token` and `alternate_github_account_name`. These are used to automatically create gists of any leaked bot tokens Parhelion detects to invalidate the tokens and protect Discord bots (including itself). You might want to create a separate GitHub account for this.
-9.  If you will use the owner-only `gist` command, create a GitHub personal access token for making gists and an environment variable called `main_github_gists_token`.
-10. Change the bot's developer settings in the `DevSettings` class near the top of common.py.
-11. Run main.py.
+2. Optionally, create a virtual environment such as with `py -3.11 -m venv venv` or `python3.11 -m venv venv`, and [activate the virtual environment](https://python.land/virtual-environments/virtualenv).
+3. `pip install -r requirements.txt` to install the dependencies.
+4.  Create a [Discord API Application](https://discord.com/developers/applications). Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
+5.  Create a PostgreSQL server.
+6.  Create a file named `.env` in the project's root. See the sample .env file below for what to put in the file.
+7.  Run main.py.
 
 ## remote hosting setup
 
@@ -42,19 +40,15 @@ This guide shows one of many possible ways to set up Parhelion on a remote serve
 14. `python3.10 -m pip install --upgrade pip`.
 15. Navigate to where you want a folder of Parhelion's code to appear.
 16. `git clone https://github.com/wheelercj/Parhelion.git`.
-17. `pip install -r requirements.txt`. It's probably best to not use a virtual environment because they don't work well with systemd.
-18. Optionally, `pip install -r requirements-dev.txt` and `pre-commit install`.
-19. Create a `.env` file in the project's root with the environment variables described in the next steps.
-20. Create a [Discord API Application](https://discord.com/developers/applications) and an environment variable for it called `discord_bot_secret_token`. Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
-21. [Create a PostgreSQL server](https://docs.fedoraproject.org/en-US/quick-docs/postgresql/) and a `postgres_password` environment variable. If you will use postgres credentials different from the postgres defaults, also create other environment variables as necessary: `postgres_host`, `postgres_database`, `postgres_port`, `postgres_user`.
-22. [Create a GitHub personal access token](https://gist.github.com/beep-boop-82197842/4255864be63966b8618e332d1df30619) for making gists, and environment variables called `alternate_github_gists_token` and `alternate_github_account_name`. These are used to automatically create gists of any leaked bot tokens Parhelion detects to invalidate the tokens and protect Discord bots (including itself). You might want to create a separate GitHub account for this.
-23. If you will use the owner-only `gist` command, create a GitHub personal access token for making gists and an environment variable called `main_github_gists_token`.
-24. Change the bot's developer settings in the `DevSettings` class near the top of common.py.
-25. Create a new systemd service unit file named mybot.service with `sudo systemctl edit --force --full mybot.service` with the contents shown below. The file should appear in `/etc/systemd/system/`.
-26. Reload systemd with `sudo systemctl daemon-reload`.
-27. Start the bot with `sudo systemctl start mybot`.
-28. Make sure `mybot.service` doesn't have a "failed" status shown with `systemctl status mybot.service`. If the service failed, use `journalctl -u mybot.service` to see more details. [This systemd guide](https://www.digitalocean.com/community/tutorials/systemd-essentials-working-with-services-units-and-the-journal) might help as well.
-29. Make the bot automatically start on boot with `sudo systemctl enable mybot`.
+17. `pip install -r requirements.txt` to install the dependencies. It's probably best to not use a virtual environment because they don't work well with systemd.
+18. Create a [Discord API Application](https://discord.com/developers/applications). Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
+19. [Create a PostgreSQL server](https://docs.fedoraproject.org/en-US/quick-docs/postgresql/).
+20. Create a file named `.env` in the project's root. See the sample .env file below for what to put in the file.
+21. Create a new systemd service unit file named mybot.service with `sudo systemctl edit --force --full mybot.service` with the contents shown below. The file should appear in `/etc/systemd/system/`.
+22. Reload systemd with `sudo systemctl daemon-reload`.
+23. Start the bot with `sudo systemctl start mybot`.
+24. Make sure `mybot.service` doesn't have a "failed" status shown with `systemctl status mybot.service`. If the service failed, use `journalctl -u mybot.service` to see more details. [This systemd guide](https://www.digitalocean.com/community/tutorials/systemd-essentials-working-with-services-units-and-the-journal) might help as well.
+25. Make the bot automatically start on boot with `sudo systemctl enable mybot`.
 
 **mybot.service**
 
@@ -73,4 +67,53 @@ StartLimitInterval=30
 
 [Install]
 WantedBy=multi-user.target
+```
+
+## sample .env
+
+Here's an example of a .env file for this bot based on the real one Parhelion uses (all the secrets in this example have been replaced with fakes).
+
+```Dotenv
+# The only variables required for the bot to run are DISCORD_BOT_TOKEN,
+# POSTGRES_PASSWORD, and PRIVACY_POLICY_LINK. Some variables are required for certain
+# features and/or have default values defined elsewhere you may want to change as
+# described below. Most of the remaining variables you will probably want to
+# comment-out, delete, or change the value of.
+
+# Get this from the Discord API app page: https://discord.com/developers/applications
+DISCORD_BOT_TOKEN="BfnYJ4XscOQOIkC5bxUbr3QH.D9yps5.cfURLTidT_zCPRZ-DxcaUMk634E"
+
+PRIVACY_POLICY_LINK="https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853"
+
+# The Postgres variables, if removed, default to the Postgres defaults (except password;
+# there is no default password).
+POSTGRES_HOST="localhost"
+POSTGRES_PORT=5432
+POSTGRES_DB="bot"
+POSTGRES_USER="dev"
+POSTGRES_PASSWORD="dkByXjCEQJ7UPYgyZu1W167LhldOVcSgEV7EXmhs7iYbzf4yv73tmIzYlmqvSQHYZrLo7se8lbOR3FYIFBzJv6NgDwg5GBj4FZIc"
+
+# This is a string of a comma-separated list of command prefixes. If you want a comma as
+# part of a command prefix, use `COMMA` to say where. The command prefixes `/` and `@`
+# are hardcoded.
+DEFAULT_BOT_PREFIXES=";,par ,Par "
+
+# Required by the owner-only `gist` command for making gists.
+MAIN_GITHUB_GISTS_TOKEN="ghp_gHc6Zhhprk43ZGM1VNNvQmgnDxydvKxmDVfb"
+
+# These are used to automatically create gists of any leaked bot tokens Parhelion
+# detects to invalidate the tokens and protect Discord bots (including itself). You
+# might want to create a separate GitHub account for this if you think a lot of tokens
+# might be spammed so you don't clutter your main account.
+ALTERNATE_GITHUB_GISTS_TOKEN="ghp_aPyJbZJYCXN9wS0ZGsnHPMvc40A63DUnIScH"
+ALTERNATE_GITHUB_ACCOUNT_NAME="beep-boop-82197842"
+
+SUPPORT_SERVER_LINK="https://discord.gg/mCqGhPJVcN"
+SUPPORT_SERVER_ID=845465081582977044
+
+MEMBERSHIP_LINK="https://ko-fi.com/parhelion99369"
+MEMBERSHIP_REMOVES_NOTE_LIMIT=true
+MEMBERSHIP_REMOVES_REMINDER_LIMIT=true
+MEMBERSHIP_REMOVES_TAG_LIMIT=true
+MEMBERSHIP_ROLE_IDS="884564744722333697,884565844221382668,884565211632267285"
 ```

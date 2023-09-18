@@ -9,7 +9,6 @@ import discord  # https://pypi.org/project/discord.py/
 import pytz  # https://pypi.org/project/pytz/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
-from cogs.utils.common import DevSettings
 from cogs.utils.common import get_prefixes_message
 from cogs.utils.common import get_prefixes_str
 from cogs.utils.paginator import Paginator
@@ -582,7 +581,7 @@ class Settings(commands.Cog):
         old_prefix: str
             The existing message command prefix to delete.
         """
-        default_prefixes: list[str] = DevSettings.default_bot_prefixes
+        default_prefixes: list[str] = self.bot.dev_settings.default_bot_prefixes
         try:
             custom_prefixes: list[str] = self.bot.custom_prefixes[ctx.guild.id]
             if custom_prefixes is None:
@@ -643,7 +642,7 @@ class Settings(commands.Cog):
 
         You cannot delete the bot mention prefix.
         """
-        default_prefixes: list[str] = DevSettings.default_bot_prefixes
+        default_prefixes: list[str] = self.bot.dev_settings.default_bot_prefixes
         self.bot.removed_default_prefixes[ctx.guild.id] = default_prefixes
         try:
             del self.bot.custom_prefixes[ctx.guild.id]

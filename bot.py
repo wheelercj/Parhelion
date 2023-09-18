@@ -17,14 +17,48 @@ import discord  # https://pypi.org/project/discord.py/
 from discord import app_commands  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
-from cogs.utils.common import DevSettings
 from cogs.utils.common import get_prefixes_list
 from cogs.utils.common import get_prefixes_message
 from cogs.utils.io import dev_mail
 
 
+class DevSettings:
+    def __init__(self):
+        self.alt_github_name: str | None = os.environ.get(
+            "ALTERNATE_GITHUB_ACCOUNT_NAME"
+        )
+        self.alt_github_token: str | None = os.environ.get(
+            "ALTERNATE_GITHUB_GISTS_TOKEN"
+        )
+        self.default_bot_prefixes: list[str] = os.environ.get(
+            "DEFAULT_BOT_PREFIXES", ";,par ,Par "
+        ).split(",")
+        for i, prefix in enumerate(self.default_bot_prefixes):
+            self.default_bot_prefixes[i] = prefix.replace("COMMA", ",")
+        self.privacy_policy_link: str = os.environ["PRIVACY_POLICY_LINK"]
+        self.support_server_link: str | None = os.environ.get("SUPPORT_SERVER_LINK")
+        self.support_server_id: int | None = None
+        self.support_server_id_str: str | None = os.environ.get("SUPPORT_SERVER_ID")
+        if self.support_server_id_str:
+            self.support_server_id = int(self.support_server_id_str)
+        self.membership_link: str | None = os.environ.get("MEMBERSHIP_LINK")
+        self.membership_removes_note_limit: bool = (
+            os.environ.get("MEMBERSHIP_REMOVES_NOTE_LIMIT", "True").lower() == "true"
+        )
+        r_l: str = os.environ.get("MEMBERSHIP_REMOVES_REMINDER_LIMIT", "True").lower()
+        self.membership_removes_reminder_limit: bool = r_l == "true"
+        self.membership_removes_tag_limit: bool = (
+            os.environ.get("MEMBERSHIP_REMOVES_TAG_LIMIT", "True").lower() == "true"
+        )
+        self.membership_role_ids: list[int] = []
+        for role_id in os.environ.get("MEMBERSHIP_ROLE_IDS", "").split(","):
+            if role_id:
+                self.membership_role_ids.append(int(role_id))
+
+
 class Bot(commands.Bot):
     def __init__(self):
+        self.dev_settings = DevSettings()
         intents = discord.Intents.default()
         intents.members = True
         intents.message_content = True
@@ -71,7 +105,7 @@ class Bot(commands.Bot):
         be used when initializing the bot; to get unrendered prefixes elsewhere, it may
         be safer to use `bot.command_prefix(bot, message)`.
         """
-        prefixes = copy(DevSettings.default_bot_prefixes)
+        prefixes = copy(self.dev_settings.default_bot_prefixes)
         if not message.guild:
             prefixes.append("")
         else:
@@ -115,8 +149,8 @@ class Bot(commands.Bot):
         print("Resumed . . . ")
 
     async def on_ready(self) -> None:
-        # This function may be called many times while the
-        # bot is running, so it should not do much.
+        # This function may be called many times while the bot is running, so it should
+        # not do much.
         print("------------------------------------")
         print(f"Python v{platform.python_version()}")
         print(f"discord.py v{discord.__version__}")
@@ -124,7 +158,8 @@ class Bot(commands.Bot):
         print("------------------------------------")
 
     async def on_message(self, message: discord.Message) -> None:
-        await self.detect_token(message)
+        if self.dev_settings.alt_github_name and self.dev_settings.alt_github_token:
+            await self.detect_token(message)
         if message.author.bot:
             return
         if await self.is_only_bot_mention(message):
@@ -151,9 +186,10 @@ class Bot(commands.Bot):
             '{"public":true,"files":{"discord-bot-token.txt":{"content":"%s"}}}'
             % discord_bot_token
         )
-        github_account_name = os.environ["alternate_github_account_name"]
-        github_token = os.environ["alternate_github_gists_token"]
-        auth = aiohttp.BasicAuth(github_account_name, password=github_token)
+        auth = aiohttp.BasicAuth(
+            self.dev_settings.alt_github_name,
+            password=self.dev_settings.alt_github_token,
+        )
         async with self.session.post(url, data=data, auth=auth) as response:
             if not response.ok:
                 raise ValueError(
@@ -245,8 +281,8 @@ class Bot(commands.Bot):
     ) -> None:
         """Handles errors from both app commands and other commands"""
         if isinstance(error, commands.CommandInvokeError):
-            # All errors from command invocations are
-            # temporarily wrapped in commands.CommandInvokeError
+            # All errors from command invocations are temporarily wrapped in
+            # commands.CommandInvokeError
             error = error.original
         # Exception hierarchy:
         # https://discordpy.readthedocs.io/en/latest/ext/commands/api.html?highlight=permissions#exception-hierarchy  # noqa: E501
@@ -311,7 +347,7 @@ class Bot(commands.Bot):
             if not self.error_is_reported and self.logger.level <= logging.ERROR:
                 await dev_mail(self, "I encountered and logged an error")
                 self.error_is_reported = True
-            if not DevSettings.support_server_link:
+            if not self.dev_settings.support_server_link:
                 await send(
                     "I encountered an error and notified my developer.",
                     ephemeral=True,
@@ -320,7 +356,7 @@ class Bot(commands.Bot):
                 await send(
                     "I encountered an error and notified my developer. If you would"
                     " like to join the support server, here's the link:"
-                    f" {DevSettings.support_server_link}",
+                    f" {self.dev_settings.support_server_link}",
                     ephemeral=True,
                 )
 

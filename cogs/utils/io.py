@@ -161,8 +161,9 @@ async def safe_send(
     ctx, message: str, protect_postgres_host: bool = False, ephemeral: bool = False
 ) -> None:
     """Same as ctx.send but with extra security options"""
-    if protect_postgres_host and os.environ["postgres_host"] in message:
-        message = message.replace(os.environ["postgres_host"], "(PostgreSQL host)")
+    postgres_host: str = os.environ.get("POSTGRES_HOST", "localhost")
+    if protect_postgres_host and postgres_host in message:
+        message = message.replace(postgres_host, "(PostgreSQL host)")
     await ctx.send(message, ephemeral=ephemeral)
 
 

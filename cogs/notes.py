@@ -7,7 +7,6 @@ from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 from cogs.utils.common import block_nsfw_channels
 from cogs.utils.common import check_ownership_permission
-from cogs.utils.common import DevSettings
 from cogs.utils.paginator import Paginator
 
 
@@ -318,7 +317,7 @@ class Notes(commands.Cog):
             self.bot,
             author,
             "notes",
-            DevSettings.membership_removes_note_limit,
+            self.bot.dev_settings.membership_removes_note_limit,
             self.note_ownership_limit,
             self.count_users_notes,
         )

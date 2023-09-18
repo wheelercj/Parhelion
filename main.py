@@ -16,18 +16,18 @@ async def main():
         raise
     bot = Bot()
     bot.db = db
-    token = os.environ["discord_bot_secret_token"]
+    token = os.environ["DISCORD_BOT_TOKEN"]
     async with bot:
         await bot.start(token, reconnect=True)
 
 
 async def get_db_connection() -> asyncpg.Pool:
     """Connects to the PostgreSQL database"""
-    host = os.environ.get("postgres_host", "localhost")
-    database = os.environ.get("postgres_database", "postgres")
-    port = os.environ.get("postgres_port", "5432")
-    user = os.environ.get("postgres_user", "postgres")
-    password = os.environ["postgres_password"]
+    host = os.environ.get("POSTGRES_HOST", "localhost")
+    database = os.environ.get("POSTGRES_DB", "postgres")
+    port = os.environ.get("POSTGRES_PORT", "5432")
+    user = os.environ.get("POSTGRES_USER", "postgres")
+    password = os.environ["POSTGRES_PASSWORD"]
     return await asyncpg.create_pool(
         host=host,
         database=database,

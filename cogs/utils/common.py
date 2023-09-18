@@ -8,24 +8,6 @@ from discord.abc import Messageable  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
-class DevSettings:
-    default_bot_prefixes: list[str] = [";", "par ", "Par "]  # `/` and `@` are hardcoded
-    privacy_policy_link: str = (
-        "https://gist.github.com/wheelercj/033bbaf78b08ff0335943d5119347853"
-    )
-    support_server_link: str | None = "https://discord.gg/mCqGhPJVcN"
-    support_server_id: int | None = 845465081582977044
-    membership_link: str | None = "https://ko-fi.com/parhelion99369"
-    membership_removes_note_limit: bool = True
-    membership_removes_reminder_limit: bool = True
-    membership_removes_tag_limit: bool = True
-    membership_role_ids: list[int] = [
-        884564744722333697,
-        884565844221382668,
-        884565211632267285,
-    ]
-
-
 async def get_bot_invite_link(bot) -> str:
     """Creates a link for inviting this bot to a server
 
@@ -123,21 +105,21 @@ async def check_ownership_permission(
     """
     if author.id == bot.owner_id:
         return
-    if DevSettings.support_server_id and membership_removes_limit:
-        support_server = bot.get_guild(DevSettings.support_server_id)
+    if bot.dev_settings.support_server_id and membership_removes_limit:
+        support_server = bot.get_guild(bot.dev_settings.support_server_id)
         member = support_server.get_member(author.id)
         if member:
             for role in member.roles:
-                if role.id in DevSettings.membership_role_ids:
+                if role.id in bot.dev_settings.membership_role_ids:
                     return
     c = await ownership_counter(author.id)
     if c < ownership_limit:
         return
     message = f"The current free {category} limit is {ownership_limit}."
-    if DevSettings.membership_link and membership_removes_limit:
+    if bot.dev_settings.membership_link and membership_removes_limit:
         message += (
             f" Support development and unlock unlimited {category} here:"
-            f" <{DevSettings.membership_link}>"
+            f" <{bot.dev_settings.membership_link}>"
         )
     raise commands.UserInputError(message)
 
