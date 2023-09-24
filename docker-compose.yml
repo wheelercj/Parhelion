@@ -8,14 +8,24 @@ services:
     container_name: bot
     depends_on:
       - postgres
-    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
     env_file: .env
     environment:
       ENV: docker
   postgres:
     image: postgres:latest
     container_name: postgres
-    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
     env_file: .env
       # The host is always `localhost` and the port is always `5432`. The POSTGRES_HOST
       # and POSTGRES_PORT variables in the .env file are ignored.

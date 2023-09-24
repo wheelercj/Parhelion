@@ -10,10 +10,26 @@ You can try the bot in [the support server](https://discord.gg/mCqGhPJVcN), or [
 
 These instructions use [Git](https://git-scm.com/) and [Docker](https://www.docker.com/).
 
-1.  Create a [Discord API Application](https://discord.com/developers/applications). Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
+1. Create a [Discord API app](https://discord.com/developers/applications). Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
 2. Download the code with `git clone https://github.com/wheelercj/Parhelion.git && cd Parhelion`.
-3. Create a file named `.env` in the project's root. See the sample .env file below for what to put in the file.
-4. `docker compose up -d --build` to run the bot. Data will persist between any container rebuilds. You can use `docker compose down` to shut down the bot.
+3. `docker compose build` to build the image from the code, dependencies, and Dockerfile.
+4. Create a file named `.env` in the project's root. See the sample .env file below for what to put in the file.
+5. `docker compose up -d` to create containers and run the bot and database using the image, docker-compose.yml, and .env.
+
+Here are other docker commands that may be helpful:
+
+* `docker compose ps` to list all containers and see their statuses.
+* `docker compose images` to list all images.
+* `docker volume ls` to list all volumes (including the volume holding the database's data).
+* `docker compose logs -ft` to see the live docker logs.
+* `docker compose pause` to pause the containers.
+* `docker compose unpause` to unpause paused containers.
+* `docker compose stop` to stop the containers (this clears their memory).
+* `docker compose start` to start stopped containers.
+* `docker compose down` to stop and delete the containers. The database's data will persist.
+* `docker compose rm` to delete stopped containers. The database's data will persist.
+* `docker compose rm -v` to delete stopped containers and all volumes (this deletes the database's data).
+* See [the official docker docs](https://docs.docker.com/compose/reference/) for more.
 
 ### sample .env
 
@@ -39,7 +55,7 @@ POSTGRES_PASSWORD="dkByXjCEQJ7UPYgyZu1W167LhldOVcSgEV7EXmhs7iYbzf4yv73tmIzYlmqvS
 
 # These two are used by the bot, but not by the `postgres` service in docker-compose.yml
 # which always uses localhost and port 5432.
-POSTGRES_HOST="localhost"
+POSTGRES_HOST="postgres"
 POSTGRES_PORT="5432"
 
 # This is a string of a comma-separated list of command prefixes. If you want a comma as
