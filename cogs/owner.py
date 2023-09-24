@@ -12,14 +12,15 @@ from typing import NamedTuple
 import aiohttp  # https://pypi.org/project/aiohttp/
 import discord  # https://pypi.org/project/discord.py/
 import psutil  # https://pypi.org/project/psutil/
+from discord import app_commands  # https://pypi.org/project/discord.py/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
+
 from cogs.utils.common import escape_json
 from cogs.utils.io import dev_mail
 from cogs.utils.io import send_traceback
 from cogs.utils.io import unwrap_code_block
 from cogs.utils.paginator import Paginator
 from cogs.utils.time import get_14_digit_datetime
-from discord import app_commands  # https://pypi.org/project/discord.py/
-from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
 @dataclass

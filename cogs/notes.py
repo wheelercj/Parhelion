@@ -3,10 +3,11 @@ from datetime import timezone
 from typing import Union
 
 import discord  # https://pypi.org/project/discord.py/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
+
 from cogs.utils.common import block_nsfw_channels
 from cogs.utils.common import check_ownership_permission
 from cogs.utils.paginator import Paginator
-from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
 class Notes(commands.Cog):

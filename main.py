@@ -2,15 +2,17 @@ import asyncio
 import os
 
 import asyncpg  # https://pypi.org/project/asyncpg/
-from dotenv import load_dotenv  # https://pypi.org/project/python-dotenv/
 
 from bot import Bot
 
 
 async def main():
-    dotenv_path: str = "../.env"
-    abs_dotenv_path: str = os.path.join(os.path.dirname(__file__), dotenv_path)
-    load_dotenv(abs_dotenv_path)
+    if os.environ.get("ENV") != "docker":
+        from dotenv import load_dotenv  # https://pypi.org/project/python-dotenv/
+
+        dotenv_path: str = ".env"
+        abs_dotenv_path: str = os.path.join(os.path.dirname(__file__), dotenv_path)
+        load_dotenv(abs_dotenv_path)
     try:
         db: asyncpg.Pool = await get_db_connection()
     except Exception:

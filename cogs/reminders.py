@@ -4,6 +4,9 @@ from typing import Union
 
 import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
+from discord.abc import Messageable  # https://pypi.org/project/discord.py/
+from discord.ext import commands  # https://pypi.org/project/discord.py/
+
 from cogs.utils.common import block_nsfw_channels
 from cogs.utils.common import check_ownership_permission
 from cogs.utils.common import plural
@@ -13,8 +16,6 @@ from cogs.utils.paginator import Paginator
 from cogs.utils.time import create_long_datetime_stamp
 from cogs.utils.time import create_relative_timestamp
 from cogs.utils.time import parse_time_message
-from discord.abc import Messageable  # https://pypi.org/project/discord.py/
-from discord.ext import commands  # https://pypi.org/project/discord.py/
 
 
 class RunningReminderInfo:

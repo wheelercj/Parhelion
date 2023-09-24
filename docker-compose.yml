@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bot
+    container_name: bot
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      ENV: docker
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: unless-stopped
+    env_file: .env
+      # The host is always `localhost` and the port is always `5432`. The POSTGRES_HOST
+      # and POSTGRES_PORT variables in the .env file are ignored.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
