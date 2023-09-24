@@ -1,6 +1,5 @@
 from datetime import datetime
 from datetime import timezone
-from typing import Union
 
 import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
@@ -296,7 +295,7 @@ class Reminders(commands.Cog):
             )
 
     async def check_reminder_ownership_permission(
-        self, author: Union[discord.User, discord.Member]
+        self, author: discord.User | discord.Member
     ) -> None:
         """Raises commands.UserInputError if author has >= max # of reminders allowed"""
         await check_ownership_permission(

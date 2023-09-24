@@ -10,7 +10,6 @@ from datetime import timezone
 from logging.handlers import RotatingFileHandler
 from typing import Any
 from typing import Callable
-from typing import Union
 
 import aiohttp  # https://pypi.org/project/aiohttp/
 import discord  # https://pypi.org/project/discord.py/
@@ -277,7 +276,7 @@ class Bot(commands.Bot):
         self,
         send: Callable,
         cmd_name: str,
-        error: Union[app_commands.AppCommandError, commands.CommandError],
+        error: app_commands.AppCommandError | commands.CommandError,
     ) -> None:
         """Handles errors from both app commands and other commands"""
         if isinstance(error, commands.CommandInvokeError):

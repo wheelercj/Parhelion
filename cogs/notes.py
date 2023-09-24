@@ -1,6 +1,5 @@
 from datetime import datetime
 from datetime import timezone
-from typing import Union
 
 import discord  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
@@ -310,7 +309,7 @@ class Notes(commands.Cog):
         jump_urls[index_2], jump_urls[index_1] = jump_urls[index_1], jump_urls[index_2]
 
     async def check_note_ownership_permission(
-        self, author: Union[discord.User, discord.Member]
+        self, author: discord.User | discord.Member
     ) -> None:
         """Raises commands.UserInputError if author has >= max # of notes allowed"""
         await check_ownership_permission(

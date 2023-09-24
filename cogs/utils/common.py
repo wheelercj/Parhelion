@@ -1,6 +1,5 @@
 import re
 from typing import Awaitable
-from typing import Union
 
 import discord  # https://pypi.org/project/discord.py/
 from discord import PartialMessageable  # https://pypi.org/project/discord.py/
@@ -29,7 +28,7 @@ async def get_bot_invite_link(bot) -> str:
     return bot_invite_link
 
 
-def plural(number: Union[int, float], root_and_suffixes: str) -> str:
+def plural(number: int | float, root_and_suffixes: str) -> str:
     """Returns the number and either a singular or plural word
 
     Separate the root and each suffix with | (pipe symbols).
@@ -69,7 +68,7 @@ async def escape_json(text: str) -> str:
     return text
 
 
-async def block_nsfw_channels(channel: Union[Messageable, PartialMessageable]) -> None:
+async def block_nsfw_channels(channel: Messageable | PartialMessageable) -> None:
     """Raises commands.UserInputError if channel is a nsfw channel"""
     if channel.guild is None:
         return  # DM channels don't have an is_nsfw method.
@@ -79,7 +78,7 @@ async def block_nsfw_channels(channel: Union[Messageable, PartialMessageable]) -
 
 async def check_ownership_permission(
     bot,
-    author: Union[discord.User, discord.Member],
+    author: discord.User | discord.Member,
     category: str,
     membership_removes_limit: bool,
     ownership_limit: int,
@@ -91,7 +90,7 @@ async def check_ownership_permission(
     ----------
     bot
         The bot.
-    author : Union[discord.User, discord.Member]
+    author : discord.User | discord.Member
         The person requesting to create something.
     category : str
         The plural name of what is being requested.

@@ -2,7 +2,6 @@ import json
 from textwrap import dedent
 from typing import Any
 from typing import Callable
-from typing import Union
 
 import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
@@ -90,7 +89,7 @@ class Settings(commands.Cog):
         self.default_server_cmd_settings_json = json.dumps(
             self.default_server_cmd_settings
         )
-        self.all_bot_settings: dict[str, Union[dict, bool]] = dict()
+        self.all_bot_settings: dict[str, dict | bool] = dict()
         """
         Bot access settings hierarchy and types:
             self.all_bot_settings = {

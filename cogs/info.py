@@ -5,7 +5,6 @@ from datetime import timezone as tz
 from functools import lru_cache
 from textwrap import dedent
 from typing import Mapping
-from typing import Union
 
 import discord  # https://pypi.org/project/discord.py/
 from discord.ext import commands  # https://pypi.org/project/discord.py/
@@ -638,7 +637,7 @@ class Info(commands.Cog):
     @commands.hybrid_command(name="permissions", aliases=["perms"])
     @commands.guild_only()
     async def server_permissions(
-        self, ctx, *, member_or_role: Union[discord.Member, discord.Role] | None = None
+        self, ctx, *, member_or_role: discord.Member | discord.Role | None = None
     ):
         """Shows the server and channel permissions of a member or role
 
@@ -648,7 +647,7 @@ class Info(commands.Cog):
 
         Parameters
         ----------
-        member_or_role: Union[discord.Member, discord.Role] | None
+        member_or_role: discord.Member | discord.Role | None
             The member or role to view permissions of.
         """
         if member_or_role is None:
@@ -676,7 +675,7 @@ class Info(commands.Cog):
             embed.add_field(name="channel overwrites cont.", value=overwrites[half:])
         return embed
 
-    async def format_perms(self, permissions: discord.Permissions) -> Union[str, bool]:
+    async def format_perms(self, permissions: discord.Permissions) -> str | bool:
         """Converts a permissions object to a printable string
 
         Returns False if the permissions are for a hidden text channel.
@@ -687,7 +686,7 @@ class Info(commands.Cog):
         return await self.perm_list_message(perm_list)
 
     async def get_perms(
-        self, ctx, member_or_role: Union[discord.Member, discord.Role]
+        self, ctx, member_or_role: discord.Member | discord.Role
     ) -> tuple[str, str, str]:
         """Gets the formatted server perms, channel overwrites, and embed title"""
         if isinstance(member_or_role, discord.Member):
@@ -706,7 +705,7 @@ class Info(commands.Cog):
         return "", "", ""
 
     async def get_perm_overwrites(
-        self, ctx, member_or_role: Union[discord.Member, discord.Role]
+        self, ctx, member_or_role: discord.Member | discord.Role
     ) -> str:
         """Gets the permissions for each channel that overwrite the server permissions
 
