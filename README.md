@@ -12,9 +12,9 @@ These instructions use [Git](https://git-scm.com/) and [Docker](https://www.dock
 
 1. Create a [Discord API app](https://discord.com/developers/applications). Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
 2. Download the code with `git clone https://github.com/wheelercj/Parhelion.git && cd Parhelion`.
-3. `docker compose build` to build the image from the code, dependencies, and Dockerfile.
+3. `docker compose build` to build the bot's image using the code, dependencies, and Dockerfile, and to download the database's image from Docker Hub if it hasn't been downloaded yet.
 4. Create a file named `.env` in the project's root. See the sample .env file below for what to put in the file.
-5. `docker compose up -d` to create containers and run the bot and database using the image, docker-compose.yml, and .env.
+5. `docker compose up -d` to create containers and run the bot and database using the images, docker-compose.yml, and .env.
 
 Here are other docker commands that may be helpful:
 
