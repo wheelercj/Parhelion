@@ -15,8 +15,7 @@ These instructions use [Docker](https://www.docker.com/) and maybe [Git](https:/
    * If you just want to run the bot, download [docker-compose.yml](docker-compose.yml) from this repo into a folder for the bot.
    * If you want to be able to edit the bot's code, use `git clone https://github.com/wheelercj/Parhelion.git && cd Parhelion`.
 3. Create a file named `.env` in the bot's folder. See the sample .env below for what to put in the file.
-4. If you used `git clone` earlier, use `docker compose build` to create the bot's image.
-5. Use `docker compose up -d` to download image(s) from [Docker Hub](https://hub.docker.com/r/wheelercj/parhelion/tags) if needed, create containers, and run the bot and database.
+4. Use `docker compose up -d` to download image(s) from [Docker Hub](https://hub.docker.com/r/wheelercj/parhelion/tags) if needed, create containers, and run the bot and database.
 
 Here are other docker commands that may be helpful:
 
