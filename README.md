@@ -19,7 +19,8 @@ These instructions use [Docker](https://www.docker.com/) and maybe [Git](https:/
 
 Here are other docker commands that may be helpful:
 
-* `docker compose logs -ft` to see the live Docker logs. Note that the bot's logs can be found in a logs folder created by the bot.
+* `docker compose logs -ft` to see the live Docker logs. Note that the bot's logs can be found in a "logs" folder created by the bot.
+* `docker compose up -d --build` to rebuild the bot's image, create containers, and run the bot and database.
 * `docker compose ps` to list all containers and see their statuses.
 * `docker image ls` to list all images.
 * `docker volume ls` to list all volumes (including the volumes holding the bot's logs and the database's data).
