@@ -20,17 +20,17 @@ These instructions use [Docker](https://www.docker.com/) and maybe [Git](https:/
 
 Here are other docker commands that may be helpful:
 
-* `docker compose logs -ft` to see the live docker logs. Note that the bot itself logs to rotating files primarily named bot.log.
+* `docker compose logs -ft` to see the live Docker logs. Note that the bot's logs can be found in a logs folder created by the bot.
 * `docker compose ps` to list all containers and see their statuses.
 * `docker compose images` to list all images.
-* `docker volume ls` to list all volumes (including the volume holding the database's data).
+* `docker volume ls` to list all volumes (including the volumes holding the bot's logs and the database's data).
 * `docker compose pause` to pause the containers.
 * `docker compose unpause` to unpause paused containers.
 * `docker compose stop` to stop the containers (this clears their memory).
 * `docker compose start` to start stopped containers.
-* `docker compose down` to stop and delete the containers. The database's data will persist.
-* `docker compose rm` to delete stopped containers. The database's data will persist.
-* `docker compose rm -v` to delete stopped containers and all volumes (this deletes the database's data).
+* `docker compose down` to stop and delete the containers. The bot's logs and the database's data will persist.
+* `docker compose rm` to delete stopped containers. The bot's logs and the database's data will persist.
+* `docker volume rm <volume name>` to delete a volume such as the database's data.
 * See [the official docs](https://docs.docker.com/compose/reference/) for more.
 
 ### sample .env

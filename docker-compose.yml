@@ -14,6 +14,8 @@ services:
     env_file: .env
     environment:
       ENV: docker
+    volumes:
+      - ./logs:/app/logs:ro
   postgres:
     image: postgres:latest
     container_name: postgres
