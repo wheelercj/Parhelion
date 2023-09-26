@@ -1,10 +1,10 @@
 version: '3.8'
 services:
-  bot:
+  parhelion:
     image: wheelercj/parhelion:latest
-    container_name: bot
+    container_name: parhelion
     depends_on:
-      - postgres
+      - parhelion_db
     deploy:
       restart_policy:
         condition: on-failure
@@ -16,9 +16,9 @@ services:
       ENV: docker
     volumes:
       - ./logs:/app/logs:ro
-  postgres:
+  parhelion_db:
     image: postgres:latest
-    container_name: postgres
+    container_name: parhelion_db
     deploy:
       restart_policy:
         condition: on-failure
@@ -29,7 +29,7 @@ services:
       # The host is always `localhost` and the port is always `5432`. The POSTGRES_HOST
       # and POSTGRES_PORT variables in the .env file are ignored.
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - parhelion_db_data:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
+  parhelion_db_data:
