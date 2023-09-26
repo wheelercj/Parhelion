@@ -19,7 +19,7 @@ These instructions use [Docker](https://www.docker.com/) and maybe [Git](https:/
 
 Here are other docker commands that may be helpful:
 
-* `docker compose logs -ft` to see the live docker logs. Note that the bot itself logs to rotating files primarily named `bot.log`.
+* `docker compose logs -ft` to see the live docker logs. Note that the bot itself logs to rotating files primarily named bot.log.
 * `docker compose ps` to list all containers and see their statuses.
 * `docker compose images` to list all images.
 * `docker volume ls` to list all volumes (including the volume holding the database's data).
@@ -52,7 +52,7 @@ PRIVACY_POLICY_LINK="https://gist.github.com/wheelercj/033bbaf78b08ff0335943d511
 # there is no default password).
 POSTGRES_DB="bot"
 POSTGRES_USER="dev"
-POSTGRES_PASSWORD="dkByXjCEQJ7UPYgyZu1W167LhldOVcSgEV7EXmhs7iYbzf4yv73tmIzYlmqvSQHYZrLo7se8lbOR3FYIFBzJv6NgDwg5GBj4FZIc"
+POSTGRES_PASSWORD="dkByXjCEQJ7UPYgyZu1W167LhldOVcSgEV7EXmhs7iYbzf4yv73tmIzYlmqvSQHYZrLo7se8lbOR3FYIFBzJv6NgDwg5GBj4FZI"
 
 # These two are used by the bot, but not by the `postgres` service in docker-compose.yml
 # which always uses localhost and port 5432.
