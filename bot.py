@@ -24,6 +24,7 @@ from cogs.utils.io import dev_mail
 class DevSettings:
     def __init__(self):
         self.logs_folder_path: str = os.path.join(os.path.dirname(__file__), "logs")
+        self.log_file_path: str = os.path.join(self.logs_folder_path, "bot.log")
         self.alt_github_name: str | None = os.environ.get(
             "ALTERNATE_GITHUB_ACCOUNT_NAME"
         )
@@ -396,7 +397,7 @@ class Bot(commands.Bot):
         logger.setLevel(logging.INFO)
         os.makedirs(self.dev_settings.logs_folder_path, exist_ok=True)
         handler = RotatingFileHandler(
-            filename=os.path.join(self.dev_settings.logs_folder_path, "bot.log"),
+            filename=self.dev_settings.log_file_path,
             encoding="utf-8",
             mode="a",
             maxBytes=50000,  # 50 kB, which might be Discord's max file preview size.

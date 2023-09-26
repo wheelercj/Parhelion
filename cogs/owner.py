@@ -37,7 +37,6 @@ class Owner(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.log_file_path = "bot.log"
 
     async def cog_check(self, ctx):
         if not await self.bot.is_owner(ctx.author):
@@ -333,7 +332,7 @@ class Owner(commands.Cog):
     @log.command()
     async def send(self, ctx):
         """DMs a copy of the log file to the bot's owner"""
-        with open(self.log_file_path, "rb") as file:
+        with open(self.bot.dev_settings.log_file_path, "rb") as file:
             file_bytes = file.read()
             with io.BytesIO(file_bytes) as binary_stream:
                 discord_file = discord.File(binary_stream, "log")
@@ -347,7 +346,7 @@ class Owner(commands.Cog):
         If command logging is enabled, this command's use will be logged after
         the log is cleared.
         """
-        with open(self.log_file_path, "w") as _:
+        with open(self.bot.dev_settings.log_file_path, "w") as _:
             pass
         await ctx.message.add_reaction("✅")
 
