@@ -29,7 +29,7 @@ services:
       # The host is always `localhost` and the port is always `5432`. The POSTGRES_HOST
       # and POSTGRES_PORT variables in the .env file are ignored.
     volumes:
-      - parhelion_db_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
 
 volumes:
-  parhelion_db_data:
+  db_data:
