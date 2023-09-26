@@ -8,19 +8,21 @@ You can try the bot in [the support server](https://discord.gg/mCqGhPJVcN), or [
 
 ## setup instructions
 
-These instructions use [Docker](https://www.docker.com/).
+These instructions use [Docker](https://www.docker.com/) and maybe [Git](https://git-scm.com/).
 
 1. Create a [Discord API app](https://discord.com/developers/applications). Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
-2. Download the [`docker-compose.yml`](docker-compose.yml) file from this repo into a folder for the bot.
-3. Create a file named `.env` in the project's root. See the sample .env file below for what to put in the file.
-4. `docker compose up -d --pull` to download the bot and database images from Docker Hub if needed, create containers, and run the bot and database.
+2. Download the bot's files in one of two ways:
+   * If you just want to run the bot, download [`docker-compose.yml`](docker-compose.yml) from this repo into a folder for the bot.
+   * If you want to be able to edit the bot's code, use `git clone https://github.com/wheelercj/Parhelion.git && cd Parhelion` and then `docker compose build`.
+3. Create a file named `.env` in the bot's folder. See the sample .env below for what to put in the file.
+4. Use `docker compose up -d` to download image(s) from [Docker Hub](https://hub.docker.com/repository/docker/wheelercj/parhelion/general) if needed, create containers, and run the bot and database.
 
 Here are other docker commands that may be helpful:
 
+* `docker compose logs -ft` to see the live docker logs. Note that the bot itself logs to rotating files primarily named `bot.log`.
 * `docker compose ps` to list all containers and see their statuses.
 * `docker compose images` to list all images.
 * `docker volume ls` to list all volumes (including the volume holding the database's data).
-* `docker compose logs -ft` to see the live docker logs.
 * `docker compose pause` to pause the containers.
 * `docker compose unpause` to unpause paused containers.
 * `docker compose stop` to stop the containers (this clears their memory).
