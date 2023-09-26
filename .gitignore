@@ -1,6 +1,7 @@
 .ssh
 .vs
 .vscode
+logs
 wordhoard_error.yaml
 venv311
 

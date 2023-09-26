@@ -2,6 +2,7 @@
 .ssh
 .vs
 .vscode
+logs
 **/*.log
 **/*.swp
 venv311
