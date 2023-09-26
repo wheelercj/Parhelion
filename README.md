@@ -24,7 +24,7 @@ Here are other docker commands that may be helpful:
 * `docker compose up -d --pull=always` to redownload the bot's image from Docker Hub, create containers, and run the bot and database.
 * `docker compose ps` to list all containers and see their statuses.
 * `docker image ls` to list all images.
-* `docker volume ls` to list all volumes (including the volumes holding the bot's logs and the database's data).
+* `docker volume ls` to list all volumes (including the volume holding the database's data).
 * `docker compose pause` to pause the containers.
 * `docker compose unpause` to unpause paused containers.
 * `docker compose stop` to stop the containers (this clears their memory).
