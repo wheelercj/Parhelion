@@ -20,7 +20,8 @@ These instructions use [Docker](https://www.docker.com/) and maybe [Git](https:/
 Here are other docker commands that may be helpful:
 
 * `docker compose logs -ft` to see the live Docker logs. Note that the bot's logs can be found in a "logs" folder created by the bot.
-* `docker compose up -d --build` to rebuild the bot's image, create containers, and run the bot and database.
+* `docker compose up -d --build` to rebuild the bot's image from source code, create containers, and run the bot and database.
+* `docker compose up -d --pull=always` to redownload the bot's image from Docker Hub, create containers, and run the bot and database.
 * `docker compose ps` to list all containers and see their statuses.
 * `docker image ls` to list all images.
 * `docker volume ls` to list all volumes (including the volumes holding the bot's logs and the database's data).
@@ -55,9 +56,11 @@ POSTGRES_DB="bot"
 POSTGRES_USER="dev"
 POSTGRES_PASSWORD="dkByXjCEQJ7UPYgyZu1W167LhldOVcSgEV7EXmhs7iYbzf4yv73tmIzYlmqvSQHYZrLo7se8lbOR3FYIFBzJv6NgDwg5GBj4FZI"
 
-# These two are used by the bot, but not by the `postgres` service in docker-compose.yml
-# which always uses localhost and port 5432.
-POSTGRES_HOST="postgres"
+# These two are used by the bot, but not by the `parhelion_db` service in
+# docker-compose.yml which always uses localhost and port 5432. If the database is
+# running in Docker, the `parhelion` service requires POSTGRES_HOST to be the name of
+# the database's container.
+POSTGRES_HOST="parhelion_db"
 POSTGRES_PORT="5432"
 
 # This is a string of a comma-separated list of command prefixes. If you want a comma as
