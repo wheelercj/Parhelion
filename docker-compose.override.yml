@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  bot:
+    image: bot
+    container_name: bot
+    depends_on:
+      - postgres
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    env_file: .env
+    environment:
+      ENV: docker
+    build:
+      context: .
+      dockerfile: Dockerfile

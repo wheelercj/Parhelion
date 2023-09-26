@@ -8,13 +8,12 @@ You can try the bot in [the support server](https://discord.gg/mCqGhPJVcN), or [
 
 ## setup instructions
 
-These instructions use [Git](https://git-scm.com/) and [Docker](https://www.docker.com/).
+These instructions use [Docker](https://www.docker.com/).
 
 1. Create a [Discord API app](https://discord.com/developers/applications). Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
-2. Download the code with `git clone https://github.com/wheelercj/Parhelion.git && cd Parhelion`.
-3. `docker compose build` to build the bot's image using the code, dependencies, and Dockerfile, and to download the database's image from Docker Hub if it hasn't been downloaded yet.
-4. Create a file named `.env` in the project's root. See the sample .env file below for what to put in the file.
-5. `docker compose up -d` to create containers and run the bot and database using the images, docker-compose.yml, and .env.
+2. Download the [`docker-compose.yml`](docker-compose.yml) file from this repo into a folder for the bot.
+3. Create a file named `.env` in the project's root. See the sample .env file below for what to put in the file.
+4. `docker compose up -d --pull` to download the bot and database images from Docker Hub if needed, create containers, and run the bot and database.
 
 Here are other docker commands that may be helpful:
 
@@ -29,7 +28,7 @@ Here are other docker commands that may be helpful:
 * `docker compose down` to stop and delete the containers. The database's data will persist.
 * `docker compose rm` to delete stopped containers. The database's data will persist.
 * `docker compose rm -v` to delete stopped containers and all volumes (this deletes the database's data).
-* See [the official docker docs](https://docs.docker.com/compose/reference/) for more.
+* See [the official docs](https://docs.docker.com/compose/reference/) for more.
 
 ### sample .env
 
