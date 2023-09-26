@@ -15,7 +15,9 @@ services:
     environment:
       ENV: docker
     volumes:
-      - ./logs:/app/logs:ro
+      - type: bind
+        source: ./logs
+        target: /app/logs
   parhelion_db:
     image: postgres:latest
     container_name: parhelion_db
@@ -29,7 +31,9 @@ services:
       # The host is always `localhost` and the port is always `5432`. The POSTGRES_HOST
       # and POSTGRES_PORT variables in the .env file are ignored.
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - type: volume
+        source: db_data
+        target: /var/lib/postgresql/data
 
 volumes:
   db_data:
