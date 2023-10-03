@@ -73,11 +73,10 @@ class Paginator(discord.ui.View):
         ]
 
     async def run(self, ctx) -> None:
-        embed = discord.Embed(title=self.title, description="\n".join(self.pages[0]))
+        embed: discord.Embed = self.create_embed()
         if len(self.pages) == 1:
             self.message = await ctx.send(embed=embed, ephemeral=self.ephemeral)
             return
-        embed.set_footer(text=f"\u200b\npage {self.page_index + 1}/{len(self.pages)}")
         await self.on_first_page()
         self.message = await ctx.send(embed=embed, view=self, ephemeral=self.ephemeral)
 
@@ -91,8 +90,7 @@ class Paginator(discord.ui.View):
     ):
         self.page_index = 0
         await self.on_first_page()
-        embed = discord.Embed(title=self.title, description="\n".join(self.pages[0]))
-        embed.set_footer(text=f"\u200b\npage {self.page_index + 1}/{len(self.pages)}")
+        embed: discord.Embed = self.create_embed()
         return await interaction.response.edit_message(embed=embed, view=self)
 
     @discord.ui.button(emoji="◀", custom_id="persistent_view:go_to_previous_page")
@@ -104,10 +102,7 @@ class Paginator(discord.ui.View):
         await self.enable_all_buttons()
         if self.page_index == 0:
             await self.on_first_page()
-        embed = discord.Embed(
-            title=self.title, description="\n".join(self.pages[self.page_index])
-        )
-        embed.set_footer(text=f"\u200b\npage {self.page_index + 1}/{len(self.pages)}")
+        embed: discord.Embed = self.create_embed()
         return await interaction.response.edit_message(embed=embed, view=self)
 
     @discord.ui.button(emoji="▶", custom_id="persistent_view:go_to_next_page")
@@ -119,10 +114,7 @@ class Paginator(discord.ui.View):
         await self.enable_all_buttons()
         if self.page_index == len(self.pages) - 1:
             await self.on_last_page()
-        embed = discord.Embed(
-            title=self.title, description="\n".join(self.pages[self.page_index])
-        )
-        embed.set_footer(text=f"\u200b\npage {self.page_index + 1}/{len(self.pages)}")
+        embed: discord.Embed = self.create_embed()
         return await interaction.response.edit_message(embed=embed, view=self)
 
     @discord.ui.button(emoji="⏭", custom_id="persistent_view:go_to_last_page")
@@ -131,11 +123,15 @@ class Paginator(discord.ui.View):
     ):
         self.page_index = len(self.pages) - 1
         await self.on_last_page()
+        embed: discord.Embed = self.create_embed()
+        return await interaction.response.edit_message(embed=embed, view=self)
+
+    def create_embed(self) -> discord.Embed:
         embed = discord.Embed(
-            title=self.title, description="\n".join(self.pages[len(self.pages) - 1])
+            title=self.title, description="\n".join(self.pages[self.page_index])
         )
         embed.set_footer(text=f"\u200b\npage {self.page_index + 1}/{len(self.pages)}")
-        return await interaction.response.edit_message(embed=embed, view=self)
+        return embed
 
     async def enable_all_buttons(self) -> None:
         for child in self.children:
