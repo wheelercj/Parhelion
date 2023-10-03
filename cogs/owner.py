@@ -221,7 +221,7 @@ class Owner(commands.Cog):
             content = await escape_json(dedent(content))
             file_name = await get_14_digit_datetime()
             url = "https://api.github.com/gists"
-            data = '{"public":false,"files":{"%s.%s":{"content":"%s"}}}' % (
+            data = '{{"public":false,"files":{{"{}.{}":{{"content":"{}"}}}}}}'.format(
                 file_name,
                 syntax,
                 content,

@@ -329,7 +329,7 @@ class Info(commands.Cog):
                 line_count += self.count_dir_loc(path)
             elif os.path.isfile(path):
                 if path.endswith(".py"):
-                    with open(path, "r", encoding="utf8") as file:
+                    with open(path, encoding="utf8") as file:
                         line_count += len(file.readlines())
         return line_count
 
@@ -492,8 +492,8 @@ class Info(commands.Cog):
                 current boosts: {server.premium_subscription_count}
                 boost level: {server.premium_tier}
                 emojis: {len(server.emojis)}/{server.emoji_limit}
-                file size limit: {server.filesize_limit/1000000:.2f} MB
-                bitrate limit: {server.bitrate_limit/1000} kbps
+                file size limit: {server.filesize_limit / 1000000:.2f} MB
+                bitrate limit: {server.bitrate_limit / 1000} kbps
 
                 **channels**
                 categories: {cat_count}
