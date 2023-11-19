@@ -16,10 +16,10 @@ from aiohttp.client_exceptions import (
 from deep_translator import (
     GoogleTranslator,
 )  # https://pypi.org/project/deep-translator/
-from deep_translator.google_trans import (
+from deep_translator.exceptions import (
     LanguageNotSupportedException,
 )  # https://pypi.org/project/deep-translator/
-from deep_translator.google_trans import (
+from deep_translator.exceptions import (
     TranslationNotFound,
 )  # https://pypi.org/project/deep-translator/
 from discord.abc import Messageable  # https://pypi.org/project/discord.py/
