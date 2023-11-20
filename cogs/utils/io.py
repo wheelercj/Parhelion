@@ -14,7 +14,7 @@ from discord.ext import commands  # https://pypi.org/project/discord.py/
 class LinkButton(discord.ui.View):
     """A button that opens a website when pressed"""
 
-    def __init__(self, label: str, url: str, query: str = ""):
+    def __init__(self, label: str, url: str, query: str = "") -> None:
         """Creates a link button
 
         Example uses:
@@ -112,6 +112,7 @@ async def get_attachment_url(ctx) -> str | None:
                 f"Attachment links do not work for files of type {file_type}"
             )
         return file_url
+    return None
 
 
 async def is_supported_type(file_type: str) -> bool:
@@ -178,9 +179,9 @@ async def send_traceback(ctx, error: BaseException, ephemeral: bool = True) -> N
 
 async def dev_mail(
     bot,
-    content: str = None,
+    content: str | None = None,
     *,
-    file: discord.File = None,
+    file: discord.File | None = None,
     use_embed: bool = True,
     embed_title: str = "dev mail",
 ) -> None:

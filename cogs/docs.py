@@ -1,3 +1,5 @@
+from typing import Any
+
 import asyncpg  # https://pypi.org/project/asyncpg/
 import discord  # https://pypi.org/project/discord.py/
 from bs4 import BeautifulSoup  # https://pypi.org/project/beautifulsoup4/
@@ -9,7 +11,7 @@ from cogs.utils.paginator import Paginator
 class Docs(commands.Cog):
     """Browse documentation."""
 
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         self.bot = bot
         self._task = bot.loop.create_task(self.load_docs_urls())
         self.docs_urls: dict[int, str] = dict()  # Server IDs and URLs.
@@ -42,7 +44,7 @@ class Docs(commands.Cog):
             discord.ConnectionClosed,
             asyncpg.PostgresConnectionError,
         ) as error:
-            print(f"{error = }")
+            print(f"{error = }")  # noqa: E251, E202
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.load_docs_urls())
 
@@ -96,7 +98,7 @@ class Docs(commands.Cog):
                     raise ValueError(
                         f"API request failed with status code {response.status}."
                     )
-                json_text = await response.json()
+                json_text: dict[str, Any] = await response.json()
             result_pages = await self.parse_search_results(json_text, language)
             if not len(result_pages):
                 raise commands.BadArgument("No matches found")
@@ -194,7 +196,7 @@ class Docs(commands.Cog):
         return project_name, project_version, language, search_url
 
     async def parse_search_results(
-        self, json_text: str, language: str = None
+        self, json_text: dict[str, Any], language: str | None = None
     ) -> list[str]:
         """Formats doc search results for easy pagination"""
         result_pages = []
@@ -213,7 +215,9 @@ class Docs(commands.Cog):
                 results += section_title
                 for html_content in block["highlights"]["content"]:
                     # Convert the content from HTML to text.
-                    soup = BeautifulSoup(html_content, features="html5lib")
+                    soup = BeautifulSoup(html_content, features="lxml")
+                    # If the external C dependency lxml cannot be used, other options
+                    # are available here: https://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-a-parser  # noqa: E501
                     content = soup.get_text()
                     results += f"• {content}\n"
             result_pages.append(results)

@@ -7,7 +7,6 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from textwrap import dedent
-from typing import NamedTuple
 
 import aiohttp  # https://pypi.org/project/aiohttp/
 import discord  # https://pypi.org/project/discord.py/
@@ -35,7 +34,7 @@ class CmdParam:
 class Owner(commands.Cog):
     """Commands that can only be used by the bot owner."""
 
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         self.bot = bot
 
     async def cog_check(self, ctx):
@@ -143,16 +142,16 @@ class Owner(commands.Cog):
             await ctx.send("No servers found with that name.", ephemeral=True)
 
     @commands.hybrid_command(aliases=["utilization"])
-    async def usage(self, ctx):
+    async def usage(self, ctx) -> None:
         """Shows the bot's resource utilization"""
-        virtual_memory_: NamedTuple = psutil.virtual_memory()
+        virtual_memory_ = psutil.virtual_memory()
         ram_percent = (
             (virtual_memory_.total - virtual_memory_.available)
             / virtual_memory_.total  # noqa: W503
             * 100  # noqa: W503
         )
         process = psutil.Process()
-        memory_info_: NamedTuple = process.memory_info()
+        memory_info_ = process.memory_info()
         ram_mb = memory_info_.rss / 1024 / 1024  # rss is short for "resident set size"
         await ctx.send(
             dedent(
@@ -319,7 +318,7 @@ class Owner(commands.Cog):
             await ctx.message.add_reaction("❌")
 
     @log.command()
-    async def level(self, ctx, new_level: int = None):
+    async def level(self, ctx, new_level: int | None = None):
         """Sets or shows the logger's current log level"""
         if new_level is None:
             log_level_message = await self.humanize_log_level(self.bot.logger.level)
@@ -405,7 +404,7 @@ class Owner(commands.Cog):
                 await ctx.send(f"Synced {len(synced)} global slash commands globally.")
 
     @sync.command()
-    async def lint(self, ctx):
+    async def lint(self, ctx) -> None:
         """Detects potential problems that might prevent syncing app commands"""
         async with ctx.typing():
             messages: list[str] = []

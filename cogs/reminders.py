@@ -18,7 +18,7 @@ from cogs.utils.time import parse_time_message
 
 
 class RunningReminderInfo:
-    def __init__(self, target_time: datetime, id: int):
+    def __init__(self, target_time: datetime, id: int) -> None:
         self.target_time = target_time
         self.id = id
 
@@ -26,10 +26,10 @@ class RunningReminderInfo:
 class Reminders(commands.Cog):
     """Send yourself messages at specific times."""
 
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         self.bot = bot
         self._task = self.bot.loop.create_task(self.run_reminders())
-        self.running_reminder_info: RunningReminderInfo = None
+        self.running_reminder_info: RunningReminderInfo | None = None
         self.reminder_ownership_limit = 5
 
     def cog_unload(self):
@@ -67,6 +67,12 @@ class Reminders(commands.Cog):
         await self.create_table_if_not_exists()
         try:
             while not self.bot.is_closed():
+                next_reminder_info: tuple | None = await self.get_next_reminder_info()
+                if next_reminder_info is None:
+                    self.running_reminder_info = None
+                    self._task.cancel()
+                    return
+
                 (
                     start_time,
                     target_time,
@@ -75,13 +81,10 @@ class Reminders(commands.Cog):
                     author_id,
                     message,
                     jump_url_,
-                ) = await self.get_next_reminder_info()
+                ) = next_reminder_info
+
                 if jump_url is None:
                     jump_url = jump_url_
-                if target_time is None:
-                    self.running_reminder_info = None
-                    self._task.cancel()
-                    return
                 self.running_reminder_info = RunningReminderInfo(target_time, id)
                 await discord.utils.sleep_until(target_time)
                 relative_start = await create_relative_timestamp(start_time)
@@ -96,7 +99,7 @@ class Reminders(commands.Cog):
             discord.ConnectionClosed,
             asyncpg.PostgresConnectionError,
         ) as error:
-            print(f"  run_reminders {error = }")
+            print(f"  run_reminders {error = }")  # noqa: E251, E202
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.run_reminders())
 
@@ -321,12 +324,11 @@ class Reminders(commands.Cog):
 
     async def get_next_reminder_info(
         self,
-    ) -> tuple[datetime, datetime, int, Messageable, int, str, str]:
+    ) -> tuple[datetime, datetime, int, Messageable, int, str, str] | None:
         """Gets from the database the info for the nearest (in time) reminder task
 
         Returns (start_time, target_time, id, destination, author_id, message,
-        jump_url). If there is no next daily quote, this function returns (None, None,
-        None, None, None, None, None).
+        jump_url). If there is no next daily quote, this function returns None.
         """
         r = await self.bot.db.fetchrow(
             """
@@ -337,7 +339,7 @@ class Reminders(commands.Cog):
             """
         )
         if r is None:
-            return None, None, None, None, None, None, None
+            return None
         start_time = r["start_time"]
         target_time = r["target_time"]
         author_id = r["author_id"]

@@ -5,7 +5,7 @@ from discord.ext import commands  # https://pypi.org/project/discord.py/
 class Mod(commands.Cog):
     """Moderate the server."""
 
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         self.bot = bot
 
     @commands.hybrid_command(name="clean-up", aliases=["cleanup"])

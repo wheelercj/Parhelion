@@ -69,7 +69,9 @@ async def format_datetime(dt: datetime) -> str:
         "December",
     ]
     minute = str(dt.minute).zfill(2)
-    return f"{dt.hour}:{minute} on {dt.day} {months[dt.month-1]} {dt.year}"
+    return (
+        f"{dt.hour}:{minute} on {dt.day} {months[dt.month-1]} {dt.year}"  # noqa: E226
+    )
 
 
 async def format_timedelta(td: timedelta) -> str:
@@ -121,7 +123,9 @@ async def parse_time_message(
     message = ""
     for i in range(max_length, 0, -1):
         time_description = " ".join(split_input[:i])
-        date_time = dateparser.parse(time_description, settings=dateparser_settings)
+        date_time = dateparser.parse(
+            time_description, settings=dateparser_settings  # type: ignore
+        )
         if date_time is not None:
             message = user_input.replace(time_description, "")[1:]
             break

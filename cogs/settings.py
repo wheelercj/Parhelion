@@ -38,7 +38,7 @@ class CommandName(commands.Converter):
 class Settings(commands.Cog):
     """Customize how this bot works."""
 
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         self.bot = bot
         self.settings_task = bot.loop.create_task(self.load_settings())
         self.prefixes_task = bot.loop.create_task(self.load_custom_prefixes())
@@ -73,14 +73,14 @@ class Settings(commands.Cog):
             }
         """
         # The default global and server settings for one command.
-        self.default_cmd_settings = {
+        self.default_cmd_settings: dict[str, dict | None] = {
             "global_users": dict(),
             "global_servers": dict(),
             "global": None,
             "servers": dict(),
         }
         # The default server settings for one command.
-        self.default_server_cmd_settings = {
+        self.default_server_cmd_settings: dict[str, dict | None] = {
             "members": dict(),
             "channels": dict(),
             "roles": dict(),
@@ -89,7 +89,7 @@ class Settings(commands.Cog):
         self.default_server_cmd_settings_json = json.dumps(
             self.default_server_cmd_settings
         )
-        self.all_bot_settings: dict[str, dict | bool] = dict()
+        self.all_bot_settings: dict[str, Any] = dict()
         """
         Bot access settings hierarchy and types:
             self.all_bot_settings = {
@@ -117,14 +117,14 @@ class Settings(commands.Cog):
             }
         """
         # The default global and server settings for the bot.
-        self.default_bot_settings = {
+        self.default_bot_settings: dict[str, dict | None] = {
             "global_users": dict(),
             "global_servers": dict(),
             "global": None,
             "servers": dict(),
         }
         # The default server settings for the bot.
-        self.default_server_bot_settings = {
+        self.default_server_bot_settings: dict[str, dict | None] = {
             "members": dict(),
             "roles": dict(),
             "channels": dict(),
@@ -193,7 +193,7 @@ class Settings(commands.Cog):
             discord.ConnectionClosed,
             asyncpg.PostgresConnectionError,
         ) as error:
-            print(f"{error = }")
+            print(f"{error = }")  # noqa: E251, E202
             self.prefixes_task.cancel()
             self.prefixes_task = self.bot.loop.create_task(self.load_custom_prefixes())
 
@@ -222,7 +222,7 @@ class Settings(commands.Cog):
             discord.ConnectionClosed,
             asyncpg.PostgresConnectionError,
         ) as error:
-            print(f"{error = }")
+            print(f"{error = }")  # noqa: E251, E202
             self.settings_task.cancel()
             self.settings_task = self.bot.loop.create_task(self.load_settings())
 
@@ -316,7 +316,7 @@ class Settings(commands.Cog):
         Returns either True or None, or raises commands.CheckFailure.
         """
         for category, ID in settings_categories:
-            setting = await self.check_category(category, ID)
+            setting: bool | None = await self.check_category(category, ID)
             if setting is not None:
                 if setting:
                     return True
@@ -324,6 +324,7 @@ class Settings(commands.Cog):
                     f"The `{ctx.invoked_with}` command has been disabled in this bot's"
                     " settings for some servers, roles, channels, and/or users."
                 )
+        return None
 
     async def check_category(
         self, setting_category: Any, ID: int | None
@@ -418,7 +419,10 @@ class Settings(commands.Cog):
     async def parse_timezone(self, timezone: str) -> str:
         """Validates and formats a timezone input"""
         try:
-            return pytz.timezone(timezone).zone
+            result: str | None = pytz.timezone(timezone).zone
+            if result is None:
+                raise ValueError(f'pytz.timezone("{timezone}").zone = None')
+            return result
         except (pytz.exceptions.InvalidTimeError, pytz.exceptions.UnknownTimeZoneError):
             raise commands.BadArgument(
                 "Invalid timezone. See the valid timezone options with the `timezone"
@@ -426,7 +430,9 @@ class Settings(commands.Cog):
                 " <https://gist.github.com/wheelercj/86588a956b7912dfb24ec51d36c2f124>"
             )
         except Exception as error:
-            raise commands.BadArgument(f"Unable to set timezone because {error = }")
+            raise commands.BadArgument(
+                f"Unable to set timezone because {error = }"  # noqa: E251, E202
+            )
 
     async def save_timezone(self, ctx, timezone: str) -> None:
         """Saves a timezone string to the database
@@ -636,7 +642,7 @@ class Settings(commands.Cog):
 
     @prefix.command(name="delete-all", aliases=["del-all", "delall", "deleteall"])
     @commands.has_guild_permissions(manage_guild=True)
-    async def delete_all_prefixes(self, ctx):
+    async def delete_all_prefixes(self, ctx) -> None:
         """Deletes all command prefixes for this server except the mention prefix
 
         You cannot delete the bot mention prefix.
@@ -814,6 +820,8 @@ class Settings(commands.Cog):
         bot_settings = self.all_bot_settings
         entries = []
         try:
+            if not isinstance(command_name, str):
+                raise KeyError
             cmd_settings = self.all_cmd_settings[command_name]
             title = f"**bot settings and `{command_name}` command settings**"
         except KeyError:
@@ -848,11 +856,12 @@ class Settings(commands.Cog):
         command_name: CommandName | None
             The name of the command to view which servers have non-default settings of.
         """
+        nds_IDs: list[str]
         if command_name:
             nds = self.all_cmd_settings[command_name][
                 "servers"
             ]  # nds: non-default-servers
-            nds_IDs: list[str] = list(nds.keys())
+            nds_IDs = list(nds.keys())
             nds_names = []
             for server in self.bot.guilds:
                 if str(server.id) in nds_IDs:
@@ -868,7 +877,7 @@ class Settings(commands.Cog):
                 )
         else:
             nds = self.all_bot_settings["servers"]  # nds: non-default-servers
-            nds_IDs: list[str] = list(nds.keys())
+            nds_IDs = list(nds.keys())
             nds_names = []
             for server in self.bot.guilds:
                 if str(server.id) in nds_IDs:
@@ -944,8 +953,10 @@ class Settings(commands.Cog):
                 setting_json,
                 command_name,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
-            await ctx.send(f"New global setting: command `{command_name}` {on_or_off}.")
+            on_or_off_s = "enabled" if on_or_off else "disabled"
+            await ctx.send(
+                f"New global setting: command `{command_name}` {on_or_off_s}."
+            )
         else:
             self.all_bot_settings["global"] = on_or_off
             await self.bot.db.execute(
@@ -955,8 +966,8 @@ class Settings(commands.Cog):
                 """,
                 setting_json,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
-            await ctx.send(f"New global setting: bot {on_or_off}.")
+            on_or_off_s = "enabled" if on_or_off else "disabled"
+            await ctx.send(f"New global setting: bot {on_or_off_s}.")
 
     @setting.command(name="global-server", aliases=["gs", "globalserver"])
     @commands.is_owner()
@@ -999,9 +1010,9 @@ class Settings(commands.Cog):
                 setting_json,
                 command_name,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
+            on_or_off_s = "enabled" if on_or_off else "disabled"
             await ctx.send(
-                f"New global setting: `{command_name}` {on_or_off} for server:"
+                f"New global setting: `{command_name}` {on_or_off_s} for server:"
                 f" {server.name}."
             )
         else:
@@ -1019,9 +1030,9 @@ class Settings(commands.Cog):
                 str(server.id),
                 setting_json,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
+            on_or_off_s = "enabled" if on_or_off else "disabled"
             await ctx.send(
-                f"New global setting: bot {on_or_off} for server: {server.name}."
+                f"New global setting: bot {on_or_off_s} for server: {server.name}."
             )
 
     @setting.command(name="global-user", aliases=["gu", "globaluser"])
@@ -1065,9 +1076,9 @@ class Settings(commands.Cog):
                 setting_json,
                 command_name,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
+            on_or_off_s = "enabled" if on_or_off else "disabled"
             await ctx.send(
-                f"New global setting: `{command_name}` {on_or_off} for user:"
+                f"New global setting: `{command_name}` {on_or_off_s} for user:"
                 f" {user.name}."
             )
         else:
@@ -1085,9 +1096,9 @@ class Settings(commands.Cog):
                 str(user.id),
                 setting_json,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
+            on_or_off_s = "enabled" if on_or_off else "disabled"
             await ctx.send(
-                f"New global setting: bot {on_or_off} for user:" f" {user.name}."
+                f"New global setting: bot {on_or_off_s} for user:" f" {user.name}."
             )
 
     @setting.command(name="server", aliases=["s"])
@@ -1126,9 +1137,9 @@ class Settings(commands.Cog):
                 setting_json,
                 command_name,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
+            on_or_off_s = "enabled" if on_or_off else "disabled"
             await ctx.send(
-                f"New setting: `{command_name}` {on_or_off} for this server."
+                f"New setting: `{command_name}` {on_or_off_s} for this server."
             )
         else:
             self.all_bot_settings["servers"][str(ctx.guild.id)]["server"] = on_or_off
@@ -1146,8 +1157,8 @@ class Settings(commands.Cog):
                 "server",
                 setting_json,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
-            await ctx.send(f"New setting: bot {on_or_off} for this server.")
+            on_or_off_s = "enabled" if on_or_off else "disabled"
+            await ctx.send(f"New setting: bot {on_or_off_s} for this server.")
 
     @setting.command(name="channel", aliases=["c"])
     @commands.has_guild_permissions(manage_guild=True)
@@ -1192,9 +1203,9 @@ class Settings(commands.Cog):
                 setting_json,
                 command_name,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
+            on_or_off_s = "enabled" if on_or_off else "disabled"
             await ctx.send(
-                f"New setting: `{command_name}` {on_or_off} for channel:"
+                f"New setting: `{command_name}` {on_or_off_s} for channel:"
                 f" {channel.name}."
             )
         else:
@@ -1216,8 +1227,10 @@ class Settings(commands.Cog):
                 str(channel.id),
                 setting_json,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
-            await ctx.send(f"New setting: bot {on_or_off} for channel: {channel.name}.")
+            on_or_off_s = "enabled" if on_or_off else "disabled"
+            await ctx.send(
+                f"New setting: bot {on_or_off_s} for channel: {channel.name}."
+            )
 
     @setting.command(name="role", aliases=["r"])
     @commands.has_guild_permissions(manage_guild=True)
@@ -1262,9 +1275,9 @@ class Settings(commands.Cog):
                 setting_json,
                 command_name,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
+            on_or_off_s = "enabled" if on_or_off else "disabled"
             await ctx.send(
-                f"New setting: `{command_name}` {on_or_off} for role: {role.name}."
+                f"New setting: `{command_name}` {on_or_off_s} for role: {role.name}."
             )
         else:
             self.all_bot_settings["servers"][str(ctx.guild.id)]["roles"][
@@ -1285,8 +1298,8 @@ class Settings(commands.Cog):
                 str(role.id),
                 setting_json,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
-            await ctx.send(f"New setting: bot {on_or_off} for role: {role.name}.")
+            on_or_off_s = "enabled" if on_or_off else "disabled"
+            await ctx.send(f"New setting: bot {on_or_off_s} for role: {role.name}.")
 
     @setting.command(name="member", aliases=["m"])
     @commands.has_guild_permissions(manage_guild=True)
@@ -1331,9 +1344,10 @@ class Settings(commands.Cog):
                 setting_json,
                 command_name,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
+            on_or_off_s = "enabled" if on_or_off else "disabled"
             await ctx.send(
-                f"New setting: `{command_name}` {on_or_off} for member: {member.name}."
+                f"New setting: `{command_name}` {on_or_off_s} for member: "
+                f"{member.name}."
             )
         else:
             self.all_cmd_settings["servers"][str(ctx.guild.id)]["members"][
@@ -1354,11 +1368,11 @@ class Settings(commands.Cog):
                 str(member.id),
                 setting_json,
             )
-            on_or_off = "enabled" if on_or_off else "disabled"
-            await ctx.send(f"New setting: bot {on_or_off} for member: {member.name}.")
+            on_or_off_s = "enabled" if on_or_off else "disabled"
+            await ctx.send(f"New setting: bot {on_or_off_s} for member: {member.name}.")
 
     async def set_default_settings(
-        self, server_id: int = None, command_name: str = None
+        self, server_id: int | None = None, command_name: str | None = None
     ) -> None:
         """Sets default settings for the bot or a command without overwriting anything
 
@@ -1493,10 +1507,10 @@ class Settings(commands.Cog):
                 )
                 entries.append(f"\n**server channels bot**{content}")
             if s_cmd_settings and s_cmd_settings["server"] is not None:
-                is_allowed = "✅" if cmd_settings["server"] else "❌"
+                is_allowed = "✅" if s_cmd_settings["server"] else "❌"
                 entries.append(f"\n**server command**\n{is_allowed}")
             if s_bot_settings and s_bot_settings["server"] is not None:
-                is_allowed = "✅" if bot_settings["server"] else "❌"
+                is_allowed = "✅" if s_bot_settings["server"] else "❌"
                 entries.append(f"\n**server bot**\n{is_allowed}")
         except KeyError:
             pass
@@ -1545,8 +1559,8 @@ class Settings(commands.Cog):
         content = ""
         for ID, is_allowed in settings_dict.items():
             name = get_function(int(ID))
-            is_allowed = "✅" if is_allowed else "❌"
-            content += f"\n{is_allowed} {name}"
+            is_allowed_s = "✅" if is_allowed else "❌"
+            content += f"\n{is_allowed_s} {name}"
         return content
 
     ################################
@@ -2010,7 +2024,7 @@ class Settings(commands.Cog):
         await self.cleanup_after_setting_delete(command_name, ctx.guild.id)
 
     async def cleanup_after_setting_delete(
-        self, command_name: CommandName | None = None, server_id: int = None
+        self, command_name: CommandName | None = None, server_id: int | None = None
     ) -> None:
         """Deletes a command's or the bot's settings if and only if they are empty
 

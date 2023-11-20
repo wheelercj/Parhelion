@@ -1,5 +1,7 @@
 import re
-from typing import Awaitable
+from typing import Any
+from typing import Callable
+from typing import Coroutine
 
 import discord  # https://pypi.org/project/discord.py/
 from discord import PartialMessageable  # https://pypi.org/project/discord.py/
@@ -82,7 +84,7 @@ async def check_ownership_permission(
     category: str,
     membership_removes_limit: bool,
     ownership_limit: int,
-    ownership_counter: Awaitable[int],
+    ownership_counter: Callable[[int], Coroutine[Any, Any, int]],
 ) -> None:
     """Raises commands.UserInputError if author has reached the ownership limit
 
@@ -98,7 +100,7 @@ async def check_ownership_permission(
         Whether membership should remove the ownership limit.
     ownership_limit : int
         How many of the requested thing a person can have.
-    ownership_counter : Awaitable[int]
+    ownership_counter : Callable[[int], Coroutine[Any, Any, int]]
         A coroutine that takes a Discord user ID and returns the number of a thing that
         user currently owns.
     """
@@ -151,7 +153,7 @@ async def get_prefixes_list(bot, message: discord.Message) -> list[str]:
 
 
 async def get_prefixes_str(
-    bot, message: discord.Message, display_prefixes: list[str] = None
+    bot, message: discord.Message, display_prefixes: list[str] | None = None
 ) -> str:
     """Returns a string of the rendered server-aware command prefixes, comma separated
 
@@ -165,7 +167,7 @@ async def get_prefixes_str(
 
 
 async def get_prefixes_message(
-    bot, message: discord.Message, display_prefixes: list[str] = None
+    bot, message: discord.Message, display_prefixes: list[str] | None = None
 ) -> str:
     """Returns a message of the bot's rendered server-aware command prefixes
 

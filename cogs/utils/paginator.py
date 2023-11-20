@@ -67,10 +67,11 @@ class Paginator(discord.ui.View):
                 filtered_entries.append(f"{self.prefix}{entry}{self.suffix}")
         if not filtered_entries:
             raise commands.BadArgument("No matches found.")
-        return [
-            filtered_entries[i : i + self.length]
+        result: list[str] = [
+            "\n".join(filtered_entries[i : i + self.length])
             for i in range(0, len(filtered_entries), self.length)
         ]
+        return result
 
     async def run(self, ctx) -> None:
         embed: discord.Embed = self.create_embed()
@@ -127,9 +128,7 @@ class Paginator(discord.ui.View):
         return await interaction.response.edit_message(embed=embed, view=self)
 
     def create_embed(self) -> discord.Embed:
-        embed = discord.Embed(
-            title=self.title, description="\n".join(self.pages[self.page_index])
-        )
+        embed = discord.Embed(title=self.title, description=self.pages[self.page_index])
         embed.set_footer(text=f"\u200b\npage {self.page_index + 1}/{len(self.pages)}")
         return embed
 

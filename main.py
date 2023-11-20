@@ -6,7 +6,7 @@ import asyncpg  # https://pypi.org/project/asyncpg/
 from bot import Bot
 
 
-async def main():
+async def main() -> None:
     if os.environ.get("ENV") != "docker":
         from dotenv import load_dotenv  # https://pypi.org/project/python-dotenv/
 

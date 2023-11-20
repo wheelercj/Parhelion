@@ -22,7 +22,7 @@ from cogs.utils.io import dev_mail
 
 
 class DevSettings:
-    def __init__(self):
+    def __init__(self) -> None:
         self.logs_folder_path: str = os.path.join(os.path.dirname(__file__), "logs")
         self.log_file_path: str = os.path.join(self.logs_folder_path, "bot.log")
         self.alt_github_name: str | None = os.environ.get(
@@ -58,7 +58,7 @@ class DevSettings:
 
 
 class Bot(commands.Bot):
-    def __init__(self):
+    def __init__(self) -> None:
         self.dev_settings = DevSettings()
         intents = discord.Intents.default()
         intents.members = True
@@ -71,13 +71,13 @@ class Bot(commands.Bot):
         )
         self.tree.on_error = self.on_app_command_error
         self.app_info: commands.Bot.AppInfo = None
-        self.owner_id: int = None
+        self.owner_id: int | None = None
         self.launch_time = datetime.now(timezone.utc)
         connector = aiohttp.TCPConnector(force_close=True)
         self.session = aiohttp.ClientSession(connector=connector)
         self.custom_prefixes: dict[int, list[str]] = dict()
         self.removed_default_prefixes: dict[int, list[str]] = dict()
-        self.logger: logging.Logger = None
+        self.logger: logging.Logger | None = None
         self.previous_command_ctxs: list[commands.Context] = []
         self.command_use_count = 0
         self.error_is_reported = False
@@ -257,7 +257,8 @@ class Bot(commands.Bot):
         messages.append(f"{traceback.format_exc()}")
         message = "\n".join(messages)
         print(message)
-        self.logger.error(message)
+        if self.logger is not None:
+            self.logger.error(message)
 
     async def on_command_error(self, ctx, error: commands.CommandError) -> None:
         """Handles errors from commands that are NOT app commands"""
@@ -340,13 +341,26 @@ class Bot(commands.Bot):
                 f"[error {error}]"
                 f'\n{"".join(tb)}'
             )
-            self.logger.error(message)
+            if self.logger is not None:
+                self.logger.error(message)
             print(f"Ignoring exception in command {cmd_name}:", file=sys.stderr)
             traceback.print_exception(
                 type(error), error, error.__traceback__, file=sys.stderr
             )
-            if not self.error_is_reported and self.logger.level <= logging.ERROR:
-                await dev_mail(self, "I encountered and logged an error")
+            if not self.error_is_reported:
+                if self.logger is None:
+                    await dev_mail(
+                        self,
+                        "".join(
+                            (
+                                "I encountered an error, but the logger is None so it ",
+                                "could not be logged. Here is the error:\n",
+                                message,
+                            )
+                        ),
+                    )
+                elif self.logger.level <= logging.ERROR:
+                    await dev_mail(self, "I encountered and logged an error")
                 self.error_is_reported = True
             if not self.dev_settings.support_server_link:
                 await send(

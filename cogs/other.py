@@ -42,7 +42,7 @@ from cogs.utils.time import parse_time_message
 
 
 class RunningQuoteInfo:
-    def __init__(self, target_time: datetime, author_id: int):
+    def __init__(self, target_time: datetime, author_id: int) -> None:
         self.target_time = target_time
         self.author_id = author_id
 
@@ -55,9 +55,9 @@ class MyTio(async_tio.Tio):
 class Other(commands.Cog):
     """A variety of commands that don't fit in the other categories."""
 
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         self.bot = bot
-        self.running_quote_info: RunningQuoteInfo = None
+        self.running_quote_info: RunningQuoteInfo | None = None
         self.quotes_task = self.bot.loop.create_task(self.run_daily_quotes())
 
     def cog_unload(self):
@@ -86,6 +86,11 @@ class Other(commands.Cog):
                 target_time, author_id, destination = await self.get_next_quote_info()
                 if target_time is None:
                     self.bot.logger.debug("quote task's target_time is None")
+                    self.running_quote_info = None
+                    self.quotes_task.cancel()
+                    return
+                if author_id is None:
+                    self.bot.logger.debug("quote task's author_id is None")
                     self.running_quote_info = None
                     self.quotes_task.cancel()
                     return

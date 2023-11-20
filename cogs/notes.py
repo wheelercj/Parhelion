@@ -16,7 +16,7 @@ class Notes(commands.Cog):
     command.
     """
 
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         self.bot = bot
         self._task = bot.loop.create_task(self.create_table_if_not_exists())
         self.note_ownership_limit = 5
@@ -55,7 +55,7 @@ class Notes(commands.Cog):
         if len(text) > 500:
             raise commands.BadArgument(
                 "Error: each note has a 500 character limit. This text is"
-                f" {len(text)-500} characters over the limit."
+                f" {len(text)-500} characters over the limit."  # noqa: E226
             )
         try:
             _notes, jump_urls = await self.fetch_notes(ctx)
@@ -66,7 +66,7 @@ class Notes(commands.Cog):
         if not ctx.interaction:
             jump_urls.append(ctx.message.jump_url)
         else:
-            jump_urls.append(None)
+            jump_urls.append("")
         await self.save_notes(ctx, _notes, jump_urls)
         if ctx.interaction:
             await ctx.send(
@@ -93,9 +93,9 @@ class Notes(commands.Cog):
         _notes, jump_urls = await self.fetch_notes(ctx)
         for i, n in enumerate(_notes):
             if jump_urls[i]:
-                _notes[i] = f"[**{i+1}**.]({jump_urls[i]}) {n}"
+                _notes[i] = f"[**{i+1}**.]({jump_urls[i]}) {n}"  # noqa: E226
             else:
-                _notes[i] = f"**{i+1}**. {n}"
+                _notes[i] = f"**{i+1}**. {n}"  # noqa: E226
         paginator = Paginator(
             title=f"{ctx.author.display_name}'s notes",
             entries=_notes,
@@ -119,8 +119,8 @@ class Notes(commands.Cog):
         i = index - 1
         if len(text) > 500:
             raise commands.BadArgument(
-                "Each note has a 500 character limit."
-                f" This note is {len(text)-500} characters over the limit."
+                "Each note has a 500 character limit. This note is"
+                f" {len(text)-500} characters over the limit."  # noqa: E226
             )
         _notes, jump_urls = await self.fetch_notes(ctx)
         await self.validate_note_indexes(_notes, i)
@@ -190,7 +190,7 @@ class Notes(commands.Cog):
         await self.validate_note_indexes(n, i, j)
         await self._swap_notes(n, urls, i, j)
         await self.save_notes(ctx, n, urls)
-        await ctx.send(f"Notes {i+1} and {j+1} swapped", ephemeral=True)
+        await ctx.send(f"Notes {i+1} and {j+1} swapped", ephemeral=True)  # noqa: E226
 
     @commands.hybrid_command(
         name="up-note", aliases=["un", "nu", "upnote", "note-up", "noteup"]
@@ -288,9 +288,7 @@ class Notes(commands.Cog):
             datetime.now(timezone.utc),
         )
 
-    async def validate_note_indexes(
-        self, _notes: list[str], *indexes: list[int]
-    ) -> None:
+    async def validate_note_indexes(self, _notes: list[str], *indexes: int) -> None:
         """Raises commands.BadArgument if an index is too low, high, or duplicated"""
         for i in indexes:
             if i < 0:

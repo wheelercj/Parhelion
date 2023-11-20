@@ -28,7 +28,7 @@ def yes_or_no(boolean: bool) -> str:
 class MyHelp(commands.HelpCommand):
     # Guide on subclassing HelpCommand:
     # https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.command_attrs = {
             "name": "help",
@@ -63,6 +63,8 @@ class MyHelp(commands.HelpCommand):
             "\n\u200b"
         )
         for cog, commands_ in mapping.items():
+            if cog is None:
+                continue
             filtered_commands = await self.filter_commands(commands_, sort=True)
             if filtered_commands:
                 cog_name = getattr(cog, "qualified_name", "No Category")
@@ -121,6 +123,12 @@ class MyHelp(commands.HelpCommand):
             message += "\n" + aliases
         prefix: str = await self.get_clean_prefix()
         help_cmd_name: str = self.context.invoked_with
+        if not help_cmd_name.startswith("help"):
+            cmd_parents: list[str] = self.context.invoked_parents
+            if cmd_parents:
+                help_cmd_name = "help " + " ".join(cmd_parents)
+            else:
+                help_cmd_name = "help " + help_cmd_name
         message += (
             f"\n\n{group.help}"
             f"\n\nUse `{prefix}{help_cmd_name} [command]` for more info on a command."
@@ -150,7 +158,7 @@ class MyHelp(commands.HelpCommand):
 class Info(commands.Cog):
     """See info about this bot or the server."""
 
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         self.bot = bot
         self.old_help_command = bot.help_command
         bot.help_command = MyHelp()
@@ -374,7 +382,7 @@ class Info(commands.Cog):
             )
 
     @commands.hybrid_command(aliases=["i", "info"])
-    async def about(self, ctx):
+    async def about(self, ctx) -> None:
         """Shows general info about this bot"""
         embed = discord.Embed()
         owner = self.bot.get_user(self.bot.owner_id)
@@ -638,7 +646,7 @@ class Info(commands.Cog):
     @commands.guild_only()
     async def server_permissions(
         self, ctx, *, member_or_role: discord.Member | discord.Role | None = None
-    ):
+    ) -> None:
         """Shows the server and channel permissions of a member or role
 
         If a user and role have the same ID and/or name, the permissions for the user
@@ -653,24 +661,24 @@ class Info(commands.Cog):
         if member_or_role is None:
             member_or_role = ctx.author
         server_perms, overwrites, title = await self.get_perms(ctx, member_or_role)
-        if not len(server_perms):
+        if not server_perms:
             raise commands.BadArgument("Could not find the user or role.")
         embed = discord.Embed(title=title)
         embed.add_field(name="server permissions", value=server_perms)
-        if len(overwrites):
+        if overwrites:
             embed = await self.embed_overwrites(embed, server_perms, overwrites)
         await ctx.send(embed=embed)
 
     async def embed_overwrites(
-        self, embed: discord.Embed, server_perms: str, overwrites: str
+        self, embed: discord.Embed, server_perms: str | bool, overwrites: str
     ) -> discord.Embed:
         """Adds embed fields listing channel perm overwrites of server perms"""
-        server_n = server_perms.count("\n")
+        server_n = 0 if isinstance(server_perms, bool) else server_perms.count("\n")
         channel_n = overwrites.count("\n")
         if server_n > channel_n:
             embed.add_field(name="channel overwrites", value=overwrites)
         else:
-            half = channel_n / 2
+            half = channel_n // 2
             embed.add_field(name="channel overwrites", value=overwrites[:half])
             embed.add_field(name="channel overwrites cont.", value=overwrites[half:])
         return embed
@@ -687,8 +695,12 @@ class Info(commands.Cog):
 
     async def get_perms(
         self, ctx, member_or_role: discord.Member | discord.Role
-    ) -> tuple[str, str, str]:
-        """Gets the formatted server perms, channel overwrites, and embed title"""
+    ) -> tuple[str | bool, str, str]:
+        """Gets the formatted server perms, channel overwrites, and embed title
+
+        The value of the returned server permissions is False if the permissions are for
+        a hidden text channel.
+        """
         if isinstance(member_or_role, discord.Member):
             member = member_or_role
             server_perms = await self.format_perms(member.guild_permissions)
@@ -719,7 +731,7 @@ class Info(commands.Cog):
             )
             if not channel_perms and channel_perms != "" and channel.category:
                 hidden_text_count += 1
-            elif len(channel_perms):
+            elif channel_perms:
                 overwrites += f"**\u2800{channel.name}**\n" f"{channel_perms}\n"
         if hidden_text_count:
             overwrites += (

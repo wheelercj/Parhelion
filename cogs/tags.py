@@ -17,7 +17,7 @@ from cogs.utils.time import create_relative_timestamp
 class Tags(commands.Cog):
     """Save and share messages such as FAQs."""
 
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         self.bot = bot
         self._task = bot.loop.create_task(self.create_table_if_not_exists())
         self.tag_ownership_limit = 5
@@ -608,7 +608,7 @@ class Tags(commands.Cog):
         entries = []
         for i, r in enumerate(records):
             tag_name = r["name"].replace("`", "\\`")
-            entries.append(f'{i+1}. `{tag_name}` (ID: {r["id"]})')
+            entries.append(f'{i+1}. `{tag_name}` (ID: {r["id"]})')  # noqa: E226
         paginator = Paginator(title=title, entries=entries)
         await paginator.run(ctx)
 
@@ -640,7 +640,10 @@ class Tags(commands.Cog):
         return 0
 
     async def validate_new_tag_info(
-        self, name: str = None, content: str = None, server_id: int = None
+        self,
+        name: str | None = None,
+        content: str | None = None,
+        server_id: int | None = None,
     ) -> bool:
         """Validates the name and content of a new tag
 
@@ -652,6 +655,30 @@ class Tags(commands.Cog):
         If any of the args are None, not all of the new tag validation will be
         completed. The server_id arg is needed to validate a new tag name.
         """
+        # Validate the length and type of the given tag name, content, and server ID.
+        if name is None:
+            raise TypeError("Tag name must be specified.")
+        if len(name) > self.tag_name_length_limit:
+            raise commands.BadArgument(
+                f"Tag name length must be {self.tag_name_length_limit}"
+                " characters or fewer."
+            )
+        if len(name) == 0:
+            raise commands.BadArgument("Tag name length must be at least 1 character.")
+        if content is None:
+            raise TypeError("Tag content must be specified.")
+        if len(content) > self.tag_content_length_limit:
+            raise commands.BadArgument(
+                f"Tag content length must be {self.tag_content_length_limit}"
+                " characters or fewer."
+            )
+        if len(content) == 0:
+            raise commands.BadArgument(
+                "Tag content length must be at least 1 character."
+            )
+        if server_id is None:
+            raise TypeError("Server ID must be specified.")
+
         # Prevent new tag names from starting with tag subcommand names.
         tag_subcommands: list[str] = []
         tag_command = self.bot.get_command("tag")
@@ -676,28 +703,6 @@ class Tags(commands.Cog):
         )
         if records and len(records):
             raise commands.BadArgument(f'A tag named "{name}" already exists.')
-
-        # Validate the name and content length.
-        if name is not None:
-            if len(name) > self.tag_name_length_limit:
-                raise commands.BadArgument(
-                    f"Tag name length must be {self.tag_name_length_limit}"
-                    " characters or fewer."
-                )
-            if len(name) == 0:
-                raise commands.BadArgument(
-                    "Tag name length must be at least 1 character."
-                )
-        if content is not None:
-            if len(content) > self.tag_content_length_limit:
-                raise commands.BadArgument(
-                    f"Tag content length must be {self.tag_content_length_limit}"
-                    " characters or fewer."
-                )
-            if len(content) == 0:
-                raise commands.BadArgument(
-                    "Tag content length must be at least 1 character."
-                )
         return True
 
     async def handle_tag_cleanup(self, ctx, record: asyncpg.Record) -> None:
@@ -752,8 +757,8 @@ class Tags(commands.Cog):
         n_transferred = await self.transfer_tag_ownership(ctx, record, new_owner)
         if n_transferred:
             await ctx.reply(
-                f'Tag "{tag_name}" and its {n_transferred-1} aliases now belong to'
-                f" {new_owner.name}!"
+                f'Tag "{tag_name}" and its {n_transferred-1}'  # noqa: E226
+                f" aliases now belong to {new_owner.name}!"
             )
         else:
             await ctx.reply(f'Tag "{tag_name}" now belongs to {new_owner.name}!')
