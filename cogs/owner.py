@@ -229,7 +229,7 @@ class Owner(commands.Cog):
             auth = aiohttp.BasicAuth("wheelercj", password=github_token)
             async with self.bot.session.post(url, data=data, auth=auth) as response:
                 if not response.ok:
-                    raise ValueError(
+                    raise commands.BadArgument(
                         f"GitHub API request failed with status code {response.status}."
                     )
                 json_text = await response.json()
