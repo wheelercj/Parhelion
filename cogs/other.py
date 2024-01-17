@@ -100,7 +100,9 @@ class Other(commands.Cog):
                     await self.send_quote(destination, author_id)
                     await self.update_quote_target_time(target_time, author_id)
                 except (ContentTypeError, json.decoder.JSONDecodeError) as error:
-                    self.bot.logger.error(f"quote task caught an error:\n{error}")
+                    self.bot.logger.error(
+                        f"quote task caught {type(error).__name__}: {error}"
+                    )
                     await asyncio.sleep(30)
         except (
             OSError,
@@ -108,7 +110,7 @@ class Other(commands.Cog):
             asyncpg.PostgresConnectionError,
             Exception,
         ) as error:
-            self.bot.logger.error(f"quote task caught an error:\n{error}")
+            self.bot.logger.error(f"quote task caught {type(error).__name__}: {error}")
             self.quotes_task.cancel()
             await asyncio.sleep(30)
             self.quotes_task = self.bot.loop.create_task(self.run_daily_quotes())
