@@ -139,11 +139,14 @@ class Bot(commands.Bot):
         await super().close()
 
     async def on_connect(self) -> None:
+        # This function may be called multiple times while the bot is running, so its
+        # operations should be idempotent.
         print("Loading . . . ")
         await self.wait_until_ready()
         self.app_info = await self.application_info()
         self.owner_id = self.app_info.owner.id
-        self.logger = await self.set_up_logger()
+        if self.logger is None:
+            self.logger = await self.set_up_logger()
         self.logger.info("Loading . . .")
 
     async def on_resumed(self) -> None:
