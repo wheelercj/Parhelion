@@ -8,7 +8,7 @@ You can try the bot in [the support server](https://discord.gg/mCqGhPJVcN), or [
 
 ## setup instructions
 
-These instructions use [Docker](https://www.docker.com/) and maybe [Git](https://git-scm.com/).
+These instructions require [Docker](https://www.docker.com/) to be installed and maybe [Git](https://git-scm.com/). You don't need to know how to use them.
 
 1. Create a [Discord API app](https://discord.com/developers/applications). Enable the server members intent and the message content intent. You can see which permissions the bot needs in the `get_bot_invite_link` function near the top of [cogs/utils/common.py](https://github.com/wheelercj/Parhelion/blob/main/cogs/utils/common.py).
 2. Download the bot's files in one of two ways:
@@ -56,10 +56,10 @@ POSTGRES_DB="bot"
 POSTGRES_USER="dev"
 POSTGRES_PASSWORD="dkByXjCEQJ7UPYgyZu1W167LhldOVcSgEV7EXmhs7iYbzf4yv73tmIzYlmqvSQHYZrLo7se8lbOR3FYIFBzJv6NgDwg5GBj4FZI"
 
-# These two are used by the bot, but not by the `parhelion_db` service in
+# These two variables are used by the bot, but not by the `parhelion_db` service in
 # docker-compose.yml which always uses localhost and port 5432. If the database is
-# running in Docker, the `parhelion` service requires POSTGRES_HOST to be the name of
-# the database's container.
+# running in Docker (the default), the `parhelion` service requires POSTGRES_HOST to be
+# the name of the database's container ("parhelion_db" by default).
 POSTGRES_HOST="parhelion_db"
 POSTGRES_PORT="5432"
 
@@ -68,16 +68,17 @@ POSTGRES_PORT="5432"
 # are hardcoded.
 DEFAULT_BOT_PREFIXES=";,par ,Par "
 
-# Required by the owner-only `gist` command for making gists.
+# Required if you want to use the owner-only `gist` command for making gists.
 MAIN_GITHUB_GISTS_TOKEN="ghp_gHc6Zhhprk43ZGM1VNNvQmgnDxydvKxmDVfb"
 
 # These are used to automatically create gists of any leaked bot tokens Parhelion
-# detects to invalidate the tokens and protect Discord bots (including itself). You
-# might want to create a separate GitHub account for this if you think a lot of tokens
-# might be spammed so you don't clutter your main account.
+# detects to invalidate the tokens and protect Discord bots (including itself). If you
+# think many tokens might be spammed, you could create a separate GitHub account for
+# this so you don't clutter your main account (if you have one).
 ALTERNATE_GITHUB_GISTS_TOKEN="ghp_aPyJbZJYCXN9wS0ZGsnHPMvc40A63DUnIScH"
 ALTERNATE_GITHUB_ACCOUNT_NAME="beep-boop-82197842"
 
+# The support server variables are for a support server for your bot, if you have one.
 SUPPORT_SERVER_LINK="https://discord.gg/mCqGhPJVcN"
 SUPPORT_SERVER_ID="845465081582977044"
 
