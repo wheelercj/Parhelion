@@ -414,7 +414,7 @@ class Info(commands.Cog):
                 f"Use `{shortest_nonslash_prefix}help` for help with commands.\n\n"
             )
         embed.add_field(
-            name=self.bot.user.name,
+            name=f"{self.bot.user.name} {self.bot.dev_settings.version}",
             value=dedent(
                 f"""
                 \u200b
