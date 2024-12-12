@@ -7,6 +7,6 @@ deep-translator==1.11.4
 discord.py==2.3.2
 jishaku==2.5.1
 lxml==4.9.3
-mystbin-py==6.0.2
+mystbin-py==7.0.2
 psutil==5.9.5
 wordhoard==1.5.4
