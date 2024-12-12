@@ -1113,8 +1113,18 @@ class Other(commands.Cog):
     async def update_quote_target_time(
         self, old_target_time: datetime, author_id: int
     ) -> None:
-        """Changes a daily quote's target time in the database to one day later"""
-        new_target_time = old_target_time + timedelta(days=1)
+        """Changes a daily quote's target time in the database to tomorrow"""
+        tomorrow: datetime = datetime.now(timezone.utc) + timedelta(days=1)
+        new_target_time: datetime = datetime(
+            year=tomorrow.year,
+            month=tomorrow.month,
+            day=tomorrow.day,
+            hour=old_target_time.hour,
+            minute=old_target_time.minute,
+            second=old_target_time.second,
+            tzinfo=timezone.utc,
+        )
+
         await self.bot.db.execute(
             """
             UPDATE daily_quotes
