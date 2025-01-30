@@ -23,7 +23,7 @@ from cogs.utils.io import dev_mail
 
 class DevSettings:
     def __init__(self) -> None:
-        self.version: str = "v0.1.3"
+        self.version: str = "v0.1.4"
         self.logs_folder_path: str = os.path.join(os.path.dirname(__file__), "logs")
         self.log_file_path: str = os.path.join(self.logs_folder_path, "bot.log")
         self.alt_github_name: str | None = os.environ.get(
@@ -412,7 +412,7 @@ class Bot(commands.Bot):
         # Documentation for RotatingFileHandler:
         # https://docs.python.org/3/library/logging.handlers.html?#logging.handlers.RotatingFileHandler  # noqa: E501
         logger = logging.getLogger(__name__)
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging.DEBUG)
         os.makedirs(self.dev_settings.logs_folder_path, exist_ok=True)
         handler = RotatingFileHandler(
             filename=self.dev_settings.log_file_path,
