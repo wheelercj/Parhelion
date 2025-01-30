@@ -80,9 +80,11 @@ class Other(commands.Cog):
     async def run_daily_quotes(self) -> None:
         """A task that finds the next quote time, waits for that time, and sends"""
         await self.bot.wait_until_ready()
+        self.bot.logger.debug("quote task starting")
         await self.create_table_if_not_exists()
         try:
             while not self.bot.is_closed():
+                self.bot.logger.debug("quote task getting next quote info")
                 target_time, author_id, destination = await self.get_next_quote_info()
                 if target_time is None:
                     self.bot.logger.debug("quote task's target_time is None")
@@ -95,13 +97,19 @@ class Other(commands.Cog):
                     self.quotes_task.cancel()
                     return
                 self.running_quote_info = RunningQuoteInfo(target_time, author_id)
+                self.bot.logger.debug(f"quote task sleeping until {target_time}")
                 await discord.utils.sleep_until(target_time)
+                self.bot.logger.debug("quote task woke up and will now send quote")
                 try:
                     await self.send_quote(destination, author_id)
+                    self.bot.logger.debug(
+                        "quote task sent quote and will now update the target time"
+                    )
                     await self.update_quote_target_time(target_time, author_id)
+                    self.bot.logger.debug("quote task updated the target time")
                 except (ContentTypeError, json.decoder.JSONDecodeError) as error:
                     self.bot.logger.error(
-                        f"quote task caught {type(error).__name__}: {error}"
+                        f"quote task inner try/except {type(error).__name__}: {error}"
                     )
                     await asyncio.sleep(30)
         except (
@@ -110,7 +118,9 @@ class Other(commands.Cog):
             asyncpg.PostgresConnectionError,
             Exception,
         ) as error:
-            self.bot.logger.error(f"quote task caught {type(error).__name__}: {error}")
+            self.bot.logger.error(
+                f"quote task outer try/except {type(error).__name__}: {error}"
+            )
             self.quotes_task.cancel()
             await asyncio.sleep(30)
             self.quotes_task = self.bot.loop.create_task(self.run_daily_quotes())
@@ -1124,6 +1134,7 @@ class Other(commands.Cog):
             second=old_target_time.second,
             tzinfo=timezone.utc,
         )
+        self.bot.logger.debug(f"new quote target time: {new_target_time}")
 
         await self.bot.db.execute(
             """
