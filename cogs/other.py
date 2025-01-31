@@ -1171,8 +1171,8 @@ class Other(commands.Cog):
             "http://api.forismatic.com/api/1.0/", params=params
         ) as response:
             json_text = await response.json()
-        quote = json_text["quoteText"]
-        author = json_text["quoteAuthor"]
+        quote: str = json_text["quoteText"].strip()
+        author: str = json_text["quoteAuthor"].strip()
         return quote, author
 
 
