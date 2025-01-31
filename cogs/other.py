@@ -1168,7 +1168,7 @@ class Other(commands.Cog):
         """
         params = {"lang": "en", "method": "getQuote", "format": "json"}
         async with self.bot.session.get(
-            "http://api.forismatic.com/api/1.0/", params=params
+            "https://api.forismatic.com/api/1.0/", params=params
         ) as response:
             json_text = await response.json()
         quote: str = json_text["quoteText"].strip()

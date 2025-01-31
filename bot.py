@@ -23,7 +23,7 @@ from cogs.utils.io import dev_mail
 
 class DevSettings:
     def __init__(self) -> None:
-        self.version: str = "v0.1.4"
+        self.version: str = "v0.1.5"
         self.logs_folder_path: str = os.path.join(os.path.dirname(__file__), "logs")
         self.log_file_path: str = os.path.join(self.logs_folder_path, "bot.log")
         self.alt_github_name: str | None = os.environ.get(
