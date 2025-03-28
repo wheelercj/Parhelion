@@ -4,12 +4,7 @@ services:
     container_name: parhelion
     depends_on:
       - parhelion_db
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
+    restart: unless-stopped
     env_file: .env
     environment:
       ENV: docker
@@ -20,12 +15,7 @@ services:
   parhelion_db:
     image: postgres:latest
     container_name: parhelion_db
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
+    restart: unless-stopped
     env_file: .env
       # The host is always `localhost` and the port is always `5432`. The POSTGRES_HOST
       # and POSTGRES_PORT variables in the .env file are ignored.
