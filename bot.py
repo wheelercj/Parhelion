@@ -201,11 +201,10 @@ class Bot(commands.Bot):
                     f"GitHub API request failed with status code {response.status}."
                 )
         await message.reply(
-            "Bot token detected and invalidated! If the token was in use, the bot it"
-            " belonged to will need to get a new token before being able to reconnect"
-            " to Discord. For more details, see"
-            " <https://gist.github.com/beep-boop-82197842/"
-            "4255864be63966b8618e332d1df30619>"
+            "Bot token detected and invalidated! If the token was in use, the bot it "
+            "belonged to will need to get a new token before being able to reconnect "
+            "to Discord. For more details, see "
+            "<https://gist.github.com/beep-boop-82197842/4255864be63966b8618e332d1df30619>"  # noqa: E501
         )
 
     async def is_only_bot_mention(self, message: discord.Message) -> bool:
