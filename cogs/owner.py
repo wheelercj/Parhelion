@@ -279,10 +279,8 @@ class Owner(commands.Cog):
             else:
                 ret = await self.bot.db.execute(statement)
             await ctx.send(ret, ephemeral=True)
-            await ctx.message.add_reaction("✅")
         except Exception as e:
-            await ctx.message.add_reaction("❗")
-            await ctx.reply(f"PostgreSQL error: {e}", ephemeral=True)
+            await ctx.send(f"PostgreSQL error: {e}", ephemeral=True)
 
     #####################
     # log command group #
